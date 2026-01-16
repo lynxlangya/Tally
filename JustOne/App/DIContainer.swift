@@ -27,19 +27,33 @@ final class DIContainer {
     }
 
     struct Services {
-        init() {}
+        let export: ExportService
+        let recurring: RecurringService
+        let security: SecurityService
+
+        static func live() -> Services {
+            Services(
+                export: StubExportService(),
+                recurring: StubRecurringService(),
+                security: StubSecurityService()
+            )
+        }
+
+        static func mock() -> Services {
+            live()
+        }
     }
 
     let repositories: Repositories
     let services: Services
 
-    init(repositories: Repositories, services: Services = Services()) {
+    init(repositories: Repositories, services: Services = Services.live()) {
         self.repositories = repositories
         self.services = services
     }
 
     static func live(persistenceController: PersistenceController) -> DIContainer {
         let repos = Repositories.live(context: persistenceController.container.viewContext)
-        return DIContainer(repositories: repos)
+        return DIContainer(repositories: repos, services: Services.live())
     }
 }
