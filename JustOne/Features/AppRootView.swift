@@ -1,23 +1,16 @@
 import SwiftUI
 
 struct AppRootView: View {
-    private let sampleAmount = Money(cents: 428560)
-    private let sampleDayKey = DayKeyFormatter.dayKey(for: Date())
+    @Environment(\.appEnvironment) private var environment
 
     var body: some View {
-        VStack(spacing: 12) {
-            Text("JustOne")
-                .font(.title)
-            Text(MoneyFormatter.string(from: sampleAmount))
-                .font(.headline)
-            Text(sampleDayKey)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+        NavigationStack {
+            BillsListView(repository: environment.container.repositories.bill)
         }
-        .padding()
     }
 }
 
 #Preview {
     AppRootView()
+        .environment(\.appEnvironment, .preview)
 }
