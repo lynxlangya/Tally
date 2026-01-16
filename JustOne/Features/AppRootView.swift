@@ -5,7 +5,20 @@ struct AppRootView: View {
 
     var body: some View {
         NavigationStack {
-            BillsListView(repository: environment.container.repositories.bill)
+            List {
+                NavigationLink("Bills") {
+                    BillsListView(repository: environment.container.repositories.bill)
+                }
+                #if DEBUG
+                NavigationLink("Debug") {
+                    DebugView(
+                        repository: environment.container.repositories.bill,
+                        seedService: environment.container.services.seed
+                    )
+                }
+                #endif
+            }
+            .navigationTitle("JustOne")
         }
     }
 }

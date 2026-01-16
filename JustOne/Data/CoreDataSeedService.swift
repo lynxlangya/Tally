@@ -1,6 +1,11 @@
 import CoreData
 
-struct SeedService {
+struct CoreDataSeedService: SeedService {
+    private let context: NSManagedObjectContext
+
+    init(context: NSManagedObjectContext) {
+        self.context = context
+    }
     private struct SeedCategory {
         let id: UUID
         let type: BillType
@@ -17,7 +22,7 @@ struct SeedService {
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, type: .income, name: "工资", iconKey: "creditcard", isSystem: true, sortOrder: 1)
     ]
 
-    func seedIfNeeded(in context: NSManagedObjectContext) throws {
+    func seedIfNeeded() throws {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Category")
         fetchRequest.fetchLimit = 1
         let existingCount = try context.count(for: fetchRequest)
@@ -38,7 +43,7 @@ struct SeedService {
         }
     }
 
-    func seedPreviewBill(in context: NSManagedObjectContext) throws {
+    func seedPreviewBill() throws {
         let object = NSEntityDescription.insertNewObject(forEntityName: "Bill", into: context)
         let now = Date()
         let snapshot = TimePolicy.snapshot(for: now)

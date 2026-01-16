@@ -30,30 +30,38 @@ final class DIContainer {
         let export: ExportService
         let recurring: RecurringService
         let security: SecurityService
+        let seed: SeedService
 
-        static func live() -> Services {
+        static func live(context: NSManagedObjectContext) -> Services {
             Services(
                 export: StubExportService(),
                 recurring: StubRecurringService(),
-                security: StubSecurityService()
+                security: StubSecurityService(),
+                seed: CoreDataSeedService(context: context)
             )
         }
 
         static func mock() -> Services {
-            live()
+            Services(
+                export: StubExportService(),
+                recurring: StubRecurringService(),
+                security: StubSecurityService(),
+                seed: StubSeedService()
+            )
         }
     }
 
     let repositories: Repositories
     let services: Services
 
-    init(repositories: Repositories, services: Services = Services.live()) {
+    init(repositories: Repositories, services: Services = Services.mock()) {
         self.repositories = repositories
         self.services = services
     }
 
     static func live(persistenceController: PersistenceController) -> DIContainer {
-        let repos = Repositories.live(context: persistenceController.container.viewContext)
-        return DIContainer(repositories: repos, services: Services.live())
+        let context = persistenceController.container.viewContext
+        let repos = Repositories.live(context: context)
+        return DIContainer(repositories: repos, services: Services.live(context: context))
     }
 }
