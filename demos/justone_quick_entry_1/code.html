@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JustOne 记账前置选择页</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec37",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102213",
+                        "surface-dark": "#1c2e20",
+                        "text-dim": "#92c99b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark h-screen w-full flex flex-col font-display overflow-hidden text-white selection:bg-primary selection:text-background-dark">
+<div class="flex flex-col items-center pt-2 pb-1 shrink-0 relative z-20">
+<div class="h-1.5 w-12 rounded-full bg-white/20 mb-4 cursor-pointer hover:bg-white/30 transition-colors"></div>
+<p class="text-text-dim text-sm font-medium tracking-wide uppercase opacity-80">选择分类</p>
+<div class="absolute right-6 top-8 flex items-center bg-surface-dark rounded-full p-1 border border-white/10">
+<button class="relative rounded-full px-5 py-1.5 text-sm font-bold bg-primary text-background-dark shadow-[0_2px_8px_rgba(19,236,55,0.25)] transition-all hover:bg-[#3bf55a]">支</button>
+<button class="relative rounded-full px-5 py-1.5 text-sm font-bold text-white/40 hover:text-white transition-all hover:bg-white/5">收</button>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center relative shrink-0 flex-1">
+<div class="flex items-baseline gap-2 px-4">
+<span class="text-4xl font-bold text-primary align-top mt-2 opacity-90">¥</span>
+<h1 class="text-[5rem] font-extrabold leading-none tracking-tight text-white">0</h1>
+</div>
+<p class="text-white/20 text-xs font-medium mt-2 tracking-wider">先选择分类，再输入金额</p>
+</div>
+<div class="h-[50%] w-full bg-surface-dark/20 border-t border-white/5 rounded-t-[2.5rem] overflow-hidden flex flex-col relative">
+<div class="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-background-dark/50 to-transparent z-10 pointer-events-none"></div>
+<div class="flex-1 overflow-y-auto no-scrollbar pt-8 pb-12 px-6">
+<div class="grid grid-cols-4 gap-y-8 gap-x-2">
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">restaurant</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">餐饮</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">directions_car</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">交通</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">shopping_bag</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">购物</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">movie</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">娱乐</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">cottage</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">居住</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">ecg_heart</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">医疗</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">pets</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">宠物</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">school</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">教育</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">icecream</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">零食</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">grocery</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">买菜</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">local_convenience_store</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">日用</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">call</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">通讯</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">checkroom</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">服饰</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">face</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">美容</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">devices</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">数码</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">flight</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">旅行</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">card_giftcard</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">礼物</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">groups</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">社交</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">build</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">维修</p>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
+<span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">more_horiz</span>
+</div>
+<p class="text-xs text-white/40 font-medium group-hover:text-white/60 transition-colors">其他</p>
+</button>
+</div>
+</div>
+</div>
+</body></html>

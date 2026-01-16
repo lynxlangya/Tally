@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JustOne 统计分析</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec37",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102213", // Very deep green/charcoal
+                        "surface-dark": "#1a301e",
+                        "gray-dark": "#333333",
+                        "gray-medium": "#666666",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "md": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased selection:bg-primary selection:text-black">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto overflow-hidden shadow-2xl bg-background-dark">
+<header class="flex items-center justify-between p-4 pb-2 z-10 pt-6">
+<button aria-label="Go back" class="flex size-10 items-center justify-center rounded-full hover:bg-white/10 transition-colors text-white">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<div class="flex items-center gap-1 cursor-pointer rounded-lg hover:bg-white/5 py-1 px-3 transition-colors group">
+<h2 class="text-white text-lg font-bold leading-tight tracking-tight">2023年10月</h2>
+<span class="material-symbols-outlined text-[20px] text-gray-400 group-hover:text-white transition-colors">arrow_drop_down</span>
+</div>
+<div class="flex h-10 items-center rounded-xl bg-[#1c3321] p-1 border border-white/10">
+<button aria-label="Switch to Expenses" class="flex h-full w-10 items-center justify-center rounded-lg bg-primary text-sm font-bold text-background-dark shadow-sm transition-all">
+        支
+    </button>
+<button aria-label="Switch to Income" class="flex h-full w-10 items-center justify-center rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-colors hover:bg-white/5">
+        收
+    </button>
+</div>
+</header>
+<main class="flex-1 flex flex-col w-full px-5 pt-2 pb-24 overflow-y-auto no-scrollbar">
+<div class="w-full mb-10 mt-2">
+<div class="flex items-end justify-between mb-6 px-1">
+<div>
+<span class="text-gray-400 text-xs font-medium uppercase tracking-wider">本月总支出</span>
+<div class="flex items-baseline gap-2 mt-0.5">
+<h1 class="text-white text-3xl font-extrabold tracking-tight">¥1,240.50</h1>
+<span class="text-primary text-xs font-bold bg-primary/10 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[12px]">trending_up</span> 12%
+                        </span>
+</div>
+</div>
+</div>
+<div class="relative h-48 w-full">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 z-0">
+<div class="w-full h-px bg-white border-t border-dashed border-white"></div>
+<div class="w-full h-px bg-white border-t border-dashed border-white"></div>
+<div class="w-full h-px bg-white border-t border-dashed border-white"></div>
+<div class="w-full h-px bg-transparent"></div>
+</div>
+<div class="absolute inset-0 z-10 pt-2">
+<svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+<defs>
+<linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#13ec37" stop-opacity="0.4"></stop>
+<stop offset="100%" stop-color="#13ec37" stop-opacity="0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,80 C10,75 15,60 20,65 C25,70 30,50 35,45 C40,40 45,60 50,20 C55,40 60,55 65,50 C70,45 75,65 80,70 C85,75 90,85 100,80 L100,100 L0,100 Z" fill="url(#chartGradient)" stroke="none"></path>
+<path d="M0,80 C10,75 15,60 20,65 C25,70 30,50 35,45 C40,40 45,60 50,20 C55,40 60,55 65,50 C70,45 75,65 80,70 C85,75 90,85 100,80" fill="none" stroke="#13ec37" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<circle cx="50" cy="20" fill="#13ec37" r="3" stroke="#102213" stroke-width="2"></circle>
+</svg>
+</div>
+</div>
+<div class="flex justify-between text-[10px] text-gray-500 mt-3 px-1 font-medium tracking-wide">
+<span>10月1日</span>
+<span>15日</span>
+<span>31日</span>
+</div>
+</div>
+<div class="w-full flex flex-col gap-6">
+<div class="flex items-center justify-between px-1">
+<h3 class="text-white text-base font-semibold tracking-wide">支出排行图表</h3>
+<button class="text-gray-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">sort</span>
+</button>
+</div>
+<div class="flex flex-col gap-6">
+<div class="group cursor-pointer">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(19,236,55,0.8)]"></div>
+<span class="text-white text-sm font-medium">房租</span>
+<span class="text-primary text-xs font-bold ml-1">60%</span>
+</div>
+<span class="text-white text-sm font-bold tracking-tight">¥744.30</span>
+</div>
+<div class="h-2.5 w-full rounded-full bg-surface-dark overflow-hidden ring-1 ring-white/5 group-hover:ring-white/10 transition-all">
+<div class="h-full rounded-full bg-gradient-to-r from-primary/60 via-primary to-primary w-[60%] shadow-[0_0_10px_rgba(19,236,55,0.3)]"></div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-gray-400"></div>
+<span class="text-white text-sm font-medium">餐饮</span>
+<span class="text-gray-400 text-xs font-bold ml-1">25%</span>
+</div>
+<span class="text-white text-sm font-bold tracking-tight">¥310.12</span>
+</div>
+<div class="h-2.5 w-full rounded-full bg-surface-dark overflow-hidden ring-1 ring-white/5 group-hover:ring-white/10 transition-all">
+<div class="h-full rounded-full bg-gradient-to-r from-gray-500/60 to-gray-400 w-[25%]"></div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-gray-500"></div>
+<span class="text-white text-sm font-medium">交通</span>
+<span class="text-gray-400 text-xs font-bold ml-1">10%</span>
+</div>
+<span class="text-white text-sm font-bold tracking-tight">¥124.05</span>
+</div>
+<div class="h-2.5 w-full rounded-full bg-surface-dark overflow-hidden ring-1 ring-white/5 group-hover:ring-white/10 transition-all">
+<div class="h-full rounded-full bg-gradient-to-r from-gray-600/60 to-gray-500 w-[10%]"></div>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-gray-600"></div>
+<span class="text-white text-sm font-medium">购物</span>
+<span class="text-gray-400 text-xs font-bold ml-1">5%</span>
+</div>
+<span class="text-white text-sm font-bold tracking-tight">¥62.03</span>
+</div>
+<div class="h-2.5 w-full rounded-full bg-surface-dark overflow-hidden ring-1 ring-white/5 group-hover:ring-white/10 transition-all">
+<div class="h-full rounded-full bg-gradient-to-r from-gray-700/60 to-gray-600 w-[5%]"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="absolute bottom-6 left-0 w-full px-6 pointer-events-none z-20">
+<div class="pointer-events-auto flex w-full items-center justify-between rounded-2xl bg-[#1c3321] p-1.5 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+<label class="flex-1 cursor-pointer">
+<input class="peer sr-only" name="time_range" type="radio" value="week"/>
+<div class="flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold text-gray-400 transition-all peer-checked:bg-primary peer-checked:text-black peer-checked:shadow-lg hover:text-white">
+                    周
+                </div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input checked="" class="peer sr-only" name="time_range" type="radio" value="month"/>
+<div class="flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold text-gray-400 transition-all peer-checked:bg-primary peer-checked:text-black peer-checked:shadow-lg hover:text-white">
+                    月
+                </div>
+</label>
+<label class="flex-1 cursor-pointer">
+<input class="peer sr-only" name="time_range" type="radio" value="year"/>
+<div class="flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold text-gray-400 transition-all peer-checked:bg-primary peer-checked:text-black peer-checked:shadow-lg hover:text-white">
+                    年
+                </div>
+</label>
+</div>
+</div>
+<div class="pointer-events-none absolute bottom-0 left-0 h-24 w-full bg-gradient-to-t from-background-dark to-transparent z-10"></div>
+</div>
+</body></html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JustOne 账号设置界面</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec37",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102213",
+                        "surface-dark": "#162b1a",
+                        "danger": "#ff453a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased selection:bg-primary selection:text-background-dark text-gray-900 dark:text-white">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+<div class="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md">
+<div class="flex items-center justify-between px-4 pb-4 pt-12 md:pt-8">
+<button class="flex items-center justify-center p-2 -ml-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors group">
+<span class="material-symbols-outlined text-[26px] text-gray-900 dark:text-white group-hover:text-primary transition-colors">chevron_left</span>
+</button>
+<h1 class="text-lg font-semibold tracking-wide text-gray-900 dark:text-white">账号设置</h1>
+<div class="w-10"></div>
+</div>
+</div>
+<div class="flex-1 px-5 max-w-md mx-auto w-full flex flex-col pt-8 gap-8">
+<div class="flex flex-col items-center gap-4">
+<div class="relative group">
+<div class="size-24 rounded-full bg-surface-dark ring-2 ring-primary/20 flex items-center justify-center overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8uYBEBlfERSjj-eMjW_Hm3vPkJVkOsVt1UQyBwB7BLXDMo7Jf1og9r_PFuYXtw_5RQZo1OwQwLv7Nb9Dzh_3289e8vyHWjBxXQTGLbQAR915bs2_PvClo9F6q5CUOVcpInGU_tgGxpbwo1kCZVqnK_LloW6qU0XuALCJUaxx4kna3vWi647ky1KLBc4NfxRZxukjQqyIop-ImQ2fH7mVpY2eohZ1h0340RdaDWrF_yL2pktEqIeRo6NnFtB4fVHQkr_HyBkct-AxW"/>
+</div>
+<button class="absolute bottom-0 right-0 p-1.5 bg-primary rounded-full text-background-dark shadow-lg">
+<span class="material-symbols-outlined text-[16px] font-bold">edit</span>
+</button>
+</div>
+<div class="text-center">
+<p class="text-gray-900 dark:text-white text-xl font-semibold">user@example.com</p>
+<p class="text-gray-500 dark:text-white/40 text-sm mt-1">JustOne ID: 8839201</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 mt-4">
+<button class="group flex items-center gap-5 py-4 w-full text-left rounded-2xl bg-white dark:bg-surface-dark/50 hover:bg-gray-50 dark:hover:bg-surface-dark transition-all duration-200 px-5 ring-1 ring-gray-200 dark:ring-white/5">
+<div class="flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 shrink-0 size-10 group-hover:bg-primary group-hover:text-background-dark transition-colors duration-300">
+<span class="material-symbols-outlined text-[20px]">sync</span>
+</div>
+<div class="flex-1">
+<p class="text-gray-900 dark:text-white text-[16px] font-medium tracking-wide">同步数据</p>
+<p class="text-xs text-gray-500 dark:text-white/30 mt-0.5">上次同步: 刚刚</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-white/20 group-hover:text-primary transition-colors text-[24px]">chevron_right</span>
+</button>
+<button class="group flex items-center gap-5 py-4 w-full text-left rounded-2xl bg-white dark:bg-surface-dark/50 hover:bg-gray-50 dark:hover:bg-surface-dark transition-all duration-200 px-5 ring-1 ring-gray-200 dark:ring-white/5">
+<div class="flex items-center justify-center rounded-full bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 shrink-0 size-10 group-hover:bg-primary group-hover:text-background-dark transition-colors duration-300">
+<span class="material-symbols-outlined text-[20px]">lock_reset</span>
+</div>
+<div class="flex-1">
+<p class="text-gray-900 dark:text-white text-[16px] font-medium tracking-wide">修改密码</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-white/20 group-hover:text-primary transition-colors text-[24px]">chevron_right</span>
+</button>
+</div>
+<button class="group flex items-center justify-center gap-2 py-4 w-full text-center rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all duration-200 px-4 ring-1 ring-red-100 dark:ring-red-500/20 mt-2">
+<span class="material-symbols-outlined text-[20px] text-danger">logout</span>
+<p class="text-danger text-[16px] font-medium tracking-wide">退出登录</p>
+</button>
+</div>
+</div>
+
+</body></html>
