@@ -6,16 +6,15 @@
 //
 
 import SwiftUI
-import CoreData
 
 @main
 struct JustOneApp: App {
-    let persistenceController = PersistenceController.shared
+    private let environment = AppEnvironment.live
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environment(\.appEnvironment, environment)
         }
     }
 }
