@@ -2,8 +2,12 @@ import SwiftUI
 
 struct AppEnvironment {
     let container: DIContainer
+    let persistenceController: PersistenceController
 
-    static let live = AppEnvironment(container: DIContainer())
+    static let live = AppEnvironment(
+        container: DIContainer(),
+        persistenceController: PersistenceController.shared
+    )
 }
 
 private struct AppEnvironmentKey: EnvironmentKey {

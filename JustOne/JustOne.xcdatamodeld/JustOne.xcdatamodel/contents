@@ -1,9 +1,45 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    <entity name="Bill" representedClassName="Bill" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" optional="NO" attributeType="String"/>
+        <attribute name="amount" optional="NO" attributeType="Integer 64" usesScalarValueType="YES"/>
+        <attribute name="occurredAtUTC" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="tzId" optional="NO" attributeType="String"/>
+        <attribute name="tzOffset" optional="NO" attributeType="Integer 32" usesScalarValueType="YES"/>
+        <attribute name="occurredLocalDate" optional="NO" attributeType="String"/>
+        <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="categoryId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isFromRecurring" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="deletedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="trashUntil" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Category" representedClassName="Category" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" optional="NO" attributeType="String"/>
+        <attribute name="name" optional="NO" attributeType="String"/>
+        <attribute name="iconKey" optional="NO" attributeType="String"/>
+        <attribute name="isSystem" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="sortOrder" optional="NO" attributeType="Integer 64" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="RecurringTask" representedClassName="RecurringTask" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" optional="NO" attributeType="String"/>
+        <attribute name="amount" optional="NO" attributeType="Integer 64" usesScalarValueType="YES"/>
+        <attribute name="categoryId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="hour" optional="NO" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="minute" optional="NO" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="lastRunAtUTC" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isEnabled" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="Bill" positionX="-63" positionY="-18" width="128" height="268"/>
+        <element name="Category" positionX="97" positionY="-18" width="128" height="118"/>
+        <element name="RecurringTask" positionX="-63" positionY="260" width="128" height="192"/>
     </elements>
 </model>
