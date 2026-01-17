@@ -21,8 +21,13 @@ struct JOTabScaffold: View {
             let fabLift: CGFloat = 28
 
             ZStack(alignment: .bottom) {
-                homeStack
-                profileStack
+                TabView(selection: $selectedIndex) {
+                    homeStack
+                        .tag(TabIndex.home.rawValue)
+                    profileStack
+                        .tag(TabIndex.profile.rawValue)
+                }
+                .toolbar(.hidden, for: .tabBar)
 
                 JOTabBar(
                     items: [
@@ -56,16 +61,12 @@ struct JOTabScaffold: View {
         NavigationStack {
             HomeView()
         }
-        .opacity(selectedIndex == TabIndex.home.rawValue ? 1 : 0)
-        .allowsHitTesting(selectedIndex == TabIndex.home.rawValue)
     }
 
     private var profileStack: some View {
         NavigationStack {
             ProfileView()
         }
-        .opacity(selectedIndex == TabIndex.profile.rawValue ? 1 : 0)
-        .allowsHitTesting(selectedIndex == TabIndex.profile.rawValue)
     }
 }
 
