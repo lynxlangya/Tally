@@ -86,7 +86,7 @@ struct ProfileView: View {
     private var settingsSection: some View {
         VStack(spacing: JOSpacing.lg) {
             NavigationLink {
-                PlaceholderView(title: "类别设置")
+                CategoriesView(repository: environment.container.repositories.category)
             } label: {
                 JOSettingRow(
                     title: "类别设置",

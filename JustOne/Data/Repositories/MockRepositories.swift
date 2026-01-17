@@ -100,6 +100,34 @@ final class MockBillRepository: BillRepository {
     }
 }
 
+final class MockCategoryRepository: CategoryRepository {
+    private var storage: [UUID: CategoryRecord]
+
+    init(seed: [CategoryRecord] = []) {
+        var map: [UUID: CategoryRecord] = [:]
+        seed.forEach { map[$0.id] = $0 }
+        storage = map
+    }
+
+    func list(type: BillType) throws -> [CategoryRecord] {
+        storage.values
+            .filter { $0.type == type }
+            .sorted { $0.sortOrder < $1.sortOrder }
+    }
+
+    func create(_ record: CategoryRecord) throws {
+        storage[record.id] = record
+    }
+
+    func delete(id: UUID, migrateTo destinationId: UUID) throws {
+        storage.removeValue(forKey: id)
+    }
+
+    func count(type: BillType) throws -> Int {
+        storage.values.filter { $0.type == type }.count
+    }
+}
+
 final class NoopCategoryRepository: CategoryRepository {
     func list(type: BillType) throws -> [CategoryRecord] { [] }
     func create(_ record: CategoryRecord) throws {}
