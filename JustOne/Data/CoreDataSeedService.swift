@@ -16,26 +16,23 @@ struct CoreDataSeedService: SeedService {
     }
 
     private let categories: [SeedCategory] = [
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!, type: .expense, name: "未分类", iconKey: "questionmark", isSystem: true, sortOrder: 0),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!, type: .income, name: "未分类", iconKey: "questionmark", isSystem: true, sortOrder: 0),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!, type: .expense, name: "餐饮", iconKey: "fork.knife", isSystem: true, sortOrder: 1),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, type: .income, name: "工资", iconKey: "creditcard", isSystem: true, sortOrder: 1)
+        SeedCategory(id: SystemCategoryID.uncategorizedExpense, type: .expense, name: "未分类", iconKey: "questionmark", isSystem: true, sortOrder: 0),
+        SeedCategory(id: SystemCategoryID.uncategorizedIncome, type: .income, name: "未分类", iconKey: "questionmark", isSystem: true, sortOrder: 0),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!, type: .expense, name: "餐饮", iconKey: "fork.knife", isSystem: false, sortOrder: 1),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, type: .income, name: "工资", iconKey: "creditcard", isSystem: false, sortOrder: 1)
     ]
 
     func seedIfNeeded() throws {
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Category")
         fetchRequest.fetchLimit = 1
         let existingCount = try context.count(for: fetchRequest)
-        guard existingCount == 0 else { return }
-
-        for seed in categories {
-            let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
-            object.setValue(seed.id, forKey: "id")
-            object.setValue(seed.type.rawValue, forKey: "type")
-            object.setValue(seed.name, forKey: "name")
-            object.setValue(seed.iconKey, forKey: "iconKey")
-            object.setValue(seed.isSystem, forKey: "isSystem")
-            object.setValue(Int64(seed.sortOrder), forKey: "sortOrder")
+        if existingCount == 0 {
+            for seed in categories {
+                let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
+                apply(seed, to: object)
+            }
+        } else {
+            try ensureSystemCategories()
         }
 
         if context.hasChanges {
@@ -62,5 +59,26 @@ struct CoreDataSeedService: SeedService {
         if context.hasChanges {
             try context.save()
         }
+    }
+
+    private func ensureSystemCategories() throws {
+        let systemSeeds = categories.filter { $0.isSystem }
+        for seed in systemSeeds {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
+            request.fetchLimit = 1
+            request.predicate = NSPredicate(format: "id == %@", seed.id as CVarArg)
+            let objects = try context.fetch(request)
+            let object = objects.first ?? NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
+            apply(seed, to: object)
+        }
+    }
+
+    private func apply(_ seed: SeedCategory, to object: NSManagedObject) {
+        object.setValue(seed.id, forKey: "id")
+        object.setValue(seed.type.rawValue, forKey: "type")
+        object.setValue(seed.name, forKey: "name")
+        object.setValue(seed.iconKey, forKey: "iconKey")
+        object.setValue(seed.isSystem, forKey: "isSystem")
+        object.setValue(Int64(seed.sortOrder), forKey: "sortOrder")
     }
 }

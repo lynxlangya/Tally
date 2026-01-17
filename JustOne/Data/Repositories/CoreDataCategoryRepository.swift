@@ -35,6 +35,14 @@ final class CoreDataCategoryRepository: CategoryRepository {
 
     func delete(id: UUID, migrateTo destinationId: UUID) throws {
         try context.performAndWaitThrowing {
+            let category = try fetchCategoryObject(id: id)
+            guard let isSystem = category.value(forKey: "isSystem") as? Bool else {
+                throw RepositoryError.invalidData(field: "Category.isSystem")
+            }
+            if isSystem {
+                throw RepositoryError.forbidden(reason: "System category cannot be deleted.")
+            }
+
             let billRequest = NSFetchRequest<NSManagedObject>(entityName: "Bill")
             billRequest.predicate = NSPredicate(format: "categoryId == %@", id as CVarArg)
             let bills = try context.fetch(billRequest)
@@ -42,7 +50,6 @@ final class CoreDataCategoryRepository: CategoryRepository {
                 bill.setValue(destinationId, forKey: "categoryId")
             }
 
-            let category = try fetchCategoryObject(id: id)
             context.delete(category)
 
             if context.hasChanges {
