@@ -1,33 +1,69 @@
 import SwiftUI
 import UIKit
 
+enum JOTheme {
+    enum Mode {
+        case system
+        case dark
+        case light
+    }
+
+    static var mode: Mode = .dark
+}
+
 enum JOColors {
+    private enum Palette {
+        static let primary = rgb(19, 236, 55)
+        static let backgroundLight = rgb(246, 248, 246)
+        static let backgroundDark = rgb(16, 34, 19)
+        static let surfaceLight = rgb(255, 255, 255)
+        static let surfaceDark = rgb(22, 43, 26)
+        static let textLight = rgb(15, 23, 16)
+        static let textDark = rgb(243, 247, 244)
+        static let textSecondaryLight = rgb(107, 114, 128)
+        static let textSecondaryDark = rgb(146, 201, 155)
+    }
+
     static var background: Color {
-        dynamic(light: rgb(246, 248, 246), dark: rgb(16, 34, 19))
+        themed(light: Palette.backgroundLight, dark: Palette.backgroundDark)
     }
 
     static var surface: Color {
-        dynamic(light: rgb(255, 255, 255), dark: rgb(22, 43, 26))
+        themed(light: Palette.surfaceLight, dark: Palette.surfaceDark)
     }
 
     static var textPrimary: Color {
-        dynamic(light: rgb(15, 23, 16), dark: rgb(243, 247, 244))
+        themed(light: Palette.textLight, dark: Palette.textDark)
     }
 
     static var textSecondary: Color {
-        dynamic(light: rgb(107, 114, 128), dark: rgb(146, 201, 155))
+        themed(light: Palette.textSecondaryLight, dark: Palette.textSecondaryDark)
     }
 
     static var divider: Color {
-        dynamic(light: rgb(229, 231, 235), dark: UIColor(white: 1.0, alpha: 0.12))
+        themed(light: rgb(229, 231, 235), dark: UIColor(white: 1.0, alpha: 0.12))
     }
 
-    static let accent = Color(red: 19 / 255, green: 236 / 255, blue: 55 / 255)
-    static let accentForeground = Color(red: 16 / 255, green: 34 / 255, blue: 19 / 255)
+    static let primary = Color(Palette.primary)
+    static let accent = primary
+    static let accentForeground = Color(Palette.backgroundDark)
+    static let tabBarBackground = Color(Palette.surfaceDark).opacity(0.88)
+    static let tabBarBorder = Color.white.opacity(0.06)
+    static let tabIconMuted = Color(Palette.textSecondaryDark).opacity(0.6)
+    static let fabGreen = primary
+    static let fabIcon = Color(Palette.backgroundDark)
+    static let fabGlow = primary
 
-    private static func dynamic(light: UIColor, dark: UIColor) -> Color {
+    private static func themed(light: UIColor, dark: UIColor) -> Color {
         Color(UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark ? dark : light
+            switch JOTheme.mode {
+            case .system:
+                return traitCollection.userInterfaceStyle == .dark ? dark : light
+            case .dark:
+                return dark
+            case .light:
+                return light
+            }
         })
     }
 

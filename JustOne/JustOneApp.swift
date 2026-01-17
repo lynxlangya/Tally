@@ -10,6 +10,9 @@ import SwiftUI
 @main
 struct JustOneApp: App {
     private let environment = AppEnvironment.live
+    init() {
+        UITabBar.appearance().isHidden = true
+    }
 
     var body: some Scene {
         WindowGroup {
