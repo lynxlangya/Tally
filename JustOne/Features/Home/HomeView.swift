@@ -28,7 +28,10 @@ struct HomeView: View {
             tabBarVisibility?.setVisible(true)
         }
         .navigationDestination(isPresented: $showsBillsList) {
-            BillsListView(repository: environment.container.repositories.bill)
+            BillsListView(
+                repository: environment.container.repositories.bill,
+                categoryRepository: environment.container.repositories.category
+            )
         }
     }
 
