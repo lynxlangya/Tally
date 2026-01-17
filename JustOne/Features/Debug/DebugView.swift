@@ -55,9 +55,6 @@ struct DebugView: View {
         .onAppear {
             tabBarVisibility?.setVisible(false)
         }
-        .onDisappear {
-            tabBarVisibility?.setVisible(true)
-        }
     }
 }
 

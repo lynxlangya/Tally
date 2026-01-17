@@ -86,7 +86,7 @@ struct ProfileView: View {
     private var settingsSection: some View {
         VStack(spacing: JOSpacing.lg) {
             NavigationLink {
-                ProfilePlaceholderView(title: "类别设置")
+                PlaceholderView(title: "类别设置")
             } label: {
                 JOSettingRow(
                     title: "类别设置",
@@ -109,7 +109,7 @@ struct ProfileView: View {
             )
 
             NavigationLink {
-                ProfilePlaceholderView(title: "设置")
+                SettingsView()
             } label: {
                 JOSettingRow(
                     title: "设置",
@@ -122,43 +122,6 @@ struct ProfileView: View {
             .buttonStyle(RowPressStyle())
         }
         .padding(.top, 36)
-    }
-}
-
-private struct RowPressStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .overlay(
-                RoundedRectangle(cornerRadius: JORadius.profileRow, style: .continuous)
-                    .fill(JOColors.profileRowHighlight)
-                    .opacity(configuration.isPressed ? 1 : 0)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: JORadius.profileRow, style: .continuous))
-    }
-}
-
-private struct ProfilePlaceholderView: View {
-    let title: String
-    @Environment(\.tabBarVisibility) private var tabBarVisibility
-
-    var body: some View {
-        VStack(spacing: JOSpacing.md) {
-            Text(title)
-                .font(JOTypography.title)
-                .foregroundStyle(JOColors.textPrimary)
-            Text("占位页")
-                .font(JOTypography.body)
-                .foregroundStyle(JOColors.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(JOColors.background.ignoresSafeArea())
-        .toolbar(.hidden, for: .navigationBar)
-        .onAppear {
-            tabBarVisibility?.setVisible(false)
-        }
-        .onDisappear {
-            tabBarVisibility?.setVisible(true)
-        }
     }
 }
 

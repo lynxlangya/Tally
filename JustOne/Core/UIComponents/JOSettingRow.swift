@@ -61,10 +61,12 @@ struct JOSettingRow: View {
                     .foregroundStyle(JOColors.profileRowSubtitle)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, JOSpacing.lg)
         .padding(.vertical, JOSpacing.md)
         .frame(minHeight: 64)
         .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: JORadius.profileRow, style: .continuous))
+        .contentShape(Rectangle())
     }
 }
