@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(\.appEnvironment) private var environment
+    @Environment(\.tabBarVisibility) private var tabBarVisibility
     @State private var showsBillsList = false
 
     var body: some View {
@@ -23,6 +24,9 @@ struct HomeView: View {
             .padding(.top, JOSpacing.xl)
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            tabBarVisibility?.setVisible(true)
+        }
         .navigationDestination(isPresented: $showsBillsList) {
             BillsListView(repository: environment.container.repositories.bill)
         }

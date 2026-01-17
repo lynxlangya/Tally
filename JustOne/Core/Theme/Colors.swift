@@ -58,6 +58,14 @@ enum JOColors {
     static let categoryBlue = Color(Palette.categoryBlue)
     static let categoryOrange = Color(Palette.categoryOrange)
     static let cardBorder = Color.white.opacity(0.06)
+    static let profileTitle = primary.opacity(0.7)
+    static let profileName = Color.white.opacity(0.95)
+    static let profileMeta = Color(Palette.textSecondaryDark)
+    static let profileRowTitle = Color.white.opacity(0.95)
+    static let profileRowSubtitle = Color.white.opacity(0.55)
+    static let profileRowIconBackground = Color.white.opacity(0.06)
+    static let profileRowBackground = Color.white.opacity(0.03)
+    static let profileRowHighlight = Color.white.opacity(0.08)
 
     private static func themed(light: UIColor, dark: UIColor) -> Color {
         Color(UIColor { traitCollection in

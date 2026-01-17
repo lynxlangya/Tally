@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DebugView: View {
+    @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: DebugViewModel
 
     init(repository: BillRepository, seedService: SeedService) {
@@ -50,6 +51,12 @@ struct DebugView: View {
         .navigationTitle("Debug")
         .task {
             viewModel.refresh()
+        }
+        .onAppear {
+            tabBarVisibility?.setVisible(false)
+        }
+        .onDisappear {
+            tabBarVisibility?.setVisible(true)
         }
     }
 }

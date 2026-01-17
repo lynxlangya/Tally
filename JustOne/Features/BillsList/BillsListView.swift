@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BillsListView: View {
+    @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: BillsListViewModel
 
     init(repository: BillRepository) {
@@ -48,6 +49,12 @@ struct BillsListView: View {
         .navigationTitle("Bills")
         .task {
             viewModel.load()
+        }
+        .onAppear {
+            tabBarVisibility?.setVisible(false)
+        }
+        .onDisappear {
+            tabBarVisibility?.setVisible(true)
         }
     }
 }

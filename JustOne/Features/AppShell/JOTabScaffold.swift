@@ -8,6 +8,7 @@ struct JOTabScaffold: View {
 
     @State private var selectedIndex = TabIndex.home.rawValue
     @State private var showsQuickEntry = false
+    @State private var tabBarVisible = true
 
     var body: some View {
         GeometryReader { proxy in
@@ -28,26 +29,34 @@ struct JOTabScaffold: View {
                         .tag(TabIndex.profile.rawValue)
                 }
                 .toolbar(.hidden, for: .tabBar)
-
-                JOTabBar(
-                    items: [
-                        JOTabItem(title: "Home", systemImage: "house.fill"),
-                        JOTabItem(title: "Profile", systemImage: "person.fill")
-                    ],
-                    selectedIndex: $selectedIndex,
-                    width: tabBarWidth,
-                    height: tabBarHeight
+                .environment(
+                    \.tabBarVisibility,
+                    TabBarVisibilityAction { isVisible in
+                        tabBarVisible = isVisible
+                    }
                 )
-                .padding(.bottom, tabBarBottomPadding)
-                .offset(y: tabBarVerticalOffset)
-                .zIndex(1)
 
-                JOFloatingAddButton(size: fabSize) {
-                    showsQuickEntry = true
+                if tabBarVisible {
+                    JOTabBar(
+                        items: [
+                            JOTabItem(title: "Home", systemImage: "house.fill"),
+                            JOTabItem(title: "Profile", systemImage: "person.fill")
+                        ],
+                        selectedIndex: $selectedIndex,
+                        width: tabBarWidth,
+                        height: tabBarHeight
+                    )
+                    .padding(.bottom, tabBarBottomPadding)
+                    .offset(y: tabBarVerticalOffset)
+                    .zIndex(1)
+
+                    JOFloatingAddButton(size: fabSize) {
+                        showsQuickEntry = true
+                    }
+                    .padding(.bottom, tabBarBottomPadding + fabLift)
+                    .offset(y: tabBarVerticalOffset)
+                    .zIndex(2)
                 }
-                .padding(.bottom, tabBarBottomPadding + fabLift)
-                .offset(y: tabBarVerticalOffset)
-                .zIndex(2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
