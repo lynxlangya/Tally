@@ -31,6 +31,7 @@ struct CategoryRecord: Identifiable, Equatable, Codable {
     let type: BillType
     let name: String
     let iconKey: String
+    let colorHex: Int?
     let isSystem: Bool
     let sortOrder: Int
 }

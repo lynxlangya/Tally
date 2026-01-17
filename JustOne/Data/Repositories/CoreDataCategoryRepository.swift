@@ -24,7 +24,37 @@ final class CoreDataCategoryRepository: CategoryRepository {
             object.setValue(record.type.rawValue, forKey: "type")
             object.setValue(record.name, forKey: "name")
             object.setValue(record.iconKey, forKey: "iconKey")
+            if let colorHex = record.colorHex {
+                object.setValue(Int64(colorHex), forKey: "colorHex")
+            } else {
+                object.setValue(nil, forKey: "colorHex")
+            }
             object.setValue(record.isSystem, forKey: "isSystem")
+            object.setValue(Int64(record.sortOrder), forKey: "sortOrder")
+
+            if context.hasChanges {
+                try context.save()
+            }
+        }
+    }
+
+    func update(_ record: CategoryRecord) throws {
+        try context.performAndWaitThrowing {
+            let object = try fetchCategoryObject(id: record.id)
+            guard let isSystem = object.value(forKey: "isSystem") as? Bool else {
+                throw RepositoryError.invalidData(field: "Category.isSystem")
+            }
+            if isSystem {
+                throw RepositoryError.forbidden(reason: "System category cannot be edited.")
+            }
+            object.setValue(record.type.rawValue, forKey: "type")
+            object.setValue(record.name, forKey: "name")
+            object.setValue(record.iconKey, forKey: "iconKey")
+            if let colorHex = record.colorHex {
+                object.setValue(Int64(colorHex), forKey: "colorHex")
+            } else {
+                object.setValue(nil, forKey: "colorHex")
+            }
             object.setValue(Int64(record.sortOrder), forKey: "sortOrder")
 
             if context.hasChanges {
@@ -81,6 +111,8 @@ final class CoreDataCategoryRepository: CategoryRepository {
               let type = BillType(rawValue: typeRaw) else { throw RepositoryError.invalidData(field: "Category.type") }
         guard let name = object.value(forKey: "name") as? String else { throw RepositoryError.invalidData(field: "Category.name") }
         guard let iconKey = object.value(forKey: "iconKey") as? String else { throw RepositoryError.invalidData(field: "Category.iconKey") }
+        let colorHexValue = object.value(forKey: "colorHex") as? Int64
+        let colorHex = colorHexValue.flatMap { Int(exactly: $0) }
         guard let isSystem = object.value(forKey: "isSystem") as? Bool else { throw RepositoryError.invalidData(field: "Category.isSystem") }
         guard let sortOrderValue = object.value(forKey: "sortOrder") as? Int64,
               let sortOrder = Int(exactly: sortOrderValue) else { throw RepositoryError.invalidData(field: "Category.sortOrder") }
@@ -90,6 +122,7 @@ final class CoreDataCategoryRepository: CategoryRepository {
             type: type,
             name: name,
             iconKey: iconKey,
+            colorHex: colorHex,
             isSystem: isSystem,
             sortOrder: sortOrder
         )

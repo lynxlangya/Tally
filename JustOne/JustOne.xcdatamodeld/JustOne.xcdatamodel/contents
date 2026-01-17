@@ -21,6 +21,7 @@
         <attribute name="type" optional="NO" attributeType="String"/>
         <attribute name="name" optional="NO" attributeType="String"/>
         <attribute name="iconKey" optional="NO" attributeType="String"/>
+        <attribute name="colorHex" optional="YES" attributeType="Integer 64" usesScalarValueType="YES"/>
         <attribute name="isSystem" optional="NO" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="sortOrder" optional="NO" attributeType="Integer 64" usesScalarValueType="YES"/>
     </entity>

@@ -13,6 +13,7 @@ protocol BillRepository {
 protocol CategoryRepository {
     func list(type: BillType) throws -> [CategoryRecord]
     func create(_ record: CategoryRecord) throws
+    func update(_ record: CategoryRecord) throws
     func delete(id: UUID, migrateTo destinationId: UUID) throws
     func count(type: BillType) throws -> Int
 }

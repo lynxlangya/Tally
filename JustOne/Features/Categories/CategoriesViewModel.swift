@@ -22,15 +22,17 @@ final class CategoriesViewModel: ObservableObject {
     func load(type: BillType) {
         selectedType = type
         do {
-            categories = try repository.list(type: type)
-            userCategoryCount = categories.filter { !$0.isSystem }.count
+            let fetched = try repository.list(type: type)
+            let visible = fetched.filter { !$0.isSystem }
+            categories = visible
+            userCategoryCount = visible.count
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
         }
     }
 
-    func addCategory(name: String, iconKey: String) {
+    func addCategory(name: String, iconKey: String, colorHex: UInt32) {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             errorMessage = "分类名称不能为空"
@@ -47,11 +49,52 @@ final class CategoriesViewModel: ObservableObject {
             type: selectedType,
             name: trimmed,
             iconKey: iconKey,
+            colorHex: Int(colorHex),
             isSystem: false,
             sortOrder: sortOrder
         )
         do {
             try repository.create(record)
+            load(type: selectedType)
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    func updateCategory(id: UUID, name: String, iconKey: String, colorHex: UInt32) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            errorMessage = "分类名称不能为空"
+            return
+        }
+
+        guard let existing = categories.first(where: { $0.id == id }) else {
+            errorMessage = "未找到分类"
+            return
+        }
+
+        let updated = CategoryRecord(
+            id: existing.id,
+            type: existing.type,
+            name: trimmed,
+            iconKey: iconKey,
+            colorHex: Int(colorHex),
+            isSystem: existing.isSystem,
+            sortOrder: existing.sortOrder
+        )
+
+        do {
+            try repository.update(updated)
+            load(type: selectedType)
+        } catch {
+            errorMessage = String(describing: error)
+        }
+    }
+
+    func deleteCategory(_ category: CategoryRecord) {
+        do {
+            let destination = SystemCategoryID.uncategorized(for: category.type)
+            try repository.delete(id: category.id, migrateTo: destination)
             load(type: selectedType)
         } catch {
             errorMessage = String(describing: error)

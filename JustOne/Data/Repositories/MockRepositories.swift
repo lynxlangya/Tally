@@ -119,6 +119,11 @@ final class MockCategoryRepository: CategoryRepository {
         storage[record.id] = record
     }
 
+    func update(_ record: CategoryRecord) throws {
+        guard storage[record.id] != nil else { throw RepositoryError.notFound }
+        storage[record.id] = record
+    }
+
     func delete(id: UUID, migrateTo destinationId: UUID) throws {
         storage.removeValue(forKey: id)
     }
@@ -131,6 +136,7 @@ final class MockCategoryRepository: CategoryRepository {
 final class NoopCategoryRepository: CategoryRepository {
     func list(type: BillType) throws -> [CategoryRecord] { [] }
     func create(_ record: CategoryRecord) throws {}
+    func update(_ record: CategoryRecord) throws {}
     func delete(id: UUID, migrateTo destinationId: UUID) throws {}
     func count(type: BillType) throws -> Int { 0 }
 }

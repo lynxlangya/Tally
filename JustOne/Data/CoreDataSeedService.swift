@@ -11,15 +11,16 @@ struct CoreDataSeedService: SeedService {
         let type: BillType
         let name: String
         let iconKey: String
+        let colorHex: Int
         let isSystem: Bool
         let sortOrder: Int
     }
 
     private let categories: [SeedCategory] = [
-        SeedCategory(id: SystemCategoryID.uncategorizedExpense, type: .expense, name: "未分类", iconKey: "questionmark", isSystem: true, sortOrder: 0),
-        SeedCategory(id: SystemCategoryID.uncategorizedIncome, type: .income, name: "未分类", iconKey: "questionmark", isSystem: true, sortOrder: 0),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!, type: .expense, name: "餐饮", iconKey: "fork.knife", isSystem: false, sortOrder: 1),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, type: .income, name: "工资", iconKey: "creditcard", isSystem: false, sortOrder: 1)
+        SeedCategory(id: SystemCategoryID.uncategorizedExpense, type: .expense, name: "未分类", iconKey: "questionmark", colorHex: 0x13EC37, isSystem: true, sortOrder: 0),
+        SeedCategory(id: SystemCategoryID.uncategorizedIncome, type: .income, name: "未分类", iconKey: "questionmark", colorHex: 0x13EC37, isSystem: true, sortOrder: 0),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!, type: .expense, name: "餐饮", iconKey: "fork.knife", colorHex: 0xF97316, isSystem: false, sortOrder: 1),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, type: .income, name: "工资", iconKey: "creditcard", colorHex: 0x3B82F6, isSystem: false, sortOrder: 1)
     ]
 
     func seedIfNeeded() throws {
@@ -78,6 +79,7 @@ struct CoreDataSeedService: SeedService {
         object.setValue(seed.type.rawValue, forKey: "type")
         object.setValue(seed.name, forKey: "name")
         object.setValue(seed.iconKey, forKey: "iconKey")
+        object.setValue(Int64(seed.colorHex), forKey: "colorHex")
         object.setValue(seed.isSystem, forKey: "isSystem")
         object.setValue(Int64(seed.sortOrder), forKey: "sortOrder")
     }
