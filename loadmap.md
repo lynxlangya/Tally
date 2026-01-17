@@ -121,25 +121,76 @@
 
 ## 1. App Shell（导航骨架）
 
-### 1.1 两个 Tab + 双 NavigationStack
+### 1.0 Design System 基线（Tokens + 组件库 + Preview 对照）
+
+- 步骤
+  1. 建立/补齐目录：
+     - `Core/Theme/`：Colors、Typography、Radii、Spacing、Shadows
+     - `Core/UIComponents/`：通用组件
+     - `Core/PreviewKit/`：Mock 数据/Preview Helpers（可选）
+  2. 从 demos 提取最小 tokens（先不追求全量）：
+     - 主背景/卡片背景/分割线/主文字/次文字/强调色
+     - 圆角：卡片、按钮、输入框（2～3 档）
+     - 间距：4/8/12/16/24
+     - 阴影：卡片/浮层（1～2 档）
+  3. 实现最小组件（8～10 个）：
+     - `JOCard`（容器）
+     - `JOPrimaryButton`（主按钮）
+     - `JOIconButton`（图标按钮）
+     - `JOSegmentedControl`（支/收切换、周/月/年切换）
+     - `JOAmountText`（金额展示：CNY/2 位）
+     - `JOListRow`（列表行：左图标+标题+副标题+金额）
+     - `JOFAB`（底部加号按钮）
+     - `JOChip`（小标签/状态）
+  4. 为每个组件写 Preview，并放入 `PreviewGallery` 页面集中展示
+- 验收标准
+  - ✅ 任意页面不允许直接写“散落的样式”（颜色/圆角/阴影应来自 tokens 或组件）
+  - ✅ `PreviewGallery` 能一屏看到所有组件的状态（normal/disabled/selected）
+  - ✅ Home/Profile 的关键元素能用组件替换（不要求像素级）
+
+### 1.1 两个 Tab + 双 NavigationStack（含基础结构）
 
 - 步骤
   1. 实现 TabView：Home / Profile
   2. 每个 Tab 内使用 NavigationStack
   3. Home 顶部右上角添加「明细」入口按钮（跳转 BillsList）
+  4. Home/Profile 根页面搭建基础骨架（顶部栏/内容区/底部 Tab/FAB 占位）
 - 验收标准
   - ✅ Home/Profile 两个 Tab 可切换
   - ✅ Home 右上角按钮可进入 BillsList（占位页即可）
   - ✅ 返回层级正确，无多余嵌套
+  - ✅ Home/Profile 基础布局与 demos 结构一致（不追求像素级）
 
-### 1.2 全局主题与基础样式（占位）
+### 1.2 Home Dashboard UI（对照 `demos/justone_home_dashboard`）
 
 - 步骤
-  1. 建立 Theme 结构：颜色/字号/间距（最少常量）
-  2. 建立 Money/Date 格式化工具（Utilities/Formatters）
+  1. 顶部栏：月份选择、日历按钮（与 demo 结构一致）
+  2. 汇总区：本月支出/收入/结余（`JOAmountText` + tokens）
+  3. 列表区：按日分组展示（组标题 + 当日合计 + `JOListRow`）
+  4. 首页 FAB 使用 `JOFAB`（先只做视觉与导航）
 - 验收标准
-  - ✅ 关键格式化工具有单一入口（如 MoneyFormatter/DateFormatterFactory）
-  - ✅ 首页金额展示能统一格式（CNY/2 位）
+  - ✅ 首页结构与 demo 对齐（顶部栏/汇总/分组列表）
+  - ✅ 金额与文字样式只来自 tokens/组件
+  - ✅ 可以使用 PreviewKit 假数据预览
+
+### 1.3 Profile 主页 UI（对照 `demos/justone_profile_&_settings_1`）
+
+- 步骤
+  1. 头像与统计区（昵称 + 记录数）
+  2. 功能入口行：分类设置、每日提醒、设置（`JOListRow` 风格）
+  3. “每日提醒”先做 UI 开关占位
+- 验收标准
+  - ✅ Profile 结构与 demo 对齐
+  - ✅ 入口行可导航到对应页面（未实现可先占位）
+
+### 1.4 Settings 列表 UI（对照 `demos/justone_profile_&_settings_4`）
+
+- 步骤
+  1. 实现 Settings 列表页（账号、导出、解锁、定时、小组件、主题、语言）
+  2. 每个入口先接入占位页面或后续任务页面
+- 验收标准
+  - ✅ Settings 列表 UI 与 demo 结构一致
+  - ✅ 入口导航可用（未实现可先占位）
 
 ---
 
@@ -231,19 +282,21 @@
 ### 4.2 分类管理页（网格 + 收入/支出切换）
 
 - 步骤
-  1. Categories 页面：Segment 切换 income/expense
-  2. 网格展示分类（iconKey + name）
-  3. 支持新增分类（数量限制 30）
+  1. Categories 页面：`JOSegmentedControl` 切换 income/expense
+  2. 网格展示分类（iconKey + name），对照 `demos/justone_profile_&_settings_7`
+  3. “添加类别”卡片入口，数量限制 30
+  4. 系统“未分类”展示为锁定态（不可编辑/删除）
 - 验收标准
   - ✅ 可切换两套分类列表
   - ✅ 新增分类成功并持久化
   - ✅ 达到 30 个后禁止新增并提示
+  - ✅ UI 结构与 demo 一致（网格、卡片、分段切换）
 
 ### 4.3 分类删除规则（已引用 → 迁移未分类）
 
 - 步骤
   1. 删除分类前检查引用（Bill.categoryId == category.id）
-  2. 若存在引用：弹窗提醒
+  2. 若存在引用：弹窗提醒（说明迁移到未分类）
   3. 用户确认删除后：
      - 将相关 Bill.categoryId 置为对应“未分类”id
      - 删除该分类（不可恢复）
@@ -251,6 +304,16 @@
   - ✅ 删除已引用分类会提示
   - ✅ 确认删除后，相关账单分类全部变为未分类
   - ✅ 分类删除后不可在回收站恢复（没有入口/没有数据）
+
+### 4.4 分类编辑页（对照 `demos/justone_profile_&_settings_10`）
+
+- 步骤
+  1. 编辑页展示预览（图标 + 名称）
+  2. 名称输入 + 图标网格选择
+  3. 系统分类禁用编辑入口
+- 验收标准
+  - ✅ 编辑后可保存并持久化
+  - ✅ 系统分类不可编辑（UI 禁用 + 数据层保护）
 
 ---
 
@@ -261,27 +324,26 @@
 - 步骤
   1. Home 右上角进入 BillsList
   2. BillsList 展示按日分组的账单列表（类型/分类/金额/备注简略）
-  3. 点击进入 BillEditor（编辑模式）
+  3. 列表行使用 `JOListRow` + `JOAmountText`，分组头对照 `demos/justone_home_dashboard`
+  4. 点击进入 BillEditor（编辑模式）
 - 验收标准
   - ✅ 明细列表可展示本地账单
   - ✅ 分组正确，列表滚动流畅
   - ✅ 点击条目可进入编辑
 
-### 5.2 BillEditor（新增/编辑）
+### 5.2 QuickEntry + BillEditor（新增/编辑）
 
 - 步骤
-  1. 从 Home FAB 进入 BillEditor（新增模式）
-  2. 字段：
-     - 类型（支/收）
-     - 分类选择（跟随类型切换）
-     - 金额输入（CNY/2 位，不允许负数）
-     - 日期选择（发生时间）
-     - 备注（可选）
-  3. 保存后返回，列表刷新
+  1. 新增入口：从 Home FAB 进入 QuickEntry 第一步（选分类，对照 `demos/justone_quick_entry_1`）
+  2. 选择分类后进入金额键盘页（对照 `demos/justone_quick_entry_2`）
+  3. 支持备注输入与日期快速入口
+  4. 点击确认保存后返回，列表刷新
+  5. 编辑模式：从 BillsList 进入并预填数据（可沿用同一 UI）
 - 验收标准
   - ✅ 金额输入校验：负数禁止；最多 2 位小数
   - ✅ 保存后能在 BillsList 与 Home 占位列表看到新记录
   - ✅ 编辑能修改金额/分类/日期/备注并持久化
+  - ✅ UI 结构与 QuickEntry demo 对齐（不追求像素级）
 
 ---
 
@@ -316,6 +378,7 @@
   - ✅ 恢复后回到正常列表可见
   - ✅ 永久删除后彻底不存在
   - ✅ 过期自动清理生效（可通过修改系统时间或注入 nowProvider 测试）
+  - ✅ UI 使用 `JOListRow` + `JOChip` 展示剩余天数
 
 ---
 
@@ -325,11 +388,12 @@
 
 - 步骤
   1. Profile -> Settings -> RecurringTasks 入口
-  2. 列表展示任务：类型/分类/金额/时间/启用状态
+  2. 列表展示任务：类型/分类/金额/时间/启用状态（对照 `demos/justone_profile_&_settings_6`）
   3. 新建/编辑任务页：选择类型/分类/金额/时间/备注/启用
 - 验收标准
   - ✅ 任务 CRUD 可用并持久化
   - ✅ 任务启用/停用状态可切换
+  - ✅ UI 结构与 demo 对齐
 
 ### 7.2 RecurringService：补跑与生成账单
 
@@ -370,11 +434,12 @@
 
 - 步骤
   1. Settings 添加导出入口
-  2. 选择日期范围（占位 UI 可先默认本月）
+  2. 导出页面 UI 对照 `demos/justone_profile_&_settings_8`（CSV/PDF 切换、日期范围）
   3. 调用 ExportService 并弹出分享面板
 - 验收标准
   - ✅ 可从 Settings 一键导出 CSV（本月）
   - ✅ 分享面板可用（或保存到 Files）
+  - ✅ UI 结构与 demo 对齐（格式切换/说明文案）
 
 ---
 
@@ -386,11 +451,13 @@
   1. SecurityService：
      - isLockEnabled
      - authenticate()（LocalAuthentication）
-  2. Settings 添加开关：启用解锁（占位）
-  3. App 进入前台/启动时若启用则弹解锁（可先简单实现）
+  2. 解锁设置页 UI 对照 `demos/justone_profile_&_settings_5`
+  3. Settings 添加开关：启用解锁（占位）
+  4. App 进入前台/启动时若启用则弹解锁（可先简单实现）
 - 验收标准
   - ✅ 启用后启动/回前台会触发验证
   - ✅ 验证失败不可进入主界面（至少停留在锁屏遮罩页）
+  - ✅ UI 结构与 demo 对齐（密码/FaceID/TouchID 开关）
 
 ### 9.2 数据保护策略确认
 
@@ -403,9 +470,68 @@
 
 ---
 
-## 10. 收尾：质量、测试与可维护性
+## 10. 统计分析（对照 `demos/justone_statistics_analysis`）
 
-### 10.1 Preview 与 Mock 数据注入
+### 10.1 统计聚合接口
+
+- 步骤
+  1. 新建 StatisticsService（按月汇总、按日趋势、分类排行）
+  2. 口径统一：按 occurredLocalDate 聚合
+- 验收标准
+  - ✅ 统计接口能给出月总额、趋势数据、分类排行
+  - ✅ 数据口径不受系统时区变化影响
+
+### 10.2 统计页面 UI
+
+- 步骤
+  1. 实现统计页面：月份选择、支/收切换、折线图/排行列表
+  2. UI 对照 `demos/justone_statistics_analysis`，图表可先用 SwiftUI Shape 占位
+- 验收标准
+  - ✅ 统计页结构与 demo 对齐（趋势图 + 排行列表）
+  - ✅ 统计数据来自 StatisticsService
+
+---
+
+## 11. 设置扩展页面（可选/非 MVP）
+
+### 11.1 账号设置页（对照 `demos/justone_profile_&_settings_3`）
+
+- 步骤
+  1. 账号页 UI：头像/账号信息/同步/修改密码（占位）
+  2. 操作先接入占位提示
+- 验收标准
+  - ✅ UI 结构与 demo 对齐
+
+### 11.2 主题设置页（对照 `demos/justone_profile_&_settings_9`）
+
+- 步骤
+  1. 主题模式（浅色/深色/跟随系统）
+  2. 强调色选择（先做 UI 与持久化占位）
+- 验收标准
+  - ✅ UI 结构与 demo 对齐
+  - ✅ 主题设置可持久化（UserDefaults）
+
+### 11.3 语言设置页（对照 `demos/justone_profile_&_settings_11`）
+
+- 步骤
+  1. 语言列表 UI（跟随系统/简中/英文等）
+  2. 切换逻辑可先占位提示
+- 验收标准
+  - ✅ UI 结构与 demo 对齐
+
+### 11.4 小组件预览页（对照 `demos/justone_profile_&_settings_2`）
+
+- 步骤
+  1. 小组件预览 UI 与说明文案
+  2. 入口与占位提示
+- 验收标准
+  - ✅ UI 结构与 demo 对齐
+
+---
+
+## 12. 收尾：质量、测试与可维护性
+
+### 12.1 Preview 与 Mock 数据注入
 
 - 步骤
   1. 为各页面提供 Preview 注入（inMemory CoreData）
@@ -414,7 +540,7 @@
   - ✅ 主要页面 Preview 可正常渲染
   - ✅ 不依赖真机/真实数据
 
-### 10.2 边界用例验收清单（最少 20 条）
+### 12.2 边界用例验收清单（最少 20 条）
 
 - 步骤
   1. 写入 docs/acceptance.md（或直接在仓库 README）
