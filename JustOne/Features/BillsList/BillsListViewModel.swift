@@ -3,20 +3,24 @@ import Combine
 
 @MainActor
 final class BillsListViewModel: ObservableObject {
-    @Published private(set) var bills: [BillRecord] = []
+    @Published private(set) var groupedBills: [String: [BillRecord]] = [:]
+    @Published private(set) var dayKeys: [String] = []
     @Published private(set) var errorMessage: String?
-    @Published var dayKey: String
 
     private let repository: BillRepository
 
-    init(repository: BillRepository, dayKey: String? = nil) {
+    init(repository: BillRepository) {
         self.repository = repository
-        self.dayKey = dayKey ?? DayKeyFormatter.dayKey(for: Date())
     }
 
     func load() {
         do {
-            bills = try repository.fetch(by: dayKey)
+            let bills = try repository.list()
+            let grouped = Dictionary(grouping: bills, by: { $0.occurredLocalDate })
+            groupedBills = grouped.mapValues { items in
+                items.sorted { $0.occurredAtUTC > $1.occurredAtUTC }
+            }
+            dayKeys = groupedBills.keys.sorted(by: >)
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)

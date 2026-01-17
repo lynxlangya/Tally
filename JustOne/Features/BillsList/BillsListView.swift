@@ -11,30 +11,30 @@ struct BillsListView: View {
     var body: some View {
         List {
             Section {
-                HStack {
-                    Text("DayKey")
-                    Spacer()
-                    Text(viewModel.dayKey)
-                        .foregroundStyle(.secondary)
-                }
                 Button("Add Sample Bill") {
                     viewModel.addSampleBill()
                 }
             }
 
-            Section("Bills") {
-                ForEach(viewModel.bills) { bill in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(MoneyFormatter.string(from: bill.amount))
-                            .font(.headline)
-                        Text(bill.note ?? "-")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        Text(bill.occurredLocalDate)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            if viewModel.dayKeys.isEmpty {
+                Section {
+                    Text("No bills")
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                ForEach(viewModel.dayKeys, id: \.self) { dayKey in
+                    Section(dayKey) {
+                        ForEach(viewModel.groupedBills[dayKey] ?? []) { bill in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(MoneyFormatter.string(from: bill.amount))
+                                    .font(.headline)
+                                Text(bill.note ?? "-")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
                     }
-                    .padding(.vertical, 4)
                 }
             }
 
@@ -57,15 +57,16 @@ struct BillsListView: View {
 }
 
 #Preview {
-    let dayKey = DayKeyFormatter.dayKey(for: Date())
+    let today = Date()
+    let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today) ?? today
     let seed = BillRecord(
         id: UUID(),
         type: .expense,
         amount: Money(cents: 428560),
-        occurredAtUTC: Date(),
+        occurredAtUTC: today,
         tzId: TimeZone.current.identifier,
         tzOffset: TimeZone.current.secondsFromGMT(),
-        occurredLocalDate: dayKey,
+        occurredLocalDate: DayKeyFormatter.dayKey(for: today),
         note: "Preview bill",
         categoryId: nil,
         isFromRecurring: false,
@@ -74,7 +75,23 @@ struct BillsListView: View {
         deletedAt: nil,
         trashUntil: nil
     )
-    let repository = MockBillRepository(seed: [seed])
+    let seed2 = BillRecord(
+        id: UUID(),
+        type: .income,
+        amount: Money(cents: 8800),
+        occurredAtUTC: yesterday,
+        tzId: TimeZone.current.identifier,
+        tzOffset: TimeZone.current.secondsFromGMT(),
+        occurredLocalDate: DayKeyFormatter.dayKey(for: yesterday),
+        note: "Preview income",
+        categoryId: nil,
+        isFromRecurring: false,
+        createdAt: Date(),
+        updatedAt: Date(),
+        deletedAt: nil,
+        trashUntil: nil
+    )
+    let repository = MockBillRepository(seed: [seed, seed2])
     NavigationStack {
         BillsListView(repository: repository)
     }

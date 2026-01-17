@@ -107,6 +107,16 @@ final class CoreDataBillRepository: BillRepository {
         }
     }
 
+    func list() throws -> [BillRecord] {
+        try context.performAndWaitThrowing {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "Bill")
+            request.predicate = NSPredicate(format: "deletedAt == nil")
+            request.sortDescriptors = [NSSortDescriptor(key: "occurredAtUTC", ascending: false)]
+            let objects = try context.fetch(request)
+            return try objects.map { try BillRecordMapper.map(from: $0) }
+        }
+    }
+
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
         try context.performAndWaitThrowing {
             let object = try fetchBillObject(id: id)

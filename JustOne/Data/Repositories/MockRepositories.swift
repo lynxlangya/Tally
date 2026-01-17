@@ -44,6 +44,12 @@ final class MockBillRepository: BillRepository {
             .sorted { $0.occurredAtUTC > $1.occurredAtUTC }
     }
 
+    func list() throws -> [BillRecord] {
+        storage.values
+            .filter { $0.deletedAt == nil }
+            .sorted { $0.occurredAtUTC > $1.occurredAtUTC }
+    }
+
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
         guard let record = storage[id] else { throw RepositoryError.notFound }
         let updated = BillRecord(
