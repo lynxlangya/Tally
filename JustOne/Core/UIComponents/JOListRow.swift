@@ -30,15 +30,15 @@ struct JOListRow: View {
     var body: some View {
         HStack(spacing: JOSpacing.md) {
             Image(systemName: iconName)
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(JOColors.textPrimary)
-                .frame(width: 44, height: 44)
+                .frame(width: 46, height: 46)
                 .background(iconBackground)
-                .clipShape(RoundedRectangle(cornerRadius: JORadius.input, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: JORadius.icon, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(JOTypography.headline)
+                    .font(JOTypography.body)
                     .foregroundStyle(JOColors.textPrimary)
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
@@ -47,15 +47,22 @@ struct JOListRow: View {
                 }
             }
             Spacer()
-            JOAmountText(cents: amountCents, sign: amountSign, size: .small, color: amountColor)
+            JOAmountText(cents: amountCents, sign: amountSign, size: .row, color: amountColor)
         }
         .padding(.vertical, JOSpacing.sm)
-        .padding(.horizontal, JOSpacing.md)
+        .padding(.horizontal, JOSpacing.lg)
+        .frame(minHeight: 72)
         .background(JOColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: JORadius.card, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: JORadius.row, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: JORadius.card, style: .continuous)
-                .stroke(JOColors.divider, lineWidth: 1)
+            RoundedRectangle(cornerRadius: JORadius.row, style: .continuous)
+                .stroke(JOColors.cardBorder, lineWidth: 1)
+        )
+        .shadow(
+            color: JOShadows.card.color,
+            radius: JOShadows.card.radius,
+            x: JOShadows.card.x,
+            y: JOShadows.card.y
         )
     }
 }

@@ -14,7 +14,7 @@ struct JOCard<Content: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: JORadius.card, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: JORadius.card, style: .continuous)
-                    .stroke(JOColors.divider, lineWidth: 1)
+                    .stroke(JOColors.cardBorder, lineWidth: 1)
             )
             .shadow(
                 color: JOShadows.card.color,

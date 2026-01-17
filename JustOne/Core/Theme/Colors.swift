@@ -22,6 +22,8 @@ enum JOColors {
         static let textDark = rgb(243, 247, 244)
         static let textSecondaryLight = rgb(107, 114, 128)
         static let textSecondaryDark = rgb(146, 201, 155)
+        static let categoryBlue = rgb(59, 130, 246)
+        static let categoryOrange = rgb(249, 115, 22)
     }
 
     static var background: Color {
@@ -53,6 +55,9 @@ enum JOColors {
     static let fabGreen = primary
     static let fabIcon = Color(Palette.backgroundDark)
     static let fabGlow = primary
+    static let categoryBlue = Color(Palette.categoryBlue)
+    static let categoryOrange = Color(Palette.categoryOrange)
+    static let cardBorder = Color.white.opacity(0.06)
 
     private static func themed(light: UIColor, dark: UIColor) -> Color {
         Color(UIColor { traitCollection in

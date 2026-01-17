@@ -5,6 +5,7 @@ struct JOAmountText: View {
         case large
         case medium
         case small
+        case row
     }
 
     let cents: Int
@@ -38,6 +39,8 @@ struct JOAmountText: View {
             return JOTypography.title
         case .small:
             return JOTypography.body
+        case .row:
+            return .system(size: 18, weight: .semibold)
         }
     }
 }
