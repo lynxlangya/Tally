@@ -12,8 +12,6 @@ struct CategoryEditSheet: View {
     @State private var selectedColorIndex: Int
     @State private var randomColorHex: UInt32
     @State private var usesRandomColor: Bool
-    @FocusState private var isNameFocused: Bool
-
     private enum Constants {
         static let nameLimit = 5
         static let previewSize: CGFloat = 120
@@ -22,10 +20,11 @@ struct CategoryEditSheet: View {
         static let colorSwatchSize: CGFloat = 37
         static let colorSwatchSpacing: CGFloat = 12
         static let colorGridColumns: Int = 8
-        static let iconCellSize: CGFloat = 48
-        static let iconRowCount = 3
+        static let iconCellSize: CGFloat = 44
+        static let iconRowCount = 4
         static let iconSpacing: CGFloat = 12
         static let sectionTitleOpacity: CGFloat = 0.45
+        static let actionBarBottomOffset: CGFloat = 35
     }
 
     init(
@@ -74,7 +73,7 @@ struct CategoryEditSheet: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
+        GeometryReader { _ in
             VStack(spacing: JOSpacing.lg) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: JOSpacing.xl) {
@@ -93,11 +92,13 @@ struct CategoryEditSheet: View {
 
                 actionBar
                     .padding(.top, 5)
-                    .padding(.bottom, proxy.safeAreaInsets.bottom)
+                    .padding(.bottom, Constants.actionBarBottomOffset)
             }
             .padding(.horizontal, JOSpacing.lg)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(JOColors.background.ignoresSafeArea())
+            .ignoresSafeArea(.container, edges: .bottom)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
     }
 
@@ -140,35 +141,30 @@ struct CategoryEditSheet: View {
                 .foregroundStyle(Color.white.opacity(Constants.sectionTitleOpacity))
                 .tracking(2)
 
-            HStack {
-                TextField(
+            ZStack(alignment: .trailing) {
+                JOLimitedTextField(
                     text: $name,
-                    prompt: Text("最多 5 个字")
-                        .foregroundStyle(Color.white.opacity(0.4))
-                ) {
-                    EmptyView()
-                }
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(JOColors.textPrimary)
-                .focused($isNameFocused)
-                .submitLabel(.done)
-                .onChange(of: name) { _, newValue in
-                    if newValue.count > Constants.nameLimit {
-                        name = String(newValue.prefix(Constants.nameLimit))
-                    }
-                }
+                    placeholder: "最多 5 个字",
+                    maxLength: Constants.nameLimit,
+                    font: .systemFont(ofSize: 18, weight: .medium),
+                    textColor: UIColor(JOColors.textPrimary),
+                    placeholderColor: UIColor.white.withAlphaComponent(0.4),
+                    returnKeyType: .done
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.trailing, 28)
 
-                if !name.isEmpty {
-                    Button {
-                        name = ""
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(Color.white.opacity(0.35))
-                            .frame(width: 28, height: 28)
-                    }
-                    .buttonStyle(.plain)
+                Button {
+                    name = ""
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.35))
+                        .frame(width: 28, height: 28)
                 }
+                .buttonStyle(.plain)
+                .opacity(name.isEmpty ? 0 : 1)
+                .allowsHitTesting(!name.isEmpty)
             }
             .padding(.vertical, JOSpacing.md)
             .padding(.horizontal, JOSpacing.lg)
@@ -378,7 +374,7 @@ struct IconSwatch: View {
             )
             .overlay(
                 Image(systemName: icon)
-                    .font(.system(size: size * 0.44, weight: .semibold))
+                    .font(.system(size: size * 0.44 - 3, weight: .semibold))
                     .foregroundStyle(isSelected ? Color.white.opacity(0.95) : Color.white.opacity(0.4))
             )
     }
