@@ -53,6 +53,15 @@ final class BillsListViewModel: ObservableObject {
         return formatter
     }()
 
+    private static let detailDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "M月d日"
+        return formatter
+    }()
+
     init(repository: BillRepository, categoryRepository: CategoryRepository) {
         self.billRepository = repository
         self.categoryRepository = categoryRepository
@@ -138,8 +147,41 @@ final class BillsListViewModel: ObservableObject {
 
     private func filteredBills(for anchor: Date) -> [BillRecord] {
         allBills.filter { bill in
-            bill.type == selectedType && isInSelectedRange(dayKey: bill.occurredLocalDate, anchor: anchor)
+            bill.deletedAt == nil
+                && bill.type == selectedType
+                && isInSelectedRange(dayKey: bill.occurredLocalDate, anchor: anchor)
         }
+    }
+
+    func categoryDetail(for categoryId: UUID) -> CategoryDetail {
+        let filtered = filteredBills(for: normalizedAnchorDate)
+        let items = filtered
+            .filter { bill in
+                let billCategoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
+                return billCategoryId == categoryId
+            }
+            .sorted { $0.occurredAtUTC > $1.occurredAtUTC }
+
+        let totalCents = items.reduce(0) { $0 + $1.amount.cents }
+        let title = categoriesById[categoryId]?.name ?? "未分类"
+        let detailItems = items.map { bill in
+            let note = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let noteText = note.isEmpty ? "无备注" : note
+            return CategoryDetailItem(
+                id: bill.id,
+                dateText: Self.detailDateString(for: bill),
+                noteText: noteText,
+                amountCents: bill.amount.cents
+            )
+        }
+
+        return CategoryDetail(
+            id: categoryId,
+            title: title,
+            totalCents: totalCents,
+            isIncome: selectedType == .income,
+            items: detailItems
+        )
     }
 
     private func isInSelectedRange(dayKey: String, anchor: Date) -> Bool {
@@ -277,5 +319,12 @@ final class BillsListViewModel: ObservableObject {
             ?? .current
         formatter.timeZone = timeZone
         return formatter.string(from: bill.occurredAtUTC)
+    }
+
+    private static func detailDateString(for bill: BillRecord) -> String {
+        guard let date = DayKeyFormatter.date(from: bill.occurredLocalDate) else {
+            return bill.occurredLocalDate
+        }
+        return detailDateFormatter.string(from: date)
     }
 }

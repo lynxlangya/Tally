@@ -13,4 +13,11 @@ enum BillsListLayout {
     static let rankBarHeight: CGFloat = 6
     static let rankingSpacing: CGFloat = JOSpacing.lg + 4
     static let rankingBottomPadding: CGFloat = 2
+    static let detailSheetHeightRatio: CGFloat = 0.66
+    static let detailSheetCornerRadius: CGFloat = 28
+    static let detailSheetHandleWidth: CGFloat = 40
+    static let detailSheetHandleHeight: CGFloat = 5
+    static let detailSheetDismissThreshold: CGFloat = 90
+    static let detailRowVerticalPadding: CGFloat = 14
+    static let detailDividerOpacity: CGFloat = 0.06
 }

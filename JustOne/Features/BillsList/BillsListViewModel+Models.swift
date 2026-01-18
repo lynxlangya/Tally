@@ -60,4 +60,19 @@ extension BillsListViewModel {
         let amountCents: Int
         let isIncome: Bool
     }
+
+    struct CategoryDetail {
+        let id: UUID
+        let title: String
+        let totalCents: Int
+        let isIncome: Bool
+        let items: [CategoryDetailItem]
+    }
+
+    struct CategoryDetailItem: Identifiable {
+        let id: UUID
+        let dateText: String
+        let noteText: String
+        let amountCents: Int
+    }
 }

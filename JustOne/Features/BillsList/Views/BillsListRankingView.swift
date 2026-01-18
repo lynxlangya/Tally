@@ -4,6 +4,7 @@ struct BillsListRankingView: View {
     let title: String
     let items: [BillsListViewModel.RankingItem]
     let onToggleSort: () -> Void
+    let onSelectItem: (BillsListViewModel.RankingItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: JOSpacing.md) {
@@ -34,7 +35,12 @@ struct BillsListRankingView: View {
                 } else {
                     VStack(spacing: BillsListLayout.rankingSpacing) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            RankingRowView(item: item, isPrimary: index == 0)
+                            Button {
+                                onSelectItem(item)
+                            } label: {
+                                RankingRowView(item: item, isPrimary: index == 0)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }

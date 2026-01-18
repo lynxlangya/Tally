@@ -5,6 +5,7 @@ struct BillsListView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: BillsListViewModel
     @State private var activeTrendIndex: Int?
+    @State private var selectedCategory: CategorySheetTarget?
 
     init(repository: BillRepository, categoryRepository: CategoryRepository) {
         _viewModel = StateObject(wrappedValue: BillsListViewModel(
@@ -44,7 +45,10 @@ struct BillsListView: View {
                     BillsListRankingView(
                         title: viewModel.rankTitle,
                         items: viewModel.rankingItems,
-                        onToggleSort: { viewModel.toggleRankSort() }
+                        onToggleSort: { viewModel.toggleRankSort() },
+                        onSelectItem: { item in
+                            selectedCategory = CategorySheetTarget(id: item.id)
+                        }
                     )
 
                     if let errorMessage = viewModel.errorMessage {
@@ -70,6 +74,39 @@ struct BillsListView: View {
         }
         .task {
             viewModel.load()
+        }
+        .sheet(item: $selectedCategory, onDismiss: {
+            selectedCategory = nil
+        }) { target in
+            BillsListCategoryDetailSheet(detail: viewModel.categoryDetail(for: target.id))
+                .presentationDetents([.fraction(BillsListLayout.detailSheetHeightRatio)])
+                .presentationDragIndicator(.hidden)
+                .joPresentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
+                .joPresentationBackground(JOColors.surface.opacity(0.7))
+        }
+    }
+}
+
+private struct CategorySheetTarget: Identifiable {
+    let id: UUID
+}
+
+private extension View {
+    @ViewBuilder
+    func joPresentationBackground(_ color: Color) -> some View {
+        if #available(iOS 16.4, *) {
+            presentationBackground(color)
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func joPresentationCornerRadius(_ radius: CGFloat) -> some View {
+        if #available(iOS 16.4, *) {
+            presentationCornerRadius(radius)
+        } else {
+            self
         }
     }
 }
