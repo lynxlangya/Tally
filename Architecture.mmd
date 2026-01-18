@@ -1,0 +1,208 @@
+flowchart TB
+  %% App 层
+  subgraph AppLayer["App 层 入口 与 依赖注入"]
+    App_JustOneApp["JustOneApp<br/>应用入口"]
+    App_ContentView["ContentView"]
+    App_AppRoot["AppRootView"]
+    App_TabScaffold["JOTabScaffold<br/>TabView 自定义 TabBar 与 FAB"]
+    App_AppEnv["AppEnvironment<br/>EnvironmentValues 注入"]
+    App_DI["DIContainer<br/>仓库与服务实例"]
+  end
+
+  App_JustOneApp --> App_ContentView --> App_AppRoot --> App_TabScaffold
+  App_JustOneApp --> App_AppEnv --> App_DI
+
+  %% Features 层
+  subgraph FeaturesLayer["Features 层 页面 与 ViewModel"]
+    subgraph FeatureHome["Home"]
+      Home_View["HomeView"]
+      Home_VM["HomeViewModel"]
+    end
+
+    subgraph FeatureQuickEntry["QuickEntry"]
+      QE_View["QuickEntryView"]
+      QE_VM["QuickEntryViewModel"]
+      QE_Keypad["QuickEntryKeypad"]
+    end
+
+    subgraph FeatureBillsList["BillsList"]
+      BL_View["BillsListView"]
+      BL_VM["BillsListViewModel"]
+      BL_SubViews["Header Summary Trend Ranking<br/>CategoryDetailSheet TimeRangeBar"]
+    end
+
+    subgraph FeatureCategories["Categories"]
+      Cat_View["CategoriesView"]
+      Cat_VM["CategoriesViewModel"]
+      Cat_Edit["CategoryEditSheet"]
+      Cat_Grid["CategoryGridItem"]
+    end
+
+    subgraph FeatureProfile["Profile"]
+      Profile_View["ProfileView"]
+    end
+
+    subgraph FeatureSettings["Settings"]
+      Settings_View["SettingsView"]
+      Placeholder_View["PlaceholderView"]
+    end
+
+    subgraph FeatureDebug["Debug 仅 Debug 构建"]
+      Debug_View["DebugView"]
+      Debug_VM["DebugViewModel"]
+    end
+  end
+
+  %% 导航与 UI 流程
+  App_TabScaffold --> Home_View
+  App_TabScaffold --> Profile_View
+  App_TabScaffold -->|Sheet| QE_View
+  Home_View --> BL_View
+  Profile_View --> Cat_View
+  Profile_View --> Settings_View
+  Settings_View --> Placeholder_View
+  Profile_View -->|Debug| Debug_View
+
+  Home_View --> Home_VM
+  QE_View --> QE_VM
+  QE_View --> QE_Keypad
+  BL_View --> BL_VM
+  BL_View --> BL_SubViews
+  Cat_View --> Cat_VM
+  Cat_View --> Cat_Edit
+  Cat_View --> Cat_Grid
+  Debug_View --> Debug_VM
+
+  %% Services 层
+  subgraph ServicesLayer["Services 层 协议 与 Stub"]
+    S_Export["ExportService<br/>StubExportService"]
+    S_Recurring["RecurringService<br/>StubRecurringService"]
+    S_Security["SecurityService<br/>StubSecurityService"]
+    S_Seed["SeedService 协议"]
+  end
+
+  App_DI --> S_Export
+  App_DI --> S_Recurring
+  App_DI --> S_Security
+  App_DI --> S_Seed
+
+  %% Repository 协议
+  subgraph RepoProtocols["Repository 协议"]
+    R_Bill["BillRepository"]
+    R_Category["CategoryRepository"]
+    R_Recurring["RecurringRepository"]
+    R_Trash["TrashRepository"]
+  end
+
+  App_DI --> R_Bill
+  App_DI --> R_Category
+  App_DI --> R_Recurring
+  App_DI --> R_Trash
+
+  %% Data 层
+  subgraph DataLayer["Data 层 CoreData 与 Repository 实现"]
+    D_Persistence["PersistenceController<br/>NSPersistentContainer"]
+    D_Model["JustOne xcdatamodeld<br/>实体 Bill Category RecurringTask"]
+    D_BillRepo["CoreDataBillRepository"]
+    D_CategoryRepo["CoreDataCategoryRepository"]
+    D_RecurringRepo["CoreDataRecurringRepository"]
+    D_TrashRepo["CoreDataTrashRepository"]
+    D_BillMapper["BillRecordMapper"]
+    D_SeedImpl["CoreDataSeedService<br/>SeedService 实现"]
+    D_MockRepos["MockRepositories<br/>Preview 和 Debug"]
+  end
+
+  D_BillRepo -->|实现| R_Bill
+  D_CategoryRepo -->|实现| R_Category
+  D_RecurringRepo -->|实现| R_Recurring
+  D_TrashRepo -->|实现| R_Trash
+  D_SeedImpl -->|实现| S_Seed
+  D_MockRepos -->|可替换| R_Bill
+
+  D_BillRepo --> D_Persistence
+  D_CategoryRepo --> D_Persistence
+  D_RecurringRepo --> D_Persistence
+  D_TrashRepo --> D_Persistence
+  D_Persistence --> D_Model
+  D_BillRepo --> D_BillMapper
+  D_SeedImpl --> D_Persistence
+
+  %% Core 层
+  subgraph CoreLayer["Core 层 工具 主题 组件"]
+    subgraph CoreDomain["Domain"]
+      C_Enums["Enums<br/>BillType ExportFormat ThemeMode"]
+      C_Models["Models<br/>BillDraft BillRecord CategoryRecord RecurringTaskRecord"]
+      C_SystemCat["SystemCategories<br/>未分类 ID"]
+    end
+
+    subgraph CoreUtilities["Utilities"]
+      C_Money["Money 与 MoneyFormatter<br/>CNY 两位小数"]
+      C_TimePolicy["TimePolicy<br/>时区快照"]
+      C_DayKey["DayKeyFormatter<br/>YYYY-MM-DD"]
+      C_AppEvents["AppEvents<br/>billDidChange 通知名"]
+    end
+
+    subgraph CoreTheme["Theme"]
+      C_Colors["Colors"]
+      C_Typography["Typography"]
+      C_Radii["Radii"]
+      C_Spacing["Spacing"]
+      C_Shadows["Shadows"]
+    end
+
+    subgraph CoreComponents["UIComponents"]
+      C_ListRow["JOListRow"]
+      C_AmountText["JOAmountText"]
+      C_Card["JOCard"]
+      C_Segmented["JOSegmentedControl"]
+      C_BillTypeSeg["JOBillTypeSegmentedControl"]
+      C_SheetHandle["JOSheetHandle"]
+      C_SheetContainer["JOSheetContainer"]
+      C_HeaderBar["JOHeaderBar"]
+      C_CategoryTile["JOCategoryIconTile"]
+      C_TabBar["JOTabBar"]
+      C_FAB["JOFloatingAddButton"]
+      C_Other["JOChip JOIconButton JOSettingRow JOBackButton 等"]
+    end
+
+    CorePreview["PreviewKit<br/>PreviewGallery"]
+  end
+
+  %% 资源
+  subgraph Resources["Resources 与 Assets"]
+    Assets["Assets xcassets"]
+  end
+
+  %% Feature 依赖 Repository 与 Service
+  Home_VM --> R_Bill
+  Home_VM --> R_Category
+  QE_VM --> R_Bill
+  QE_VM --> R_Category
+  BL_VM --> R_Bill
+  BL_VM --> R_Category
+  Cat_VM --> R_Category
+  Debug_VM --> R_Bill
+  Debug_VM --> S_Seed
+
+  %% Feature 依赖 Core
+  Home_View --> CoreComponents
+  QE_View --> CoreComponents
+  BL_View --> CoreComponents
+  Cat_View --> CoreComponents
+  Settings_View --> CoreComponents
+  Profile_View --> CoreComponents
+
+  Home_View --> CoreTheme
+  QE_View --> CoreTheme
+  BL_View --> CoreTheme
+  Cat_View --> CoreTheme
+
+  Home_VM --> CoreUtilities
+  QE_VM --> CoreUtilities
+  BL_VM --> CoreUtilities
+  D_BillRepo --> CoreUtilities
+
+  %% AppEvents 通知流
+  QE_VM -->|发布 billDidChange| C_AppEvents
+  C_AppEvents -->|通知| Home_View
+  C_AppEvents -->|通知| BL_View
