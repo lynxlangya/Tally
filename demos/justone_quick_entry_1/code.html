@@ -2,7 +2,7 @@
 <html class="dark" lang="zh-CN"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>JustOne 记账前置选择页</title>
+<title>JustOne Quick Entry</title>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -14,8 +14,8 @@
                     colors: {
                         "primary": "#13ec37",
                         "background-light": "#f6f8f6",
-                        "background-dark": "#102213",
-                        "surface-dark": "#1c2e20",
+                        "background-dark": "#0d1a0f",
+                        "surface-dark": "#16271a",
                         "text-dim": "#92c99b",
                     },
                     fontFamily: {
@@ -44,8 +44,6 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-    </style>
-<style>
         body {
             min-height: max(884px, 100dvh);
         }
@@ -55,32 +53,20 @@
       min-height: max(884px, 100dvh);
     }
   </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
   </head>
 <body class="bg-background-dark h-screen w-full flex flex-col font-display overflow-hidden text-white selection:bg-primary selection:text-background-dark">
-<div class="flex flex-col items-center pt-2 pb-1 shrink-0 relative z-20">
-<div class="h-1.5 w-12 rounded-full bg-white/20 mb-4 cursor-pointer hover:bg-white/30 transition-colors"></div>
-<p class="text-text-dim text-sm font-medium tracking-wide uppercase opacity-80">选择分类</p>
-<div class="absolute right-6 top-8 flex items-center bg-surface-dark rounded-full p-1 border border-white/10">
-<button class="relative rounded-full px-5 py-1.5 text-sm font-bold bg-primary text-background-dark shadow-[0_2px_8px_rgba(19,236,55,0.25)] transition-all hover:bg-[#3bf55a]">支</button>
-<button class="relative rounded-full px-5 py-1.5 text-sm font-bold text-white/40 hover:text-white transition-all hover:bg-white/5">收</button>
+<div class="flex-1 w-full flex flex-col items-center justify-center">
+</div>
+<div class="h-[75%] w-full bg-surface-dark/40 border-t border-white/5 rounded-t-[2.5rem] overflow-hidden flex flex-col relative shadow-2xl">
+<div class="px-8 pt-8 pb-4 flex items-center justify-between shrink-0">
+<h2 class="text-text-dim text-lg font-bold tracking-wide">选择分类</h2>
+<div class="flex items-center bg-black/30 rounded-full p-1 border border-white/5">
+<button class="relative rounded-full px-5 py-1.5 text-sm font-bold bg-primary text-background-dark shadow-[0_2px_8px_rgba(19,236,55,0.25)] transition-all">支</button>
+<button class="relative rounded-full px-5 py-1.5 text-sm font-bold text-white/40 hover:text-white transition-all">收</button>
 </div>
 </div>
-<div class="flex flex-col items-center justify-center relative shrink-0 flex-1">
-<div class="flex items-baseline gap-2 px-4">
-<span class="text-4xl font-bold text-primary align-top mt-2 opacity-90">¥</span>
-<h1 class="text-[5rem] font-extrabold leading-none tracking-tight text-white">0</h1>
-</div>
-<p class="text-white/20 text-xs font-medium mt-2 tracking-wider">先选择分类，再输入金额</p>
-</div>
-<div class="h-[50%] w-full bg-surface-dark/20 border-t border-white/5 rounded-t-[2.5rem] overflow-hidden flex flex-col relative">
-<div class="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-background-dark/50 to-transparent z-10 pointer-events-none"></div>
-<div class="flex-1 overflow-y-auto no-scrollbar pt-8 pb-12 px-6">
-<div class="grid grid-cols-4 gap-y-8 gap-x-2">
+<div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-12">
+<div class="grid grid-cols-4 gap-y-8 gap-x-2 pt-4">
 <button class="flex flex-col items-center gap-2 group">
 <div class="h-14 w-14 rounded-2xl border border-white/10 bg-surface-dark flex items-center justify-center transition-all duration-200 group-active:scale-95 group-hover:border-primary/30 group-hover:bg-primary/5 shadow-sm shadow-black/20">
 <span class="material-symbols-outlined text-white/50 group-hover:text-white/80 transition-colors" style="font-size: 26px;">restaurant</span>
@@ -204,4 +190,5 @@
 </div>
 </div>
 </div>
+
 </body></html>

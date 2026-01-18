@@ -2,6 +2,7 @@ import SwiftUI
 
 struct BillsListCategoryDetailSheet: View {
     let detail: BillsListViewModel.CategoryDetail
+    let onEdit: (UUID) -> Void
 
     var body: some View {
         VStack(spacing: JOSpacing.lg) {
@@ -28,7 +29,12 @@ struct BillsListCategoryDetailSheet: View {
                 } else {
                     LazyVStack(spacing: 0) {
                         ForEach(Array(detail.items.enumerated()), id: \.element.id) { index, item in
-                            DetailRow(item: item, isIncome: detail.isIncome)
+                            Button {
+                                onEdit(item.id)
+                            } label: {
+                                DetailRow(item: item, isIncome: detail.isIncome)
+                            }
+                            .buttonStyle(.plain)
 
                             if index < detail.items.count - 1 {
                                 Divider()

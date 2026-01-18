@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct JOTabScaffold: View {
+    @Environment(\.appEnvironment) private var environment
+
     private enum TabIndex: Int {
         case home = 0
         case profile = 1
@@ -58,11 +60,14 @@ struct JOTabScaffold: View {
                     .zIndex(2)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-        .ignoresSafeArea(.keyboard)
-        .sheet(isPresented: $showsQuickEntry) {
-            QuickEntryPlaceholder()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    .ignoresSafeArea(.keyboard)
+    .sheet(isPresented: $showsQuickEntry) {
+            QuickEntryView(
+                repository: environment.container.repositories.bill,
+                categoryRepository: environment.container.repositories.category
+            )
         }
     }
 
@@ -76,21 +81,6 @@ struct JOTabScaffold: View {
         NavigationStack {
             ProfileView()
         }
-    }
-}
-
-private struct QuickEntryPlaceholder: View {
-    var body: some View {
-        VStack(spacing: JOSpacing.lg) {
-            Text("Quick Entry")
-                .font(JOTypography.title)
-                .foregroundStyle(JOColors.textPrimary)
-            Text("Placeholder")
-                .font(JOTypography.body)
-                .foregroundStyle(JOColors.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(JOColors.background.ignoresSafeArea())
     }
 }
 

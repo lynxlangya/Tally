@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct BillsListView: View {
     @Environment(\.dismiss) private var dismiss
@@ -6,8 +7,14 @@ struct BillsListView: View {
     @StateObject private var viewModel: BillsListViewModel
     @State private var activeTrendIndex: Int?
     @State private var selectedCategory: CategorySheetTarget?
+    @State private var editingBill: BillRecord?
+
+    private let billRepository: BillRepository
+    private let categoryRepository: CategoryRepository
 
     init(repository: BillRepository, categoryRepository: CategoryRepository) {
+        self.billRepository = repository
+        self.categoryRepository = categoryRepository
         _viewModel = StateObject(wrappedValue: BillsListViewModel(
             repository: repository,
             categoryRepository: categoryRepository
@@ -78,11 +85,29 @@ struct BillsListView: View {
         .sheet(item: $selectedCategory, onDismiss: {
             selectedCategory = nil
         }) { target in
-            BillsListCategoryDetailSheet(detail: viewModel.categoryDetail(for: target.id))
+            BillsListCategoryDetailSheet(
+                detail: viewModel.categoryDetail(for: target.id),
+                onEdit: { billId in
+                    guard let record = viewModel.billRecord(for: billId) else { return }
+                    selectedCategory = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        editingBill = record
+                    }
+                }
+            )
                 .presentationDetents([.fraction(BillsListLayout.detailSheetHeightRatio)])
                 .presentationDragIndicator(.hidden)
                 .joPresentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
                 .joPresentationBackground(JOColors.surface.opacity(0.7))
+        }
+        .sheet(item: $editingBill, onDismiss: {
+            editingBill = nil
+        }) { bill in
+            QuickEntryView(
+                repository: billRepository,
+                categoryRepository: categoryRepository,
+                editingBill: bill
+            )
         }
     }
 }

@@ -153,6 +153,10 @@ final class BillsListViewModel: ObservableObject {
         }
     }
 
+    func billRecord(for id: UUID) -> BillRecord? {
+        allBills.first { $0.id == id }
+    }
+
     func categoryDetail(for categoryId: UUID) -> CategoryDetail {
         let filtered = filteredBills(for: normalizedAnchorDate)
         let items = filtered
