@@ -12,8 +12,10 @@ enum TimePolicy {
         let tzId = timeZone.identifier
         let tzOffset = timeZone.secondsFromGMT(for: localDate)
         let occurredLocalDate = DayKeyFormatter.dayKey(for: localDate, timeZone: timeZone)
+        // Date is an absolute instant; storing it as occurredAtUTC keeps the true timestamp.
+        let occurredAtUTC = localDate
         return TimeSnapshot(
-            occurredAtUTC: localDate,
+            occurredAtUTC: occurredAtUTC,
             tzId: tzId,
             tzOffset: tzOffset,
             occurredLocalDate: occurredLocalDate

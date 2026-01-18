@@ -34,41 +34,7 @@ struct BillsListHeader: View {
 
             Spacer()
 
-            BillTypeToggle(selection: $selection)
+            JOBillTypeSegmentedControl(selection: $selection)
         }
-    }
-}
-
-private struct BillTypeToggle: View {
-    @Binding var selection: BillType
-
-    var body: some View {
-        HStack(spacing: 0) {
-            toggleButton(title: "支", type: .expense)
-            toggleButton(title: "收", type: .income)
-        }
-        .padding(4)
-        .background(JOColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(JOColors.cardBorder, lineWidth: 1)
-        )
-    }
-
-    @ViewBuilder
-    private func toggleButton(title: String, type: BillType) -> some View {
-        let isSelected = selection == type
-        Button {
-            selection = type
-        } label: {
-            Text(title)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(isSelected ? JOColors.accentForeground : JOColors.textSecondary)
-                .frame(width: 36, height: 28)
-                .background(isSelected ? JOColors.accent : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        }
-        .buttonStyle(.plain)
     }
 }

@@ -6,9 +6,11 @@ struct BillsListCategoryDetailSheet: View {
 
     var body: some View {
         VStack(spacing: JOSpacing.lg) {
-            Capsule()
-                .fill(Color.white.opacity(0.3))
-                .frame(width: BillsListLayout.detailSheetHandleWidth, height: BillsListLayout.detailSheetHandleHeight)
+            JOSheetHandle(
+                width: BillsListLayout.detailSheetHandleWidth,
+                height: BillsListLayout.detailSheetHandleHeight,
+                opacity: 0.3
+            )
                 .padding(.top, JOSpacing.sm)
 
             VStack(spacing: JOSpacing.sm) {

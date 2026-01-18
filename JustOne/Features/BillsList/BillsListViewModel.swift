@@ -39,7 +39,7 @@ final class BillsListViewModel: ObservableObject {
         var calendar = Calendar(identifier: .gregorian)
         calendar.firstWeekday = 2
         calendar.minimumDaysInFirstWeek = 4
-        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        calendar.timeZone = .autoupdatingCurrent
         return calendar
     }()
 
@@ -55,7 +55,7 @@ final class BillsListViewModel: ObservableObject {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "zh_CN")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.timeZone = .autoupdatingCurrent
         formatter.dateFormat = "M月d日"
         return formatter
     }()
@@ -110,7 +110,7 @@ final class BillsListViewModel: ObservableObject {
 
     private var normalizedAnchorDate: Date {
         let dayKey = DayKeyFormatter.dayKey(for: anchorDate)
-        return DayKeyFormatter.date(from: dayKey) ?? anchorDate
+        return DayKeyFormatter.date(from: dayKey, timeZone: calendar.timeZone) ?? anchorDate
     }
 
     private func applyFilters() {
@@ -178,7 +178,7 @@ final class BillsListViewModel: ObservableObject {
     }
 
     private func isInSelectedRange(dayKey: String, anchor: Date) -> Bool {
-        guard let date = DayKeyFormatter.date(from: dayKey) else { return false }
+        guard let date = DayKeyFormatter.date(from: dayKey, timeZone: calendar.timeZone) else { return false }
         switch timeRange {
         case .week:
             return calendar.component(.weekOfYear, from: date) == calendar.component(.weekOfYear, from: anchor)
@@ -315,7 +315,7 @@ final class BillsListViewModel: ObservableObject {
     }
 
     private static func detailDateString(for bill: BillRecord) -> String {
-        guard let date = DayKeyFormatter.date(from: bill.occurredLocalDate) else {
+        guard let date = DayKeyFormatter.date(from: bill.occurredLocalDate, timeZone: .autoupdatingCurrent) else {
             return bill.occurredLocalDate
         }
         return detailDateFormatter.string(from: date)

@@ -19,9 +19,11 @@ struct QuickEntryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Capsule()
-                .fill(Color.white.opacity(0.2))
-                .frame(width: QuickEntryLayout.handleWidth, height: QuickEntryLayout.handleHeight)
+            JOSheetHandle(
+                width: QuickEntryLayout.handleWidth,
+                height: QuickEntryLayout.handleHeight,
+                opacity: 0.2
+            )
                 .padding(.top, JOSpacing.md)
                 .padding(.bottom, JOSpacing.sm)
 
@@ -73,7 +75,7 @@ struct QuickEntryView: View {
 
                 Spacer()
 
-                QuickEntryTypeSwitch(selection: $viewModel.selectedType)
+                JOBillTypeSegmentedControl(selection: $viewModel.selectedType)
             }
             .padding(.horizontal, QuickEntryLayout.headerHorizontalPadding)
             .padding(.bottom, JOSpacing.sm)
@@ -201,38 +203,6 @@ struct QuickEntryView: View {
         if viewModel.save() {
             dismiss()
         }
-    }
-}
-
-private struct QuickEntryTypeSwitch: View {
-    @Binding var selection: BillType
-
-    var body: some View {
-        HStack(spacing: 0) {
-            typeButton(title: "支", type: .expense)
-            typeButton(title: "收", type: .income)
-        }
-        .padding(4)
-        .background(JOColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(JOColors.cardBorder, lineWidth: 1)
-        )
-    }
-
-    private func typeButton(title: String, type: BillType) -> some View {
-        Button {
-            selection = type
-        } label: {
-            Text(title)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(selection == type ? JOColors.accentForeground : JOColors.textSecondary)
-                .frame(width: 36, height: 28)
-                .background(selection == type ? JOColors.accent : Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        }
-        .buttonStyle(.plain)
     }
 }
 

@@ -26,15 +26,15 @@
 ## 2.2 架构偏离与风险（P0/P1/P2）
 
 - P0
-  - BillsList 仍在使用 Mock 数据，真实数据未接入：`JustOne/Features/BillsList/BillsListViewModel.swift`（`useMockData = true`）。
   - BillsList 未展示账单明细列表，导航入口与统计页割裂：`JustOne/Features/BillsList/BillsListView.swift`。
+  - （已处理）BillsList 已接入真实数据（移除 Mock 分支）。
 - P1
-  - BillsList 未监听 `billDidChange`，一旦接入真实数据将出现编辑后不刷新的问题：`JustOne/Features/BillsList/BillsListView.swift`。
-  - 时间范围计算使用 UTC 日历，可能与用户本地周起始产生偏差：`JustOne/Features/BillsList/BillsListViewModel.swift`。
-  - `TimePolicy.snapshot` 命名与行为略有歧义（`occurredAtUTC` 实际写入本地时间对象）：`JustOne/Core/Utilities/TimePolicy.swift`。
+  - （已处理）BillsList 已监听 `billDidChange`，编辑后可刷新：`JustOne/Features/BillsList/BillsListView.swift`。
+  - （已处理）时间范围改为使用本地时区计算：`JustOne/Features/BillsList/BillsListViewModel.swift`。
+  - （已处理）`TimePolicy.snapshot` 已补充注释以澄清 UTC 命名。
 - P2
-  - BillType 切换控件重复实现（QuickEntry/BillsList），样式与行为分叉：`QuickEntryView.swift`、`BillsListHeaderView.swift`。
-  - UI 中存在多处“胶囊/卡片”样式重复封装不足，后续迭代可能出现不一致。
+  - （已处理）BillType 切换控件已抽出 `JOBillTypeSegmentedControl` 复用。
+  - （已处理）Sheet 拖拽条样式已抽出 `JOSheetHandle` 复用。
 
 ## 2.3 需要封装的组件清单（建议）
 
