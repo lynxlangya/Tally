@@ -26,7 +26,7 @@ final class BillsListViewModel: ObservableObject {
         didSet { applyFilters() }
     }
 
-    @Published var anchorDate: Date = BillsListViewModel.mockAnchorDate {
+    @Published var anchorDate: Date = Date() {
         didSet { applyFilters() }
     }
 
@@ -42,8 +42,6 @@ final class BillsListViewModel: ObservableObject {
         calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
         return calendar
     }()
-
-    private let useMockData = true
 
     private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -96,15 +94,6 @@ final class BillsListViewModel: ObservableObject {
     }
 
     func load() {
-        if useMockData {
-            let mock = Self.makeMockData(anchor: Self.mockAnchorDate)
-            allBills = mock.bills
-            categoriesById = Dictionary(uniqueKeysWithValues: mock.categories.map { ($0.id, $0) })
-            anchorDate = Self.mockAnchorDate
-            errorMessage = nil
-            return
-        }
-
         do {
             let bills = try billRepository.list()
             let expenseCategories = try categoryRepository.list(type: .expense)

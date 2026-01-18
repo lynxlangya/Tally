@@ -82,6 +82,9 @@ struct BillsListView: View {
         .task {
             viewModel.load()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .billDidChange)) { _ in
+            viewModel.load()
+        }
         .sheet(item: $selectedCategory, onDismiss: {
             selectedCategory = nil
         }) { target in
