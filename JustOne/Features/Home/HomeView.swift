@@ -1,9 +1,24 @@
 import SwiftUI
 
 struct HomeView: View {
-    @Environment(\.appEnvironment) private var environment
     @Environment(\.tabBarVisibility) private var tabBarVisibility
+    @StateObject private var viewModel: HomeViewModel
     @State private var showsBillsList = false
+    @State private var editingBill: BillRecord?
+    @State private var showsDeleteConfirm = false
+    @State private var deleteCandidateId: UUID?
+
+    private let repository: BillRepository
+    private let categoryRepository: CategoryRepository
+
+    init(repository: BillRepository, categoryRepository: CategoryRepository) {
+        self.repository = repository
+        self.categoryRepository = categoryRepository
+        _viewModel = StateObject(wrappedValue: HomeViewModel(
+            repository: repository,
+            categoryRepository: categoryRepository
+        ))
+    }
 
     var body: some View {
         ZStack {
@@ -12,26 +27,40 @@ struct HomeView: View {
             VStack(spacing: JOSpacing.lg) {
                 header
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: JOSpacing.xl) {
-                        summarySection
-                        groupsSection
-                    }
-                    .padding(.bottom, 140)
-                }
+                listContent
             }
-            .padding(.horizontal, JOSpacing.lg)
             .padding(.top, JOSpacing.xl)
         }
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(true)
+            viewModel.load()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .billDidChange)) { _ in
+            viewModel.load()
         }
         .navigationDestination(isPresented: $showsBillsList) {
             BillsListView(
-                repository: environment.container.repositories.bill,
-                categoryRepository: environment.container.repositories.category
+                repository: repository,
+                categoryRepository: categoryRepository
             )
+        }
+        .sheet(item: $editingBill) { bill in
+            QuickEntryView(
+                repository: repository,
+                categoryRepository: categoryRepository,
+                editingBill: bill
+            )
+        }
+        .confirmationDialog("确定删除该账单？", isPresented: $showsDeleteConfirm, titleVisibility: .visible) {
+            Button("确定删除", role: .destructive) {
+                deleteCandidateId = nil
+            }
+            Button("取消", role: .cancel) {
+                deleteCandidateId = nil
+            }
+        } message: {
+            Text("该操作不可撤销")
         }
     }
 
@@ -45,7 +74,7 @@ struct HomeView: View {
             Button {
             } label: {
                 HStack(spacing: JOSpacing.xs) {
-                    Text(summary.monthTitle)
+                    Text(viewModel.summary.monthTitle)
                         .font(JOTypography.headline)
                         .foregroundStyle(JOColors.textPrimary)
                     Image(systemName: "chevron.down")
@@ -65,6 +94,7 @@ struct HomeView: View {
                 showsBillsList = true
             }
         }
+        .padding(.horizontal, JOSpacing.lg)
     }
 
     private var summarySection: some View {
@@ -72,49 +102,54 @@ struct HomeView: View {
             Text("本月支出")
                 .font(JOTypography.caption)
                 .foregroundStyle(JOColors.textSecondary)
-            JOAmountText(cents: summary.expenseCents, size: .large)
+            JOAmountText(cents: viewModel.summary.expenseCents, size: .large)
 
             HStack(spacing: JOSpacing.xl) {
                 VStack(alignment: .leading, spacing: JOSpacing.xs) {
                     Text("本月收入")
                         .font(JOTypography.caption)
                         .foregroundStyle(JOColors.textSecondary)
-                    JOAmountText(cents: summary.incomeCents, size: .small, color: JOColors.accent)
+                    JOAmountText(cents: viewModel.summary.incomeCents, size: .small, color: JOColors.accent)
                 }
                 VStack(alignment: .leading, spacing: JOSpacing.xs) {
                     Text("结余")
                         .font(JOTypography.caption)
                         .foregroundStyle(JOColors.textSecondary)
                     JOAmountText(
-                        cents: summary.balanceCents,
-                        sign: summary.balanceSign,
+                        cents: viewModel.summary.balanceCents,
+                        sign: viewModel.summary.balanceSign,
                         size: .small,
-                        color: summary.balanceSign == "+" ? JOColors.accent : JOColors.textPrimary
+                        color: viewModel.summary.balanceSign == "+" ? JOColors.accent : JOColors.textPrimary
                     )
                 }
             }
         }
     }
 
-    private var groupsSection: some View {
-        VStack(alignment: .leading, spacing: JOSpacing.lg) {
-            ForEach(groups) { group in
-                VStack(alignment: .leading, spacing: JOSpacing.md) {
-                    HStack {
-                        Text(group.title)
-                            .font(JOTypography.caption)
-                            .foregroundStyle(JOColors.textSecondary)
-                        Spacer()
-                        JOAmountText(
-                            cents: group.totalCents,
-                            sign: group.totalSign,
-                            size: .small,
-                            color: group.totalSign == "+" ? JOColors.accent : JOColors.textPrimary
+    private var listContent: some View {
+        List {
+            Section {
+                summarySection
+                    .listRowInsets(
+                        EdgeInsets(
+                            top: 0,
+                            leading: JOSpacing.lg,
+                            bottom: JOSpacing.lg,
+                            trailing: JOSpacing.lg
                         )
-                    }
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+            }
 
-                    VStack(spacing: JOSpacing.sm) {
-                        ForEach(group.items) { item in
+            ForEach(viewModel.groups) { group in
+                Section {
+                    ForEach(group.items) { item in
+                        Button {
+                            if let bill = viewModel.bill(for: item.id) {
+                                editingBill = bill
+                            }
+                        } label: {
                             JOListRow(
                                 iconName: item.icon,
                                 iconBackground: item.iconBackground,
@@ -125,107 +160,65 @@ struct HomeView: View {
                                 amountColor: item.isIncome ? JOColors.accent : JOColors.textPrimary
                             )
                         }
+                        .buttonStyle(.plain)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button {
+                                deleteCandidateId = item.id
+                                showsDeleteConfirm = true
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                            .tint(.red)
+                        }
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 0,
+                                leading: JOSpacing.lg,
+                                bottom: JOSpacing.sm,
+                                trailing: JOSpacing.lg
+                            )
+                        )
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                     }
+                } header: {
+                    groupHeader(group)
                 }
+                .textCase(nil)
+                .listSectionSeparator(.hidden)
             }
         }
-    }
-}
-
-private struct HomeSummary {
-    let monthTitle: String
-    let expenseCents: Int
-    let incomeCents: Int
-
-    var balance: Int {
-        incomeCents - expenseCents
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: 140)
+        }
     }
 
-    var balanceCents: Int {
-        abs(balance)
-    }
-
-    var balanceSign: String {
-        balance >= 0 ? "+" : "-"
-    }
-}
-
-private struct HomeItem: Identifiable {
-    let id = UUID()
-    let icon: String
-    let iconBackground: Color
-    let title: String
-    let subtitle: String
-    let amountCents: Int
-    let isIncome: Bool
-}
-
-private struct HomeGroup: Identifiable {
-    let id = UUID()
-    let title: String
-    let totalCents: Int
-    let totalSign: String
-    let items: [HomeItem]
-}
-
-private let summary = HomeSummary(
-    monthTitle: "2023年10月",
-    expenseCents: 428560,
-    incomeCents: 850000
-)
-
-private let groups: [HomeGroup] = [
-    HomeGroup(
-        title: "今天",
-        totalCents: 825,
-        totalSign: "-",
-        items: [
-            HomeItem(
-                icon: "cup.and.saucer.fill",
-                iconBackground: JOColors.accent.opacity(0.2),
-                title: "星巴克",
-                subtitle: "09:41 · 咖啡",
-                amountCents: 550,
-                isIncome: false
-            ),
-            HomeItem(
-                icon: "tram.fill",
-                iconBackground: JOColors.categoryBlue.opacity(0.2),
-                title: "交通",
-                subtitle: "08:30 · 通勤",
-                amountCents: 275,
-                isIncome: false
+    private func groupHeader(_ group: HomeViewModel.Group) -> some View {
+        HStack {
+            Text(group.title)
+                .font(JOTypography.caption)
+                .foregroundStyle(JOColors.textSecondary)
+            Spacer()
+            JOAmountText(
+                cents: group.totalCents,
+                sign: group.totalSign,
+                size: .small,
+                color: group.totalSign == "+" ? JOColors.accent : JOColors.textPrimary
             )
-        ]
-    ),
-    HomeGroup(
-        title: "昨天",
-        totalCents: 191080,
-        totalSign: "+",
-        items: [
-            HomeItem(
-                icon: "cart.fill",
-                iconBackground: JOColors.categoryOrange.opacity(0.2),
-                title: "超市买菜",
-                subtitle: "18:15 · 全食超市",
-                amountCents: 8920,
-                isIncome: false
-            ),
-            HomeItem(
-                icon: "creditcard.fill",
-                iconBackground: JOColors.accent.opacity(0.2),
-                title: "工资",
-                subtitle: "09:00 · 月薪",
-                amountCents: 200000,
-                isIncome: true
-            )
-        ]
-    )
-]
+        }
+        .padding(.horizontal, JOSpacing.lg)
+        .padding(.vertical, JOSpacing.sm)
+    }
+}
 
 #Preview {
     NavigationStack {
-        HomeView()
+        HomeView(
+            repository: AppEnvironment.preview.container.repositories.bill,
+            categoryRepository: AppEnvironment.preview.container.repositories.category
+        )
     }
     .environment(\.appEnvironment, .preview)
 }

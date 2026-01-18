@@ -149,6 +149,7 @@ final class QuickEntryViewModel: ObservableObject {
                 )
                 _ = try billRepository.create(draft)
             }
+            NotificationCenter.default.post(name: .billDidChange, object: nil)
             errorMessage = nil
             return true
         } catch {

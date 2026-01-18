@@ -73,7 +73,10 @@ struct JOTabScaffold: View {
 
     private var homeStack: some View {
         NavigationStack {
-            HomeView()
+            HomeView(
+                repository: environment.container.repositories.bill,
+                categoryRepository: environment.container.repositories.category
+            )
         }
     }
 
