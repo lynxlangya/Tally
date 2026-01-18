@@ -16,11 +16,13 @@ struct JOFloatingAddButton: View {
                 .foregroundStyle(JOColors.fabIcon)
                 .frame(width: size, height: size)
                 .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    Circle()
                         .fill(JOColors.fabGreen)
-                        .shadow(color: JOColors.fabGlow.opacity(0.45), radius: 32, x: 0, y: 14)
-                        .shadow(color: JOColors.fabGlow.opacity(0.8), radius: 14, x: 0, y: 6)
-                        .shadow(color: Color.black.opacity(0.2), radius: 12, x: 0, y: 8)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                        )
+                        .shadow(color: JOColors.fabGlow.opacity(0.1), radius: 6, x: 0, y: 0)
                 )
         }
         .buttonStyle(.plain)
