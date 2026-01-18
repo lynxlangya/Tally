@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 extension BillsListViewModel {
@@ -81,3 +82,4 @@ extension BillsListViewModel {
         return calendar.date(from: components) ?? Date()
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 import Combine
 
@@ -56,3 +57,4 @@ final class DebugViewModel: ObservableObject {
         }
     }
 }
+#endif

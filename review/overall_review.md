@@ -62,17 +62,13 @@
 ## 2.4 冗余代码与可删项
 
 - `JustOne/Core/UIComponents/JOFAB.swift`
-  - 冗余原因：仅在 Preview 使用，实际功能由 `JOFloatingAddButton` 取代。
-  - 建议处理：合并或删除。
+  - 处理：已删除，Preview 使用 `JOFloatingAddButton` 替代（`JustOne/Core/PreviewKit/PreviewGallery.swift`）。
 - `JustOne/Features/BillsList/BillsListViewModel+MockData.swift`
-  - 冗余原因：生产逻辑未接入真实数据，Mock 数据被强制启用。
-  - 建议处理：移入 `#if DEBUG` 或仅用于 Preview。
+  - 处理：已标记为 `#if DEBUG`，避免进入正式编译路径。
 - `JustOne/Features/Debug/`
-  - 冗余原因：仅 Debug 功能页，发布版无入口。
-  - 建议处理：标记为 debug-only 或移入独立 Target。
+  - 处理：`DebugView`/`DebugViewModel` 已加 `#if DEBUG` 保护。
 - `demos/`
-  - 冗余原因：设计参考素材，不参与 App 运行。
-  - 建议处理：保留但与代码解耦，迁移至文档资源目录。
+  - 处理：保留为设计参考素材，未参与 App 运行（后续可再迁移至文档资源目录）。
 
 ## 2.5 MVP 边界确认（建议）
 

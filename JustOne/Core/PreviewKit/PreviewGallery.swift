@@ -68,7 +68,7 @@ struct PreviewGallery: View {
                         JOChip("Today")
                         JOChip("Selected", isEmphasized: true)
                     }
-                    JOFAB {}
+                    JOFloatingAddButton(size: 60) {}
                 }
             }
             .padding(JOSpacing.xl)
