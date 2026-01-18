@@ -28,7 +28,6 @@
 - P0
   - BillsList 仍在使用 Mock 数据，真实数据未接入：`JustOne/Features/BillsList/BillsListViewModel.swift`（`useMockData = true`）。
   - BillsList 未展示账单明细列表，导航入口与统计页割裂：`JustOne/Features/BillsList/BillsListView.swift`。
-  - 删除仅停留在确认对话框，未调用软删逻辑，用户会误以为删除成功：`JustOne/Features/Home/HomeView.swift`。
 - P1
   - BillsList 未监听 `billDidChange`，一旦接入真实数据将出现编辑后不刷新的问题：`JustOne/Features/BillsList/BillsListView.swift`。
   - 时间范围计算使用 UTC 日历，可能与用户本地周起始产生偏差：`JustOne/Features/BillsList/BillsListViewModel.swift`。
@@ -82,11 +81,11 @@
   - 列表分组展示：已实现于 Home，`JustOne/Features/Home/`。
   - 分类管理：已实现，`JustOne/Features/Categories/`。
   - 本地存储：已实现，`JustOne/Data/` + `JustOne/JustOne.xcdatamodeld/`。
-  - 软删 + 7 天撤销 + 回收站入口：未实现，需要补齐。
   - 导出（CSV 最小可用）：未实现，需要补齐。
 - MVP 暂不做（可延后）
   - iCloud 同步、无障碍/色盲适配、复杂转账/报销/借还款规则。
   - 定时记账（补跑/重复提示）、解锁密码/FaceID、小组件、主题/语言扩展。
+  - 软删/回收站/7 天撤销删除流程（移出 MVP）。
 - 已超出 MVP 的内容
   - 统计分析 UI 骨架（趋势/排行）已存在，建议“保留但不扩展”。
   - Debug 工具页仅保留在 Debug 编译配置。
