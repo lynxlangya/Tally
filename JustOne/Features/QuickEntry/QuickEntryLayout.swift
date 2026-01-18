@@ -13,7 +13,6 @@ enum QuickEntryLayout {
     static let headerVerticalPadding: CGFloat = 16
 
     static let categoryIconSize: CGFloat = 56
-    static let categoryIconCorner: CGFloat = 16
     static let categoryGridColumns: Int = 4
     static let categoryGridSpacingX: CGFloat = 8
     static let categoryGridSpacingY: CGFloat = 24

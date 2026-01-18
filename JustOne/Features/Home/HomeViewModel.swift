@@ -25,7 +25,7 @@ final class HomeViewModel: ObservableObject {
     struct Item: Identifiable {
         let id: UUID
         let icon: String
-        let iconBackground: Color
+        let iconColor: Color
         let title: String
         let subtitle: String
         let amountCents: Int
@@ -61,7 +61,9 @@ final class HomeViewModel: ObservableObject {
 
     func load() {
         do {
-            let bills = try billRepository.list().filter { $0.deletedAt == nil }
+            let allBills = try billRepository.list().filter { $0.deletedAt == nil }
+            let monthKey = currentMonthKey()
+            let bills = allBills.filter { $0.occurredLocalDate.hasPrefix(monthKey) }
             billById = Dictionary(uniqueKeysWithValues: bills.map { ($0.id, $0) })
 
             let categoryMap = loadCategories()
@@ -139,7 +141,7 @@ final class HomeViewModel: ObservableObject {
                 return Item(
                     id: bill.id,
                     icon: category.icon,
-                    iconBackground: category.color.opacity(0.2),
+                    iconColor: category.color,
                     title: category.name,
                     subtitle: subtitle,
                     amountCents: bill.amount.cents,
@@ -203,5 +205,11 @@ final class HomeViewModel: ObservableObject {
         let year = components.year ?? 0
         let month = components.month ?? 0
         return "\(year)年\(month)月"
+    }
+
+    private func currentMonthKey() -> String {
+        let now = nowProvider()
+        let dayKey = DayKeyFormatter.dayKey(for: now)
+        return String(dayKey.prefix(7))
     }
 }

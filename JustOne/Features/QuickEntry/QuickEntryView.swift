@@ -66,7 +66,7 @@ struct QuickEntryView: View {
     private var categoryContent: some View {
         VStack(spacing: JOSpacing.lg) {
             HStack {
-                Text("选择分类")
+                Text("选择类别")
                     .font(JOTypography.headline)
                     .foregroundStyle(JOColors.textSecondary)
                     .tracking(2)

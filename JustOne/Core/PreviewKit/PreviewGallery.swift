@@ -52,7 +52,7 @@ struct PreviewGallery: View {
                     }
                     JOListRow(
                         iconName: "cup.and.saucer.fill",
-                        iconBackground: JOColors.accent.opacity(0.2),
+                        iconColor: JOColors.accent,
                         title: "Coffee",
                         subtitle: "09:41",
                         amountCents: 550,

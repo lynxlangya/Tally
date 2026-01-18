@@ -2,7 +2,7 @@ import SwiftUI
 
 struct JOListRow: View {
     let iconName: String
-    let iconBackground: Color
+    let iconColor: Color
     let title: String
     let subtitle: String?
     let amountCents: Int
@@ -11,7 +11,7 @@ struct JOListRow: View {
 
     init(
         iconName: String,
-        iconBackground: Color,
+        iconColor: Color,
         title: String,
         subtitle: String? = nil,
         amountCents: Int,
@@ -19,7 +19,7 @@ struct JOListRow: View {
         amountColor: Color = JOColors.textPrimary
     ) {
         self.iconName = iconName
-        self.iconBackground = iconBackground
+        self.iconColor = iconColor
         self.title = title
         self.subtitle = subtitle
         self.amountCents = amountCents
@@ -31,10 +31,11 @@ struct JOListRow: View {
         HStack(spacing: JOSpacing.md) {
             Image(systemName: iconName)
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(JOColors.textPrimary)
+                .foregroundStyle(iconColor)
                 .frame(width: 46, height: 46)
-                .background(iconBackground)
-                .clipShape(RoundedRectangle(cornerRadius: JORadius.icon, style: .continuous))
+                .background(JOColors.categoryItemBackground)
+                .clipShape(Circle())
+                .shadow(color: iconColor.opacity(0.1), radius: 6, x: 0, y: 0)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)

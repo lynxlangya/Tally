@@ -8,12 +8,13 @@ struct CategoryGridItem: View {
         VStack(spacing: JOSpacing.sm) {
             ZStack {
                 Circle()
-                    .fill(color)
+                    .fill(JOColors.categoryItemBackground)
                     .frame(width: 56, height: 56)
 
                 Image(systemName: category.iconKey)
                     .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.95))
+                    .foregroundStyle(color)
+                    .shadow(color: color.opacity(0.4), radius: 6, x: 0, y: 0)
             }
 
             Text(category.name)

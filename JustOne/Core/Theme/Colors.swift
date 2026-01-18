@@ -58,6 +58,8 @@ enum JOColors {
     static let categoryBlue = Color(Palette.categoryBlue)
     static let categoryOrange = Color(Palette.categoryOrange)
     static let cardBorder = Color.white.opacity(0.06)
+    static let categoryItemBackground = Color(Palette.surfaceDark).opacity(0.9)
+    static let categoryItemBorder = Color.white.opacity(0.08)
     static let profileTitle = primary.opacity(0.7)
     static let profileName = Color.white.opacity(0.95)
     static let profileMeta = Color(Palette.textSecondaryDark)

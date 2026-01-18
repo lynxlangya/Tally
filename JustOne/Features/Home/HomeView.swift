@@ -152,7 +152,7 @@ struct HomeView: View {
                         } label: {
                             JOListRow(
                                 iconName: item.icon,
-                                iconBackground: item.iconBackground,
+                                iconColor: item.iconColor,
                                 title: item.title,
                                 subtitle: item.subtitle,
                                 amountCents: item.amountCents,
