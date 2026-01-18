@@ -142,22 +142,13 @@ struct CategoriesView: View {
     }
 
     private var header: some View {
-        HStack {
-            JOBackButton {
-                dismiss()
-            }
-
-            Spacer()
-
-            Text("类别管理")
-                .font(.system(size: Constants.headerTitleSize, weight: .semibold))
-                .foregroundStyle(JOColors.textSecondary)
-                .tracking(2)
-
-            Spacer()
-
-            Color.clear
-                .frame(width: 36, height: 36)
+        JOHeaderBar(
+            title: "类别管理",
+            titleFont: .system(size: Constants.headerTitleSize, weight: .semibold),
+            titleColor: JOColors.textSecondary,
+            titleTracking: 2
+        ) {
+            dismiss()
         }
     }
 

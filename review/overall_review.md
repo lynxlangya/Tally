@@ -36,28 +36,28 @@
   - （已处理）BillType 切换控件已抽出 `JOBillTypeSegmentedControl` 复用。
   - （已处理）Sheet 拖拽条样式已抽出 `JOSheetHandle` 复用。
 
-## 2.3 需要封装的组件清单（建议）
+## 2.3 已封装组件清单（已落地）
 
 - `JOSheetHandle`
   - 场景：QuickEntry、分类明细 Sheet 顶部拖拽条。
-  - 位置：`Core/UIComponents/`。
-  - API：`init(width: CGFloat = 40, height: CGFloat = 6, opacity: Double = 0.3)`。
+  - 位置：`JustOne/Core/UIComponents/JOSheetHandle.swift`。
+  - 落地：`QuickEntryView`、`BillsListCategoryDetailSheet`。
 - `JOSheetContainer`
-  - 场景：QuickEntry 与分类明细 Sheet 的背景/圆角/描边样式一致。
-  - 位置：`Core/UIComponents/`。
-  - API：`init(cornerRadius: CGFloat, background: Color, borderOpacity: Double, @ViewBuilder content: () -> Content)`。
-- `BillTypeSegmentedControl`
+  - 场景：Sheet 背景/圆角/描边样式复用。
+  - 位置：`JustOne/Core/UIComponents/JOSheetContainer.swift`。
+  - 落地：`QuickEntryView`、`BillsListCategoryDetailSheet`。
+- `JOBillTypeSegmentedControl`
   - 场景：支/收切换（QuickEntry/BillsList/Header）。
-  - 位置：`Core/UIComponents/` 或 `Features/Shared/Components/`。
-  - API：`init(selection: Binding<BillType>, size: Size = .compact)`。
+  - 位置：`JustOne/Core/UIComponents/JOBillTypeSegmentedControl.swift`。
+  - 落地：`QuickEntryView`、`BillsListHeaderView`。
 - `JOHeaderBar`
-  - 场景：带返回键 + 中标题的页面头（Settings/Categories/Placeholder）。
-  - 位置：`Core/UIComponents/`。
-  - API：`init(title: String, onBack: () -> Void, trailing: AnyView? = nil)`。
+  - 场景：带返回键 + 中标题的页面头复用。
+  - 位置：`JustOne/Core/UIComponents/JOHeaderBar.swift`。
+  - 落地：`SettingsView`、`CategoriesView`、`PlaceholderView`。
 - `JOCategoryIconTile`
-  - 场景：分类图标卡片在 QuickEntry 与分类页复用。
-  - 位置：`Features/Shared/Components/`。
-  - API：`init(icon: String, title: String, color: Color, size: CGSize, showsTitle: Bool = true)`。
+  - 场景：分类图标卡片复用（分类页/QuickEntry）。
+  - 位置：`JustOne/Core/UIComponents/JOCategoryIconTile.swift`。
+  - 落地：`QuickEntryCategoryItem`、`CategoryGridItem`。
 
 ## 2.4 冗余代码与可删项
 

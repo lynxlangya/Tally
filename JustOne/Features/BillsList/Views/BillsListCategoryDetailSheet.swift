@@ -5,53 +5,57 @@ struct BillsListCategoryDetailSheet: View {
     let onEdit: (UUID) -> Void
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
-            JOSheetHandle(
-                width: BillsListLayout.detailSheetHandleWidth,
-                height: BillsListLayout.detailSheetHandleHeight,
-                opacity: 0.3
-            )
+        JOSheetContainer(
+            cornerRadius: BillsListLayout.detailSheetCornerRadius,
+            background: JOColors.surface.opacity(0.7)
+        ) {
+            VStack(spacing: JOSpacing.lg) {
+                JOSheetHandle(
+                    width: BillsListLayout.detailSheetHandleWidth,
+                    height: BillsListLayout.detailSheetHandleHeight,
+                    opacity: 0.3
+                )
                 .padding(.top, JOSpacing.sm)
 
-            VStack(spacing: JOSpacing.sm) {
-                Text(detail.title)
-                    .font(JOTypography.headline)
-                    .foregroundStyle(JOColors.textPrimary)
+                VStack(spacing: JOSpacing.sm) {
+                    Text(detail.title)
+                        .font(JOTypography.headline)
+                        .foregroundStyle(JOColors.textPrimary)
 
-                JOAmountText(cents: detail.totalCents, size: .large)
-            }
+                    JOAmountText(cents: detail.totalCents, size: .large)
+                }
 
-            ScrollView {
-                if detail.items.isEmpty {
-                    Text("暂无记录")
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.textSecondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, JOSpacing.xl)
-                } else {
-                    LazyVStack(spacing: 0) {
-                        ForEach(Array(detail.items.enumerated()), id: \.element.id) { index, item in
-                            Button {
-                                onEdit(item.id)
-                            } label: {
-                                DetailRow(item: item, isIncome: detail.isIncome)
-                            }
-                            .buttonStyle(.plain)
+                ScrollView {
+                    if detail.items.isEmpty {
+                        Text("暂无记录")
+                            .font(JOTypography.caption)
+                            .foregroundStyle(JOColors.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, JOSpacing.xl)
+                    } else {
+                        LazyVStack(spacing: 0) {
+                            ForEach(Array(detail.items.enumerated()), id: \.element.id) { index, item in
+                                Button {
+                                    onEdit(item.id)
+                                } label: {
+                                    DetailRow(item: item, isIncome: detail.isIncome)
+                                }
+                                .buttonStyle(.plain)
 
-                            if index < detail.items.count - 1 {
-                                Divider()
-                                    .background(Color.white.opacity(BillsListLayout.detailDividerOpacity))
+                                if index < detail.items.count - 1 {
+                                    Divider()
+                                        .background(Color.white.opacity(BillsListLayout.detailDividerOpacity))
+                                }
                             }
                         }
                     }
                 }
+                .scrollIndicators(.hidden)
+                .padding(.horizontal, JOSpacing.xl)
+                .padding(.bottom, JOSpacing.lg)
             }
-            .scrollIndicators(.hidden)
-            .padding(.horizontal, JOSpacing.xl)
-            .padding(.bottom, JOSpacing.lg)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(JOColors.surface.opacity(0.7))
     }
 }
 

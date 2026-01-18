@@ -38,21 +38,12 @@ struct SettingsView: View {
     }
 
     private var header: some View {
-        HStack {
-            JOBackButton {
-                dismiss()
-            }
-
-            Spacer()
-
-            Text("通用设置")
-                .font(JOTypography.headline)
-                .foregroundStyle(JOColors.profileRowTitle)
-
-            Spacer()
-
-            Color.clear
-                .frame(width: 36, height: 36)
+        JOHeaderBar(
+            title: "通用设置",
+            titleFont: JOTypography.headline,
+            titleColor: JOColors.profileRowTitle
+        ) {
+            dismiss()
         }
     }
 }

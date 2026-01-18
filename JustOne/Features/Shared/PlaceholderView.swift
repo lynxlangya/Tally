@@ -30,12 +30,10 @@ struct PlaceholderView: View {
     }
 
     private var header: some View {
-        HStack {
-            JOBackButton {
-                dismiss()
-            }
-
-            Spacer()
+        JOHeaderBar(
+            showsTrailingPlaceholder: false
+        ) {
+            dismiss()
         }
     }
 }

@@ -5,23 +5,11 @@ struct CategoryGridItem: View {
     let color: Color
 
     var body: some View {
-        VStack(spacing: JOSpacing.sm) {
-            ZStack {
-                Circle()
-                    .fill(JOColors.categoryItemBackground)
-                    .frame(width: 56, height: 56)
-
-                Image(systemName: category.iconKey)
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(color)
-                    .shadow(color: color.opacity(0.4), radius: 6, x: 0, y: 0)
-            }
-
-            Text(category.name)
-                .font(JOTypography.caption)
-                .foregroundStyle(JOColors.textSecondary)
-                .lineLimit(1)
-        }
+        JOCategoryIconTile(
+            iconName: category.iconKey,
+            title: category.name,
+            iconColor: color
+        )
     }
 }
 

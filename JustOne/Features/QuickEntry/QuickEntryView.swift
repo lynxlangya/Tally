@@ -18,29 +18,29 @@ struct QuickEntryView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            JOSheetHandle(
-                width: QuickEntryLayout.handleWidth,
-                height: QuickEntryLayout.handleHeight,
-                opacity: 0.2
-            )
+        JOSheetContainer(
+            cornerRadius: QuickEntryLayout.sheetCornerRadius,
+            background: JOColors.surface.opacity(QuickEntryLayout.sheetBackgroundOpacity),
+            borderOpacity: QuickEntryLayout.sheetBorderOpacity
+        ) {
+            VStack(spacing: 0) {
+                JOSheetHandle(
+                    width: QuickEntryLayout.handleWidth,
+                    height: QuickEntryLayout.handleHeight,
+                    opacity: 0.2
+                )
                 .padding(.top, JOSpacing.md)
                 .padding(.bottom, JOSpacing.sm)
 
-            if viewModel.step == .category {
-                categoryContent
-            } else {
-                amountContent
+                if viewModel.step == .category {
+                    categoryContent
+                } else {
+                    amountContent
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.bottom, JOSpacing.lg)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.bottom, JOSpacing.lg)
-        .background(JOColors.surface.opacity(QuickEntryLayout.sheetBackgroundOpacity))
-        .clipShape(RoundedRectangle(cornerRadius: QuickEntryLayout.sheetCornerRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: QuickEntryLayout.sheetCornerRadius, style: .continuous)
-                .stroke(Color.white.opacity(QuickEntryLayout.sheetBorderOpacity), lineWidth: 1)
-        )
         .ignoresSafeArea()
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .presentationDetents(detents)
