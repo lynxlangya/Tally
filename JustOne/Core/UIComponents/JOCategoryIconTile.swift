@@ -23,7 +23,7 @@ struct JOCategoryIconTile: View {
         backgroundColor: Color = JOColors.categoryItemBackground,
         titleFont: Font = JOTypography.caption,
         titleColor: Color = JOColors.textSecondary,
-        shadowOpacity: Double = 0.4,
+        shadowOpacity: Double = 0.2,
         spacing: CGFloat = JOSpacing.sm
     ) {
         self.iconName = iconName
@@ -49,7 +49,7 @@ struct JOCategoryIconTile: View {
                 Image(systemName: iconName)
                     .font(.system(size: iconSize, weight: .semibold))
                     .foregroundStyle(iconColor)
-                    .shadow(color: iconColor.opacity(shadowOpacity), radius: 6, x: 0, y: 0)
+                    .shadow(color: iconColor.opacity(shadowOpacity), radius: 4, x: 0, y: 0)
             }
 
             if showsTitle {
