@@ -80,6 +80,18 @@ final class HomeViewModel: ObservableObject {
         billById[id]
     }
 
+    func deleteBill(id: UUID) {
+        let now = nowProvider()
+        let trashUntil = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now
+        do {
+            try billRepository.softDelete(id: id, deletedAt: now, trashUntil: trashUntil)
+            NotificationCenter.default.post(name: .billDidChange, object: nil)
+            load()
+        } catch {
+            // TODO: surface error when error handling UX is defined.
+        }
+    }
+
     private func loadCategories() -> [UUID: CategoryRecord] {
         var result: [UUID: CategoryRecord] = [:]
         if let expense = try? categoryRepository.list(type: .expense) {

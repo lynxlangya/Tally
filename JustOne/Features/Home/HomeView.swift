@@ -54,6 +54,9 @@ struct HomeView: View {
         }
         .confirmationDialog("确定删除该账单？", isPresented: $showsDeleteConfirm, titleVisibility: .visible) {
             Button("确定删除", role: .destructive) {
+                if let id = deleteCandidateId {
+                    viewModel.deleteBill(id: id)
+                }
                 deleteCandidateId = nil
             }
             Button("取消", role: .cancel) {
