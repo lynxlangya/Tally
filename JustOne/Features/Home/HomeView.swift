@@ -142,50 +142,71 @@ struct HomeView: View {
                     .listRowBackground(Color.clear)
             }
 
-            ForEach(viewModel.groups) { group in
+            if viewModel.groups.isEmpty {
                 Section {
-                    ForEach(group.items) { item in
-                        Button {
-                            if let bill = viewModel.bill(for: item.id) {
-                                editingBill = bill
-                            }
-                        } label: {
-                            JOListRow(
-                                iconName: item.icon,
-                                iconColor: item.iconColor,
-                                title: item.title,
-                                subtitle: item.subtitle,
-                                amountCents: item.amountCents,
-                                amountSign: item.isIncome ? "+" : "-",
-                                amountColor: item.isIncome ? JOColors.accent : JOColors.textPrimary
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button {
-                                deleteCandidateId = item.id
-                                showsDeleteConfirm = true
-                            } label: {
-                                Image(systemName: "trash")
-                            }
-                            .tint(.red)
-                        }
-                        .listRowInsets(
-                            EdgeInsets(
-                                top: 0,
-                                leading: JOSpacing.lg,
-                                bottom: JOSpacing.sm,
-                                trailing: JOSpacing.lg
-                            )
+                    JOEmptyStateView(
+                        title: "暂无账单",
+                        subtitle: "点击 + 记一笔",
+                        systemImage: "tray"
+                    )
+                    .padding(.top, JOSpacing.lg + 50)
+                    .listRowInsets(
+                        EdgeInsets(
+                            top: 0,
+                            leading: JOSpacing.lg,
+                            bottom: JOSpacing.lg,
+                            trailing: JOSpacing.lg
                         )
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    }
-                } header: {
-                    groupHeader(group)
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
-                .textCase(nil)
-                .listSectionSeparator(.hidden)
+            } else {
+                ForEach(viewModel.groups) { group in
+                    Section {
+                        ForEach(group.items) { item in
+                            Button {
+                                if let bill = viewModel.bill(for: item.id) {
+                                    editingBill = bill
+                                }
+                            } label: {
+                                JOListRow(
+                                    iconName: item.icon,
+                                    iconColor: item.iconColor,
+                                    title: item.title,
+                                    subtitle: item.subtitle,
+                                    amountCents: item.amountCents,
+                                    amountSign: item.isIncome ? "+" : "-",
+                                    amountColor: item.isIncome ? JOColors.accent : JOColors.textPrimary
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button {
+                                    deleteCandidateId = item.id
+                                    showsDeleteConfirm = true
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
+                                .tint(.red)
+                            }
+                            .listRowInsets(
+                                EdgeInsets(
+                                    top: 0,
+                                    leading: JOSpacing.lg,
+                                    bottom: JOSpacing.sm,
+                                    trailing: JOSpacing.lg
+                                )
+                            )
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                        }
+                    } header: {
+                        groupHeader(group)
+                    }
+                    .textCase(nil)
+                    .listSectionSeparator(.hidden)
+                }
             }
         }
         .listStyle(.plain)

@@ -28,10 +28,12 @@ struct BillsListRankingView: View {
 
             ScrollView {
                 if items.isEmpty {
-                    Text("暂无排行")
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.textSecondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    JOEmptyStateView(
+                        title: "暂无排行",
+                        subtitle: "先记一笔再看看",
+                        systemImage: "chart.bar"
+                    )
+                    .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     VStack(spacing: BillsListLayout.rankingSpacing) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
