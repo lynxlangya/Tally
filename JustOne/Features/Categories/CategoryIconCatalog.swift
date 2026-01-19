@@ -3,8 +3,8 @@ import Foundation
 enum CategoryIconCatalog {
     static let icons: [String] = [
         // Food & Daily
-        "fork.knife","cup.and.saucer.fill","takeoutbag.and.cup.and.straw.fill","birthday.cake.fill",
-        "cart.fill","bag.fill","tag.fill","basket.fill","drop.fill",
+        "fork.knife","cup.and.saucer.fill","cup.and.heat.waves.fill","takeoutbag.and.cup.and.straw.fill","birthday.cake.fill",
+        "fish","flame.fill","cart.fill","bag.fill","tag.fill","basket.fill","drop.fill",
 
         // Transport
         "bus","tram.fill","train.side.front.car","car.fill","bicycle","airplane",
