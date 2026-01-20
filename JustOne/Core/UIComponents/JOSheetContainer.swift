@@ -23,11 +23,13 @@ struct JOSheetContainer<Content: View>: View {
 
     var body: some View {
         content
-            .background(background)
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .background(
+                background
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(borderColor.opacity(borderOpacity), lineWidth: 1)
+                .stroke(borderColor.opacity(borderOpacity), lineWidth: 1)
             )
     }
 }
