@@ -8,6 +8,7 @@ struct JOWheelPicker: UIViewRepresentable {
     var textColor: UIColor
     var font: UIFont
     var rowHeight: CGFloat
+    var debugUseSystemColors: Bool = true
 
     func makeUIView(context: Context) -> UIPickerView {
         let pickerView = UIPickerView()
@@ -20,10 +21,12 @@ struct JOWheelPicker: UIViewRepresentable {
 
     func updateUIView(_ pickerView: UIPickerView, context: Context) {
         context.coordinator.update(self)
-        context.coordinator.clearBackgrounds(in: pickerView)
+        pickerView.delegate = context.coordinator
+        pickerView.dataSource = context.coordinator
+        pickerView.backgroundColor = .clear
+        pickerView.isOpaque = false
         syncSelection(in: pickerView)
         pickerView.reloadAllComponents()
-        context.coordinator.hideSeparators(in: pickerView)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -70,25 +73,37 @@ struct JOWheelPicker: UIViewRepresentable {
 
         func pickerView(
             _ pickerView: UIPickerView,
-            attributedTitleForRow row: Int,
-            forComponent component: Int
-        ) -> NSAttributedString? {
-            guard parent.items.indices.contains(row) else { return nil }
-            let title = parent.title(parent.items[row])
-            let isSelected = row == pickerView.selectedRow(inComponent: component)
-            let alpha: CGFloat = isSelected ? 1.0 : 0.4
-            let weight: UIFont.Weight = isSelected ? .semibold : .regular
-            let font = UIFont.systemFont(ofSize: parent.font.pointSize, weight: weight)
-            let resolved = parent.textColor.resolvedColor(with: pickerView.traitCollection)
-            let color = resolved.withAlphaComponent(alpha)
+            viewForRow row: Int,
+            forComponent component: Int,
+            reusing view: UIView?
+        ) -> UIView {
+            let label = (view as? UILabel) ?? UILabel()
+            label.textAlignment = .center
+            label.backgroundColor = .clear
+            label.isOpaque = false
+            label.adjustsFontSizeToFitWidth = true
+            label.minimumScaleFactor = 0.6
+            guard parent.items.indices.contains(row) else {
+                label.text = nil
+                return label
+            }
 
-            return NSAttributedString(
-                string: title,
-                attributes: [
-                    .font: font,
-                    .foregroundColor: color
-                ]
-            )
+            let isSelected = row == pickerView.selectedRow(inComponent: component)
+            let weight: UIFont.Weight = isSelected ? .semibold : .regular
+            label.font = UIFont.systemFont(ofSize: parent.font.pointSize, weight: weight)
+            if parent.debugUseSystemColors {
+                label.textColor = isSelected
+                    ? UIColor.systemRed
+                    : UIColor.systemYellow.withAlphaComponent(0.4)
+            } else {
+                let resolved = parent.textColor.resolvedColor(with: pickerView.traitCollection)
+                label.textColor = resolved.withAlphaComponent(isSelected ? 1.0 : 0.4)
+            }
+
+            label.text = parent.title(parent.items[row])
+            label.frame = CGRect(x: 0, y: 0, width: pickerView.bounds.width, height: parent.rowHeight)
+            label.alpha = 1.0
+            return label
         }
 
         func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
@@ -100,26 +115,6 @@ struct JOWheelPicker: UIViewRepresentable {
             pickerView.reloadAllComponents()
         }
 
-        func clearBackgrounds(in pickerView: UIPickerView) {
-            pickerView.backgroundColor = .clear
-            pickerView.isOpaque = false
-            clearSubviews(of: pickerView)
-        }
-
-        private func clearSubviews(of view: UIView) {
-            view.subviews.forEach { subview in
-                subview.backgroundColor = .clear
-                subview.isOpaque = false
-                clearSubviews(of: subview)
-            }
-        }
-
-        func hideSeparators(in pickerView: UIPickerView) {
-            for subview in pickerView.subviews where subview.bounds.height <= 1.0 {
-                subview.isHidden = true
-                subview.backgroundColor = .clear
-                subview.alpha = 0
-            }
-        }
+        // 不再清理 subviews，避免误伤内部内容视图（iOS 26 结构变化）
     }
 }
