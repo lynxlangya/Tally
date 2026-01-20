@@ -8,6 +8,7 @@ struct BillsListView: View {
     @State private var activeTrendIndex: Int?
     @State private var selectedCategory: CategorySheetTarget?
     @State private var editingBill: BillRecord?
+    @State private var showsTimePicker = false
 
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
@@ -30,7 +31,7 @@ struct BillsListView: View {
                     BillsListHeader(
                         timeTitle: viewModel.timeTitle,
                         onBack: { dismiss() },
-                        onTimeTap: {},
+                        onTimeTap: { showsTimePicker = true },
                         selection: $viewModel.selectedType
                     )
 
@@ -112,11 +113,36 @@ struct BillsListView: View {
                 editingBill: bill
             )
         }
+        .sheet(isPresented: $showsTimePicker) {
+            JODatePickerSheet(
+                mode: datePickerMode(for: viewModel.timeRange),
+                years: viewModel.availableYears,
+                selection: $viewModel.anchorDate,
+                title: "选择时间"
+            )
+            .presentationDetents([.fraction(BillsListLayout.timePickerSheetHeightRatio)])
+            .presentationDragIndicator(.hidden)
+            .joPresentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
+            .joPresentationBackground(.clear)
+        }
     }
 }
 
 private struct CategorySheetTarget: Identifiable {
     let id: UUID
+}
+
+private extension BillsListView {
+    func datePickerMode(for range: BillsListViewModel.TimeRange) -> JODatePickerSheet.Mode {
+        switch range {
+        case .week:
+            return .yearWeek
+        case .month:
+            return .yearMonth
+        case .year:
+            return .year
+        }
+    }
 }
 
 private extension View {

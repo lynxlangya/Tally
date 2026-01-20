@@ -13,6 +13,7 @@ final class BillsListViewModel: ObservableObject {
     @Published private(set) var trendValuesCents: [Int] = []
     @Published private(set) var rankingItems: [RankingItem] = []
     @Published private(set) var errorMessage: String?
+    @Published private(set) var availableYears: [Int] = []
 
     @Published var selectedType: BillType = .expense {
         didSet { applyFilters() }
@@ -67,15 +68,17 @@ final class BillsListViewModel: ObservableObject {
 
     var timeTitle: String {
         let normalized = normalizedAnchorDate
-        let year = calendar.component(.year, from: normalized)
         switch timeRange {
         case .week:
+            let year = calendar.component(.yearForWeekOfYear, from: normalized)
             let week = calendar.component(.weekOfYear, from: normalized)
             return "\(year) 年第 \(week) 周"
         case .month:
+            let year = calendar.component(.year, from: normalized)
             let month = calendar.component(.month, from: normalized)
             return "\(year) 年 \(month) 月"
         case .year:
+            let year = calendar.component(.year, from: normalized)
             return "\(year) 年"
         }
     }
@@ -102,6 +105,7 @@ final class BillsListViewModel: ObservableObject {
             allBills = bills
             categoriesById = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
             errorMessage = nil
+            updateAvailableYears()
             applyFilters()
         } catch {
             errorMessage = String(describing: error)
@@ -132,6 +136,15 @@ final class BillsListViewModel: ObservableObject {
                 .map { makeRowItem(for: $0) }
         }
         dayKeys = groupedRows.keys.sorted(by: >)
+    }
+
+    private func updateAvailableYears() {
+        let years = allBills
+            .filter { $0.deletedAt == nil }
+            .compactMap { Int($0.occurredLocalDate.prefix(4)) }
+        let currentYear = calendar.component(.year, from: Date())
+        let uniqueYears = Array(Set(years + [currentYear])).sorted()
+        availableYears = uniqueYears.isEmpty ? [currentYear] : uniqueYears
     }
 
     private func filteredBills(for anchor: Date) -> [BillRecord] {

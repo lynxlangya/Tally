@@ -29,4 +29,5 @@ enum QuickEntryLayout {
     static let confirmButtonHeight: CGFloat = 56
     static let noteLimit: Int = 6
     static let noteWidthRatio: CGFloat = 0.5
+    static let datePickerDetent: CGFloat = 0.45
 }

@@ -20,6 +20,7 @@ final class QuickEntryViewModel: ObservableObject {
 
     @Published private(set) var categories: [CategoryRecord] = []
     @Published private(set) var step: Step = .category
+    @Published private(set) var availableYears: [Int] = []
     @Published var selectedType: BillType = .expense {
         didSet { loadCategories() }
     }
@@ -68,6 +69,7 @@ final class QuickEntryViewModel: ObservableObject {
 
     func load() {
         loadCategories()
+        loadAvailableYears()
         applyEditingSelectionIfNeeded()
     }
 
@@ -167,6 +169,19 @@ final class QuickEntryViewModel: ObservableObject {
         } catch {
             categories = []
             errorMessage = String(describing: error)
+        }
+    }
+
+    private func loadAvailableYears() {
+        do {
+            let bills = try billRepository.list().filter { $0.deletedAt == nil }
+            let years = bills.compactMap { Int($0.occurredLocalDate.prefix(4)) }
+            let selectedYear = Calendar.current.component(.year, from: selectedDate)
+            let uniqueYears = Array(Set(years + [selectedYear])).sorted()
+            availableYears = uniqueYears.isEmpty ? [selectedYear] : uniqueYears
+        } catch {
+            let selectedYear = Calendar.current.component(.year, from: selectedDate)
+            availableYears = [selectedYear]
         }
     }
 

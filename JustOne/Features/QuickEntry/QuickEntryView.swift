@@ -51,10 +51,15 @@ struct QuickEntryView: View {
             viewModel.load()
         }
         .sheet(isPresented: $showsDatePicker) {
-            DatePicker("选择日期", selection: $viewModel.selectedDate, displayedComponents: .date)
-                .datePickerStyle(.graphical)
-                .padding()
-                .presentationDetents([.medium])
+            JODatePickerSheet(
+                mode: .yearMonthDay,
+                years: viewModel.availableYears,
+                selection: $viewModel.selectedDate,
+                title: "选择时间"
+            )
+            .presentationDetents([.fraction(QuickEntryLayout.datePickerDetent)])
+            .presentationDragIndicator(.hidden)
+            .joPresentationBackground(.clear)
         }
     }
 
