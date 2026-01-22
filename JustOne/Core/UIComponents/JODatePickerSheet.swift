@@ -306,7 +306,7 @@ struct JODatePickerSheet: View {
         static let contentTopPadding: CGFloat = 8
         static let sheetBottomPadding: CGFloat = 0
         static let headerHorizontalPadding: CGFloat = 16
-        static let headerVerticalPadding: CGFloat = 12
+        static let headerVerticalPadding: CGFloat = 10
         static let headerDividerOffset: CGFloat = 12
         static let pickerHeight: CGFloat = 184
         static let rowHeight: CGFloat = 46

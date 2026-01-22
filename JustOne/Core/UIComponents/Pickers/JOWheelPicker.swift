@@ -119,10 +119,14 @@ struct JOWheelPicker: UIViewRepresentable {
         func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
             guard parent.items.indices.contains(row) else { return }
             let value = parent.items[row]
-            if parent.selection != value {
-                parent.selection = value
+            // Defer state mutation to avoid modifying SwiftUI state during view updates
+            DispatchQueue.main.async { [weak pickerView] in
+                if self.parent.selection != value {
+                    self.parent.selection = value
+                }
+                // Defer reloading as well to avoid nested updates during delegate callback
+                pickerView?.reloadAllComponents()
             }
-            pickerView.reloadAllComponents()
         }
 
         // 不再清理 subviews，避免误伤内部内容视图（iOS 26 结构变化）
