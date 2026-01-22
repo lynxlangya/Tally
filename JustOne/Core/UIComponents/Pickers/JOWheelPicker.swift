@@ -10,17 +10,19 @@ struct JOWheelPicker: UIViewRepresentable {
     var rowHeight: CGFloat
     var debugUseSystemColors: Bool = false
 
-    func makeUIView(context: Context) -> UIPickerView {
-        let pickerView = UIPickerView()
+    func makeUIView(context: Context) -> PickerContainer {
+        let container = PickerContainer()
+        let pickerView = container.pickerView
         pickerView.backgroundColor = .clear
         pickerView.isOpaque = false
         pickerView.delegate = context.coordinator
         pickerView.dataSource = context.coordinator
-        return pickerView
+        return container
     }
 
-    func updateUIView(_ pickerView: UIPickerView, context: Context) {
+    func updateUIView(_ container: PickerContainer, context: Context) {
         context.coordinator.update(self)
+        let pickerView = container.pickerView
         pickerView.delegate = context.coordinator
         pickerView.dataSource = context.coordinator
         pickerView.backgroundColor = .clear
@@ -72,7 +74,8 @@ struct JOWheelPicker: UIViewRepresentable {
         }
 
         func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
-            return pickerView.bounds.width
+            let width = pickerView.bounds.width
+            return width > 0 ? width : 1
         }
 
         func pickerView(
@@ -105,7 +108,10 @@ struct JOWheelPicker: UIViewRepresentable {
             }
 
             label.text = parent.title(parent.items[row])
-            label.frame = CGRect(x: 0, y: 0, width: pickerView.bounds.width, height: parent.rowHeight)
+            let componentWidth = pickerView.bounds.width > 0
+                ? pickerView.bounds.width
+                : pickerView.rowSize(forComponent: component).width
+            label.frame = CGRect(x: 0, y: 0, width: componentWidth, height: parent.rowHeight)
             label.alpha = 1.0
             return label
         }
@@ -120,5 +126,25 @@ struct JOWheelPicker: UIViewRepresentable {
         }
 
         // 不再清理 subviews，避免误伤内部内容视图（iOS 26 结构变化）
+    }
+}
+
+final class PickerContainer: UIView {
+    let pickerView = UIPickerView()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addSubview(pickerView)
+        pickerView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            pickerView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            pickerView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            pickerView.topAnchor.constraint(equalTo: topAnchor),
+            pickerView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

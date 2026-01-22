@@ -116,83 +116,101 @@ struct JODatePickerSheet: View {
     }
 
     private var pickerBody: some View {
-        ZStack {
-            if Layout.debugOverlayEnabled {
-                Color.red.opacity(0.2)
-                    .frame(height: Layout.pickerHeight)
-                    .padding(.horizontal, Layout.pickerHorizontalPadding)
-                    .allowsHitTesting(false)
-                    .zIndex(0)
-            }
+        GeometryReader { proxy in
+            let columnCount = pickerColumnCount
+            let totalSpacing = Layout.columnSpacing * CGFloat(max(columnCount - 1, 0))
+            let availableWidth = max(proxy.size.width - Layout.pickerHorizontalPadding * 2 - totalSpacing, 0)
+            let columnWidth = columnCount > 0 ? availableWidth / CGFloat(columnCount) : 0
 
-            RoundedRectangle(cornerRadius: Layout.highlightCornerRadius, style: .continuous)
-                .fill(Layout.highlightColor)
-                .frame(height: Layout.rowHeight)
-                .padding(.horizontal, Layout.highlightHorizontalPadding)
-                .shadow(color: Layout.highlightShadowColor, radius: Layout.highlightShadowRadius, y: Layout.highlightShadowOffset)
-                .allowsHitTesting(false)
-                .zIndex(1)
+            ZStack {
+                if Layout.debugOverlayEnabled {
+                    Color.red.opacity(0.2)
+                        .frame(height: Layout.pickerHeight)
+                        .padding(.horizontal, Layout.pickerHorizontalPadding)
+                        .allowsHitTesting(false)
+                        .zIndex(0)
+                }
 
-            if Layout.debugOverlayEnabled {
-                Color.blue.opacity(0.1)
+                RoundedRectangle(cornerRadius: Layout.highlightCornerRadius, style: .continuous)
+                    .fill(Layout.highlightColor)
                     .frame(height: Layout.rowHeight)
                     .padding(.horizontal, Layout.highlightHorizontalPadding)
+                    .shadow(color: Layout.highlightShadowColor, radius: Layout.highlightShadowRadius, y: Layout.highlightShadowOffset)
                     .allowsHitTesting(false)
-                    .zIndex(2)
-            }
+                    .zIndex(1)
 
-            HStack(spacing: Layout.columnSpacing) {
-                yearPicker
-                    .frame(width: 0, height: Layout.pickerHeight)
-                    .frame(maxWidth: .infinity)
-
-                if mode == .yearMonth || mode == .yearMonthDay {
-                    monthPicker
-                        .frame(width: 0, height: Layout.pickerHeight)
-                        .frame(maxWidth: .infinity)
+                if Layout.debugOverlayEnabled {
+                    Color.blue.opacity(0.1)
+                        .frame(height: Layout.rowHeight)
+                        .padding(.horizontal, Layout.highlightHorizontalPadding)
+                        .allowsHitTesting(false)
+                        .zIndex(2)
                 }
 
-                if mode == .yearWeek {
-                    weekPicker
-                        .frame(width: 0, height: Layout.pickerHeight)
-                        .frame(maxWidth: .infinity)
+                HStack(spacing: Layout.columnSpacing) {
+                    yearPicker
+                        .frame(width: columnWidth, height: Layout.pickerHeight)
+
+                    if mode == .yearMonth || mode == .yearMonthDay {
+                        monthPicker
+                            .frame(width: columnWidth, height: Layout.pickerHeight)
+                    }
+
+                    if mode == .yearWeek {
+                        weekPicker
+                            .frame(width: columnWidth, height: Layout.pickerHeight)
+                    }
+
+                    if mode == .yearMonthDay {
+                        dayPicker
+                            .frame(width: columnWidth, height: Layout.pickerHeight)
+                    }
                 }
+                .frame(height: Layout.pickerHeight)
+                .padding(.horizontal, Layout.pickerHorizontalPadding)
+                .zIndex(3)
 
-                if mode == .yearMonthDay {
-                    dayPicker
-                        .frame(width: 0, height: Layout.pickerHeight)
-                        .frame(maxWidth: .infinity)
+                VStack(spacing: 0) {
+                    LinearGradient(
+                        colors: [
+                            JOColors.surface.opacity(0.95),
+                            JOColors.surface.opacity(0.0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: Layout.gradientHeight)
+
+                    Spacer()
+
+                    LinearGradient(
+                        colors: [
+                            JOColors.surface.opacity(0.0),
+                            JOColors.surface.opacity(0.85)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: Layout.gradientHeight)
                 }
+                .allowsHitTesting(false)
+                .zIndex(4)
             }
-            .frame(height: Layout.pickerHeight)
-            .padding(.horizontal, Layout.pickerHorizontalPadding)
-            .zIndex(3)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+        .frame(height: Layout.pickerHeight)
+    }
 
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [
-                        JOColors.surface.opacity(0.95),
-                        JOColors.surface.opacity(0.0)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: Layout.gradientHeight)
-
-                Spacer()
-
-                LinearGradient(
-                    colors: [
-                        JOColors.surface.opacity(0.0),
-                        JOColors.surface.opacity(0.85)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: Layout.gradientHeight)
-            }
-            .allowsHitTesting(false)
-            .zIndex(4)
+    private var pickerColumnCount: Int {
+        switch mode {
+        case .year:
+            return 1
+        case .yearMonth:
+            return 2
+        case .yearWeek:
+            return 2
+        case .yearMonthDay:
+            return 3
         }
     }
 
