@@ -143,25 +143,25 @@ struct JODatePickerSheet: View {
 
             HStack(spacing: Layout.columnSpacing) {
                 yearPicker
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .frame(height: Layout.pickerHeight)
+                    .frame(width: 0, height: Layout.pickerHeight)
+                    .frame(maxWidth: .infinity)
 
                 if mode == .yearMonth || mode == .yearMonthDay {
                     monthPicker
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .frame(height: Layout.pickerHeight)
+                        .frame(width: 0, height: Layout.pickerHeight)
+                        .frame(maxWidth: .infinity)
                 }
 
                 if mode == .yearWeek {
                     weekPicker
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .frame(height: Layout.pickerHeight)
+                        .frame(width: 0, height: Layout.pickerHeight)
+                        .frame(maxWidth: .infinity)
                 }
 
                 if mode == .yearMonthDay {
                     dayPicker
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .frame(height: Layout.pickerHeight)
+                        .frame(width: 0, height: Layout.pickerHeight)
+                        .frame(maxWidth: .infinity)
                 }
             }
             .frame(height: Layout.pickerHeight)

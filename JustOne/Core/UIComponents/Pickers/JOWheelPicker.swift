@@ -8,7 +8,7 @@ struct JOWheelPicker: UIViewRepresentable {
     var textColor: UIColor
     var font: UIFont
     var rowHeight: CGFloat
-    var debugUseSystemColors: Bool = true
+    var debugUseSystemColors: Bool = false
 
     func makeUIView(context: Context) -> UIPickerView {
         let pickerView = UIPickerView()
@@ -69,6 +69,10 @@ struct JOWheelPicker: UIViewRepresentable {
 
         func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
             parent.rowHeight
+        }
+
+        func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
+            return pickerView.bounds.width
         }
 
         func pickerView(
