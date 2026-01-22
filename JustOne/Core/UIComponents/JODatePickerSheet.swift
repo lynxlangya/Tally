@@ -64,10 +64,9 @@ struct JODatePickerSheet: View {
                 header
                 pickerBody
             }
+            .padding(.top, Layout.contentTopPadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .padding(.horizontal, Layout.sheetHorizontalPadding)
-        .padding(.bottom, Layout.sheetBottomPadding)
         .background(JOColors.surface.opacity(1.0))
         .compositingGroup()
         .clipped()
@@ -322,12 +321,12 @@ struct JODatePickerSheet: View {
         static let sheetCornerRadius: CGFloat = 24
         static let sheetBackgroundOpacity: Double = 0.9
         static let sheetBorderOpacity: Double = 0.06
-        static let sheetHorizontalPadding: CGFloat = 16
+        static let contentTopPadding: CGFloat = 8
         static let sheetBottomPadding: CGFloat = 0
         static let headerHorizontalPadding: CGFloat = 16
         static let headerVerticalPadding: CGFloat = 12
         static let headerDividerOffset: CGFloat = 12
-        static let pickerHeight: CGFloat = 220
+        static let pickerHeight: CGFloat = 184
         static let rowHeight: CGFloat = 46
         static let highlightHorizontalPadding: CGFloat = 12
         static let highlightCornerRadius: CGFloat = 14
@@ -337,7 +336,7 @@ struct JODatePickerSheet: View {
         static let highlightShadowOffset: CGFloat = 2
         static let columnSpacing: CGFloat = 4
         static let pickerHorizontalPadding: CGFloat = 12
-        static let gradientHeight: CGFloat = 48
+        static let gradientHeight: CGFloat = 38
         static let pickerFont = UIFont.systemFont(ofSize: 15, weight: .regular)
         static let debugOverlayEnabled = false
     }

@@ -120,7 +120,7 @@ struct BillsListView: View {
                 selection: $viewModel.anchorDate,
                 title: "选择时间"
             )
-            .presentationDetents([.fraction(BillsListLayout.timePickerSheetHeightRatio)])
+            .presentationDetents([.height(BillsListLayout.timePickerSheetHeight)])
             .presentationDragIndicator(.hidden)
             .joPresentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
             .joPresentationBackground(.clear)

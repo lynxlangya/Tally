@@ -57,7 +57,7 @@ struct QuickEntryView: View {
                 selection: $viewModel.selectedDate,
                 title: "选择时间"
             )
-            .presentationDetents([.fraction(QuickEntryLayout.datePickerDetent)])
+            .presentationDetents([.height(QuickEntryLayout.datePickerSheetHeight)])
             .presentationDragIndicator(.hidden)
             .joPresentationBackground(.clear)
         }
