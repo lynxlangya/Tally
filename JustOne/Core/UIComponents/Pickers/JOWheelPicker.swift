@@ -29,6 +29,7 @@ struct JOWheelPicker: UIViewRepresentable {
         pickerView.isOpaque = false
         syncSelection(in: pickerView)
         pickerView.reloadAllComponents()
+        clearBackgrounds(in: pickerView)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -88,8 +89,8 @@ struct JOWheelPicker: UIViewRepresentable {
             label.textAlignment = .center
             label.backgroundColor = .clear
             label.isOpaque = false
-            label.adjustsFontSizeToFitWidth = true
-            label.minimumScaleFactor = 0.6
+            label.adjustsFontSizeToFitWidth = false
+            label.minimumScaleFactor = 1.0
             guard parent.items.indices.contains(row) else {
                 label.text = nil
                 return label
@@ -108,9 +109,8 @@ struct JOWheelPicker: UIViewRepresentable {
             }
 
             label.text = parent.title(parent.items[row])
-            let componentWidth = pickerView.bounds.width > 0
-                ? pickerView.bounds.width
-                : pickerView.rowSize(forComponent: component).width
+            let rawWidth = pickerView.rowSize(forComponent: component).width
+            let componentWidth = rawWidth > 0 ? rawWidth : pickerView.bounds.width
             label.frame = CGRect(x: 0, y: 0, width: componentWidth, height: parent.rowHeight)
             label.alpha = 1.0
             return label
@@ -126,6 +126,25 @@ struct JOWheelPicker: UIViewRepresentable {
         }
 
         // 不再清理 subviews，避免误伤内部内容视图（iOS 26 结构变化）
+    }
+
+    private func clearBackgrounds(in pickerView: UIPickerView) {
+        pickerView.backgroundColor = .clear
+        pickerView.isOpaque = false
+        pickerView.subviews.forEach { subview in
+            subview.backgroundColor = .clear
+            subview.isOpaque = false
+            if let tableView = subview as? UITableView {
+                tableView.backgroundColor = .clear
+                tableView.isOpaque = false
+                tableView.backgroundView = nil
+                tableView.separatorStyle = .none
+            }
+            subview.subviews.forEach { child in
+                child.backgroundColor = .clear
+                child.isOpaque = false
+            }
+        }
     }
 }
 

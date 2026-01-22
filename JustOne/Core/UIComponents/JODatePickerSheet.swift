@@ -122,29 +122,12 @@ struct JODatePickerSheet: View {
             let columnWidth = columnCount > 0 ? availableWidth / CGFloat(columnCount) : 0
 
             ZStack {
-                if Layout.debugOverlayEnabled {
-                    Color.red.opacity(0.2)
-                        .frame(height: Layout.pickerHeight)
-                        .padding(.horizontal, Layout.pickerHorizontalPadding)
-                        .allowsHitTesting(false)
-                        .zIndex(0)
-                }
-
                 RoundedRectangle(cornerRadius: Layout.highlightCornerRadius, style: .continuous)
                     .fill(Layout.highlightColor)
                     .frame(height: Layout.rowHeight)
                     .padding(.horizontal, Layout.highlightHorizontalPadding)
                     .shadow(color: Layout.highlightShadowColor, radius: Layout.highlightShadowRadius, y: Layout.highlightShadowOffset)
                     .allowsHitTesting(false)
-                    .zIndex(1)
-
-                if Layout.debugOverlayEnabled {
-                    Color.blue.opacity(0.1)
-                        .frame(height: Layout.rowHeight)
-                        .padding(.horizontal, Layout.highlightHorizontalPadding)
-                        .allowsHitTesting(false)
-                        .zIndex(2)
-                }
 
                 HStack(spacing: Layout.columnSpacing) {
                     yearPicker
@@ -167,7 +150,6 @@ struct JODatePickerSheet: View {
                 }
                 .frame(height: Layout.pickerHeight)
                 .padding(.horizontal, Layout.pickerHorizontalPadding)
-                .zIndex(3)
 
                 VStack(spacing: 0) {
                     LinearGradient(
