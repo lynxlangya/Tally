@@ -31,6 +31,15 @@ struct HomeView: View {
             }
             .padding(.top, JOSpacing.xl)
         }
+        .overlay(alignment: .bottom) {
+            GeometryReader { proxy in
+                let height = HomeLayout.bottomOverlayHeight + proxy.safeAreaInsets.bottom
+                JOBottomGradientBlurOverlay(height: height, maxOpacity: HomeLayout.bottomOverlayOpacity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .ignoresSafeArea(edges: .bottom)
+            }
+            .allowsHitTesting(false)
+        }
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(true)
@@ -235,6 +244,11 @@ struct HomeView: View {
         .padding(.horizontal, JOSpacing.lg)
         .padding(.vertical, JOSpacing.sm)
     }
+}
+
+private enum HomeLayout {
+    static let bottomOverlayHeight: CGFloat = 90
+    static let bottomOverlayOpacity: Double = 0.72
 }
 
 #Preview {
