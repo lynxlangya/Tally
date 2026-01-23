@@ -164,8 +164,9 @@ struct CategoriesView: View {
                 .foregroundStyle(JOColors.accent)
                 .frame(width: 36, height: 36)
             } else {
-                Color.clear
-                    .frame(width: 36, height: 36)
+                JOIconButton(systemName: "arrow.up.arrow.down", size: 36) {
+                    enterReorderingMode()
+                }
             }
         }
     }
@@ -193,15 +194,14 @@ struct CategoriesView: View {
             guard !isReordering else { return }
             sheetState = .edit(category)
         }
-        .onLongPressGesture(minimumDuration: 2, maximumDistance: 20) {
-            enterReorderingMode()
-        }
 
         if isReordering {
             content
                 .onDrag {
                     draggingCategory = category
                     return NSItemProvider(object: category.id.uuidString as NSString)
+                } preview: {
+                    dragPreview(for: category)
                 }
                 .onDrop(
                     of: [.text],
@@ -228,6 +228,15 @@ struct CategoriesView: View {
         let hex = category.colorHex.map { UInt32($0) }
             ?? CategoryColorPalette.defaultHex(for: category.id)
         return Color(hex: hex)
+    }
+
+    private func dragPreview(for category: CategoryRecord) -> some View {
+        CategoryGridItem(
+            category: category,
+            color: categoryDisplayColor(for: category)
+        )
+        .background(Color.clear)
+        .compositingGroup()
     }
 
     private func enterReorderingMode() {

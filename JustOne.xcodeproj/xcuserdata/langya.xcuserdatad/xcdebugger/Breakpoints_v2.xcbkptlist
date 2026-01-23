@@ -18,36 +18,6 @@
             endingLineNumber = "121"
             landmarkName = "pickerView(_:didSelectRow:inComponent:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "C2D46066-2BB2-43A8-9980-44BC77BB28B7 - 24a0e6d1c28b3049"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "JustOne.JOWheelPicker.Coordinator.pickerView(_: __C.UIPickerView, didSelectRow: Swift.Int, inComponent: Swift.Int) -&gt; ()"
-                  moduleName = "JustOne.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/langya/Documents/CodeHub/macOS/JustOne/JustOne/Core/UIComponents/Pickers/JOWheelPicker.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "121"
-                  endingLineNumber = "121">
-               </Location>
-               <Location
-                  uuid = "C2D46066-2BB2-43A8-9980-44BC77BB28B7 - 24a0e6d1c28b3049"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "JustOne.JOWheelPicker.Coordinator.pickerView(_: __C.UIPickerView, didSelectRow: Swift.Int, inComponent: Swift.Int) -&gt; ()"
-                  moduleName = "JustOne.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/langya/Documents/CodeHub/macOS/JustOne/JustOne/Core/UIComponents/Pickers/JOWheelPicker.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "121"
-                  endingLineNumber = "121">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
