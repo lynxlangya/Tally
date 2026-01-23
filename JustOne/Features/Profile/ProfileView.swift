@@ -5,6 +5,8 @@ struct ProfileView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @State private var dailyReminderEnabled = true
     @State private var billCount: Int = 0
+    @AppStorage("profileName") private var profileName: String = "Alex Doe"
+    @AppStorage("profileAvatarData") private var avatarData: Data = Data()
 
     var body: some View {
         ZStack {
@@ -53,14 +55,22 @@ struct ProfileView: View {
                             .stroke(Color.white.opacity(0.08), lineWidth: 1)
                     )
 
-                Image(systemName: "person.fill")
-                    .font(.system(size: 44, weight: .semibold))
-                    .foregroundStyle(JOColors.profileRowSubtitle)
+                if let image = avatarImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 44, weight: .semibold))
+                        .foregroundStyle(JOColors.profileRowSubtitle)
+                }
             }
             .padding(.top, 26)
 
             VStack(spacing: 4) {
-                Text("Alex Doe")
+                Text(profileName.isEmpty ? "Alex Doe" : profileName)
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(JOColors.profileName)
                 Text("\(billCount) 笔记录")
@@ -131,6 +141,11 @@ struct ProfileView: View {
         } catch {
             billCount = 0
         }
+    }
+
+    private var avatarImage: UIImage? {
+        guard !avatarData.isEmpty else { return nil }
+        return UIImage(data: avatarData)
     }
 }
 

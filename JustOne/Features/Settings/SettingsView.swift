@@ -12,7 +12,7 @@ struct SettingsView: View {
                 VStack(spacing: JOSpacing.lg) {
                     ForEach(settingItems) { item in
                         NavigationLink {
-                            PlaceholderView(title: item.destination.title)
+                            destinationView(for: item.destination)
                         } label: {
                             JOSettingRow(
                                 title: item.title,
@@ -44,6 +44,16 @@ struct SettingsView: View {
             titleColor: JOColors.profileRowTitle
         ) {
             dismiss()
+        }
+    }
+
+    @ViewBuilder
+    private func destinationView(for destination: SettingsDestination) -> some View {
+        switch destination {
+        case .account:
+            AccountSettingsView()
+        default:
+            PlaceholderView(title: destination.title)
         }
     }
 }
