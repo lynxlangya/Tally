@@ -3,7 +3,6 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(\.appEnvironment) private var environment
     @Environment(\.tabBarVisibility) private var tabBarVisibility
-    @State private var showsDebug = false
     @State private var dailyReminderEnabled = true
     @State private var billCount: Int = 0
 
@@ -15,12 +14,6 @@ struct ProfileView: View {
                 VStack(spacing: JOSpacing.xl) {
                     profileHero
                     settingsSection
-
-                    #if DEBUG
-                    JOPrimaryButton("Debug") {
-                        showsDebug = true
-                    }
-                    #endif
                 }
                 .padding(.bottom, 140)
             }
@@ -32,14 +25,6 @@ struct ProfileView: View {
             tabBarVisibility?.setVisible(true)
             loadBillCount()
         }
-        #if DEBUG
-        .navigationDestination(isPresented: $showsDebug) {
-            DebugView(
-                repository: environment.container.repositories.bill,
-                seedService: environment.container.services.seed
-            )
-        }
-        #endif
     }
 
     private var profileHero: some View {

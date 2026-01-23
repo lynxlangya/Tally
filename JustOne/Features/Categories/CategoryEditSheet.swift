@@ -219,7 +219,7 @@ struct CategoryEditSheet: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHGrid(rows: iconRows, spacing: Constants.iconSpacing) {
-                    ForEach(CategoryIconCatalog.icons, id: \.self) { icon in
+                    ForEach(Array(CategoryIconCatalog.icons.enumerated()), id: \.offset) { _, icon in
                         Button {
                             selectedIcon = icon
                         } label: {
