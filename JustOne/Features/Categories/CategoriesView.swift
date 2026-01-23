@@ -1,4 +1,6 @@
 import SwiftUI
+import UIKit
+import UniformTypeIdentifiers
 
 struct CategoriesView: View {
     @Environment(\.dismiss) private var dismiss
@@ -8,6 +10,8 @@ struct CategoriesView: View {
     @State private var sheetState: CategorySheet?
     @State private var showsLimitAlert = false
     @State private var pendingDelete: CategoryRecord?
+    @State private var isReordering = false
+    @State private var draggingCategory: CategoryRecord?
 
     private enum Constants {
         static let headerTitleSize: CGFloat = 18
@@ -57,31 +61,26 @@ struct CategoriesView: View {
         VStack(spacing: JOSpacing.lg) {
             header
             JOSegmentedControl(items: ["支出", "收入"], selectedIndex: $selectedIndex)
+                .allowsHitTesting(!isReordering)
+                .opacity(isReordering ? 0.5 : 1)
 
             ScrollView {
                 LazyVGrid(columns: gridColumns, spacing: JOSpacing.xl) {
                     ForEach(viewModel.categories) { category in
-                        Button {
-                            sheetState = .edit(category)
-                        } label: {
-                            CategoryGridItem(
-                                category: category,
-                                color: categoryDisplayColor(for: category)
-                            )
-                        }
-                        .buttonStyle(.plain)
+                        categoryCell(for: category)
                     }
 
-                    AddCategoryItem(isDisabled: viewModel.isAtLimit) {
+                    AddCategoryItem(isDisabled: viewModel.isAtLimit || isReordering) {
                         if viewModel.isAtLimit {
                             showsLimitAlert = true
-                        } else {
+                        } else if !isReordering {
                             sheetState = .add(selectedType)
                         }
                     }
                 }
                 .padding(.top, JOSpacing.lg)
             }
+            .scrollDisabled(isReordering)
 
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
@@ -98,6 +97,7 @@ struct CategoriesView: View {
             viewModel.load(type: selectedType)
         }
         .onChange(of: selectedIndex, initial: false) { _, newValue in
+            isReordering = false
             viewModel.load(type: newValue == 0 ? .expense : .income)
         }
         .sheet(item: $sheetState) { state in
@@ -142,13 +142,31 @@ struct CategoriesView: View {
     }
 
     private var header: some View {
-        JOHeaderBar(
-            title: "类别管理",
-            titleFont: .system(size: Constants.headerTitleSize, weight: .semibold),
-            titleColor: JOColors.textSecondary,
-            titleTracking: 2
-        ) {
-            dismiss()
+        HStack {
+            JOBackButton {
+                dismiss()
+            }
+
+            Spacer()
+
+            Text("类别管理")
+                .font(.system(size: Constants.headerTitleSize, weight: .semibold))
+                .foregroundStyle(JOColors.textSecondary)
+                .tracking(2)
+
+            Spacer()
+
+            if isReordering {
+                Button("完成") {
+                    exitReorderingMode()
+                }
+                .font(JOTypography.body)
+                .foregroundStyle(JOColors.accent)
+                .frame(width: 36, height: 36)
+            } else {
+                Color.clear
+                    .frame(width: 36, height: 36)
+            }
         }
     }
 
@@ -163,10 +181,127 @@ struct CategoriesView: View {
         )
     }
 
+    @ViewBuilder
+    private func categoryCell(for category: CategoryRecord) -> some View {
+        let content = CategoryGridItem(
+            category: category,
+            color: categoryDisplayColor(for: category)
+        )
+        .modifier(WiggleEffect(isActive: isReordering))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard !isReordering else { return }
+            sheetState = .edit(category)
+        }
+        .onLongPressGesture(minimumDuration: 2, maximumDistance: 20) {
+            enterReorderingMode()
+        }
+
+        if isReordering {
+            content
+                .onDrag {
+                    draggingCategory = category
+                    return NSItemProvider(object: category.id.uuidString as NSString)
+                }
+                .onDrop(
+                    of: [.text],
+                    delegate: CategoryDropDelegate(
+                        target: category,
+                        isReordering: isReordering,
+                        dragging: $draggingCategory,
+                        onMove: { source, destination in
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                viewModel.moveCategory(from: source, to: destination)
+                            }
+                        },
+                        onCommit: {
+                            viewModel.persistOrder()
+                        }
+                    )
+                )
+        } else {
+            content
+        }
+    }
+
     private func categoryDisplayColor(for category: CategoryRecord) -> Color {
         let hex = category.colorHex.map { UInt32($0) }
             ?? CategoryColorPalette.defaultHex(for: category.id)
         return Color(hex: hex)
+    }
+
+    private func enterReorderingMode() {
+        guard !isReordering else { return }
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isReordering = true
+        }
+    }
+
+    private func exitReorderingMode() {
+        guard isReordering else { return }
+        isReordering = false
+        viewModel.persistOrder()
+    }
+}
+
+private struct WiggleEffect: ViewModifier {
+    let isActive: Bool
+    @State private var phase = false
+
+    func body(content: Content) -> some View {
+        content
+            .rotationEffect(.degrees(isActive ? (phase ? 1.5 : -1.5) : 0))
+            .scaleEffect(isActive ? 0.99 : 1)
+            .onAppear {
+                if isActive {
+                    start()
+                }
+            }
+            .onChange(of: isActive) { _, newValue in
+                if newValue {
+                    start()
+                } else {
+                    stop()
+                }
+            }
+    }
+
+    private func start() {
+        phase = false
+        withAnimation(.easeInOut(duration: 0.14).repeatForever(autoreverses: true)) {
+            phase = true
+        }
+    }
+
+    private func stop() {
+        withTransaction(Transaction(animation: .none)) {
+            phase = false
+        }
+    }
+}
+
+private struct CategoryDropDelegate: DropDelegate {
+    let target: CategoryRecord
+    let isReordering: Bool
+    @Binding var dragging: CategoryRecord?
+    let onMove: (CategoryRecord, CategoryRecord) -> Void
+    let onCommit: () -> Void
+
+    func dropEntered(info: DropInfo) {
+        guard isReordering, let dragging, dragging.id != target.id else { return }
+        onMove(dragging, target)
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        dragging = nil
+        onCommit()
+        return true
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        DropProposal(operation: .move)
     }
 }
 
