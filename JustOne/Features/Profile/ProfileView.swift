@@ -5,6 +5,7 @@ struct ProfileView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @State private var showsDebug = false
     @State private var dailyReminderEnabled = true
+    @State private var billCount: Int = 0
 
     var body: some View {
         ZStack {
@@ -29,6 +30,7 @@ struct ProfileView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(true)
+            loadBillCount()
         }
         #if DEBUG
         .navigationDestination(isPresented: $showsDebug) {
@@ -76,7 +78,7 @@ struct ProfileView: View {
                 Text("Alex Doe")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundStyle(JOColors.profileName)
-                Text("342 笔记录")
+                Text("\(billCount) 笔记录")
                     .font(JOTypography.caption)
                     .foregroundStyle(JOColors.profileMeta)
             }
@@ -122,6 +124,15 @@ struct ProfileView: View {
             .buttonStyle(RowPressStyle())
         }
         .padding(.top, 36)
+    }
+
+    private func loadBillCount() {
+        do {
+            let bills = try environment.container.repositories.bill.list()
+            billCount = bills.filter { $0.deletedAt == nil }.count
+        } catch {
+            billCount = 0
+        }
     }
 }
 
