@@ -132,7 +132,7 @@ struct JOWheelPicker: UIViewRepresentable {
         // 不再清理 subviews，避免误伤内部内容视图（iOS 26 结构变化）
     }
 
-    private func clearBackgrounds(in pickerView: UIPickerView) {
+    private func clearBackgrounds(in pickerView: UIPickerView) {			
         pickerView.backgroundColor = .clear
         pickerView.isOpaque = false
         pickerView.subviews.forEach { subview in

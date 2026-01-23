@@ -176,13 +176,13 @@ struct HomeView: View {
             } else {
                 ForEach(viewModel.groups) { group in
                     Section {
-                        ForEach(group.items) { item in
+                        ForEach(Array(group.items.enumerated()), id: \.element.id) { index, item in
                             Button {
                                 if let bill = viewModel.bill(for: item.id) {
                                     editingBill = bill
                                 }
                             } label: {
-                                JOListRow(
+                                HomeListRowContent(
                                     iconName: item.icon,
                                     iconColor: item.iconColor,
                                     title: item.title,
@@ -191,6 +191,20 @@ struct HomeView: View {
                                     amountSign: item.isIncome ? "+" : "-",
                                     amountColor: item.isIncome ? JOColors.accent : JOColors.textPrimary
                                 )
+                                .background(
+                                    HomeGroupRowBackground(
+                                        isFirst: index == 0,
+                                        isLast: index == group.items.count - 1
+                                    )
+                                )
+                                .overlay(alignment: .bottom) {
+                                    if index < group.items.count - 1 {
+                                        Rectangle()
+                                            .fill(JOColors.cardBorder.opacity(0.35))
+                                            .frame(height: 1)
+                                            .padding(.horizontal, JOSpacing.lg)
+                                    }
+                                }
                             }
                             .buttonStyle(.plain)
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -206,7 +220,7 @@ struct HomeView: View {
                                 EdgeInsets(
                                     top: 0,
                                     leading: JOSpacing.lg,
-                                    bottom: JOSpacing.sm,
+                                    bottom: 0,
                                     trailing: JOSpacing.lg
                                 )
                             )
@@ -249,6 +263,81 @@ struct HomeView: View {
 private enum HomeLayout {
     static let bottomOverlayHeight: CGFloat = 90
     static let bottomOverlayOpacity: Double = 0.72
+}
+
+private struct HomeListRowContent: View {
+    let iconName: String
+    let iconColor: Color
+    let title: String
+    let subtitle: String?
+    let amountCents: Int
+    let amountSign: String?
+    let amountColor: Color
+
+    var body: some View {
+        HStack(spacing: JOSpacing.md) {
+            Image(systemName: iconName)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(iconColor)
+                .frame(width: 46, height: 46)
+                .background(JOColors.categoryItemBackground)
+                .clipShape(Circle())
+                .shadow(color: iconColor.opacity(0.1), radius: 6, x: 0, y: 0)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(JOTypography.body)
+                    .foregroundStyle(JOColors.textPrimary)
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(JOTypography.caption)
+                        .foregroundStyle(JOColors.textSecondary)
+                }
+            }
+            Spacer()
+            JOAmountText(cents: amountCents, sign: amountSign, size: .row, color: amountColor)
+        }
+        .padding(.vertical, JOSpacing.sm)
+        .padding(.horizontal, JOSpacing.lg)
+        .frame(minHeight: 72)
+    }
+}
+
+private struct HomeGroupRowBackground: View {
+    let isFirst: Bool
+    let isLast: Bool
+
+    private var corners: UIRectCorner {
+        if isFirst && isLast {
+            return [.topLeft, .topRight, .bottomLeft, .bottomRight]
+        }
+        if isFirst {
+            return [.topLeft, .topRight]
+        }
+        if isLast {
+            return [.bottomLeft, .bottomRight]
+        }
+        return []
+    }
+
+    var body: some View {
+        JOColors.surface
+            .clipShape(RoundedCorner(radius: JORadius.row, corners: corners))
+    }
+}
+
+private struct RoundedCorner: Shape {
+    var radius: CGFloat
+    var corners: UIRectCorner
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
 }
 
 #Preview {
