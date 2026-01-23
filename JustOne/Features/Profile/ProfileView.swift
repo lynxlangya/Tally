@@ -107,6 +107,19 @@ struct ProfileView: View {
                 )
             }
             .buttonStyle(RowPressStyle())
+
+            NavigationLink {
+                PlaceholderView(title: "关于")
+            } label: {
+                JOSettingRow(
+                    title: "关于",
+                    subtitle: "版本信息",
+                    systemImage: "info.circle.fill",
+                    iconBackground: JOColors.profileRowIconBackground,
+                    iconForeground: JOColors.profileRowTitle
+                )
+            }
+            .buttonStyle(RowPressStyle())
         }
         .padding(.top, 36)
     }
