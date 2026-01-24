@@ -52,6 +52,8 @@ struct SettingsView: View {
         switch destination {
         case .account:
             AccountSettingsView()
+        case .language:
+            LanguageSettingsView()
         default:
             PlaceholderView(title: destination.title)
         }
