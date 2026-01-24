@@ -54,6 +54,8 @@ struct SettingsView: View {
             AccountSettingsView()
         case .language:
             LanguageSettingsView()
+        case .theme:
+            ThemeSettingsView()
         default:
             PlaceholderView(title: destination.title)
         }
