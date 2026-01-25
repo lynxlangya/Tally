@@ -4,7 +4,21 @@ import WidgetKit
 struct SummaryTrendWidgetView: View {
     let model: SummaryTrendWidgetModel
 
-    private let weekdays = ["M", "T", "W", "T", "F", "S", "S"]
+    private var monthMarkers: [Int] {
+        let calendar = Calendar.current
+        guard let range = calendar.range(of: .day, in: .month, for: Date()) else { return [1, 5, 10, 15, 20, 25, 30] }
+        let maxDay = range.upperBound - 1
+        var markers = [1, 5, 10, 15, 20, 25]
+        if !markers.contains(maxDay) {
+            markers.append(maxDay)
+        } else {
+            // 若 maxDay 恰好是 25/20 等，仍保持最后一个是当月最后一天
+            if markers.last != maxDay {
+                markers.append(maxDay)
+            }
+        }
+        return markers
+    }
 
     var body: some View {
         ZStack {
@@ -51,11 +65,14 @@ struct SummaryTrendWidgetView: View {
                 LineChart(values: model.sparkline)
                     .frame(height: 56)
 
-                HStack(spacing: 10) {
-                    ForEach(weekdays.indices, id: \.self) { index in
-                        Text(weekdays[index])
+                HStack {
+                    ForEach(monthMarkers, id: \.self) { day in
+                        Text("\(day)")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(isToday(index: index) ? WidgetTheme.accent : WidgetTheme.textSecondary.opacity(0.7))
+                            .foregroundStyle(WidgetTheme.textSecondary.opacity(0.7))
+                        if day != monthMarkers.last {
+                            Spacer(minLength: 0)
+                        }
                     }
                 }
             }
@@ -64,13 +81,6 @@ struct SummaryTrendWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .widgetURL(URL(string: "justone://home"))
         .joWidgetBackground()
-    }
-
-    private func isToday(index: Int) -> Bool {
-        let weekday = Calendar.current.component(.weekday, from: Date())
-        // Calendar: 1=Sunday ... 7=Saturday. We map to Mon=0.
-        let mapped = (weekday + 5) % 7
-        return index == mapped
     }
 
     private func formatCurrency(cents: Int) -> String {
@@ -98,12 +108,25 @@ private struct LineChart: View {
         GeometryReader { proxy in
             let points = buildPoints(size: proxy.size)
             ZStack {
-                Path { path in
-                    guard let first = points.first else { return }
-                    path.move(to: first)
-                    points.dropFirst().forEach { path.addLine(to: $0) }
+                if points.count > 1 {
+                    let linePath = smoothPath(points: points)
+                    let fillPath = areaPath(linePath: linePath, size: proxy.size)
+
+                    fillPath
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    WidgetTheme.accent.opacity(0.25),
+                                    WidgetTheme.accent.opacity(0.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+
+                    linePath
+                        .stroke(WidgetTheme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
                 }
-                .stroke(WidgetTheme.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
 
                 if let last = points.last {
                     Circle()
@@ -113,6 +136,30 @@ private struct LineChart: View {
                 }
             }
         }
+    }
+
+    private func smoothPath(points: [CGPoint]) -> Path {
+        var path = Path()
+        guard points.count > 1 else { return path }
+        path.move(to: points[0])
+        for index in 1..<points.count {
+            let prev = points[index - 1]
+            let current = points[index]
+            let mid = CGPoint(x: (prev.x + current.x) / 2, y: (prev.y + current.y) / 2)
+            path.addQuadCurve(to: mid, control: prev)
+            if index == points.count - 1 {
+                path.addQuadCurve(to: current, control: current)
+            }
+        }
+        return path
+    }
+
+    private func areaPath(linePath: Path, size: CGSize) -> Path {
+        var path = linePath
+        path.addLine(to: CGPoint(x: size.width, y: size.height))
+        path.addLine(to: CGPoint(x: 0, y: size.height))
+        path.closeSubpath()
+        return path
     }
 
     private func buildPoints(size: CGSize) -> [CGPoint] {
