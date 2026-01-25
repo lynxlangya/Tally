@@ -51,7 +51,18 @@ enum WidgetSnapshotService {
 
     private static func buildSparkline(from bills: [BillRecord], now: Date) -> [Double] {
         let calendar = Calendar.current
-        let days = (0..<7).compactMap { calendar.date(byAdding: .day, value: -6 + $0, to: now) }
+        guard let range = calendar.range(of: .day, in: .month, for: now) else {
+            return [0.2, 0.3, 0.15, 0.4, 0.25, 0.35, 0.2]
+        }
+        let year = calendar.component(.year, from: now)
+        let month = calendar.component(.month, from: now)
+        let days = range.compactMap { day -> Date? in
+            var comps = DateComponents()
+            comps.year = year
+            comps.month = month
+            comps.day = day
+            return calendar.date(from: comps)
+        }
         let values = days.map { date -> Double in
             let key = DayKeyFormatter.dayKey(for: date)
             let sum = bills
@@ -61,7 +72,7 @@ enum WidgetSnapshotService {
         }
         let maxValue = values.max() ?? 1
         if maxValue <= 0 {
-            return [0.2, 0.3, 0.15, 0.4, 0.25, 0.35, 0.2]
+            return values.map { _ in 0 }
         }
         return values.map { $0 / maxValue }
     }

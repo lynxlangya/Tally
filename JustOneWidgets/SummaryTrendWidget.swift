@@ -29,5 +29,6 @@ struct SummaryTrendWidget: Widget {
         .configurationDisplayName("本月概览")
         .description("查看本月结余与趋势")
         .supportedFamilies([.systemMedium])
+        .contentMarginsDisabled()
     }
 }

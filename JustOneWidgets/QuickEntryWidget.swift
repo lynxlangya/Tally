@@ -34,5 +34,6 @@ struct QuickEntryWidget: Widget {
         .configurationDisplayName("快速记账")
         .description("查看今日支出并快速记账")
         .supportedFamilies([.systemSmall])
+        .contentMarginsDisabled()
     }
 }

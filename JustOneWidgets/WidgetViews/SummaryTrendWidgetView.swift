@@ -48,7 +48,8 @@ struct SummaryTrendWidgetView: View {
                     }
                 }
 
-                sparklineView
+                LineChart(values: model.sparkline)
+                    .frame(height: 56)
 
                 HStack(spacing: 10) {
                     ForEach(weekdays.indices, id: \.self) { index in
@@ -60,20 +61,9 @@ struct SummaryTrendWidgetView: View {
             }
             .padding(16)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .widgetURL(URL(string: "justone://home"))
         .joWidgetBackground()
-    }
-
-    private var sparklineView: some View {
-        let values = model.sparkline.isEmpty ? WidgetSnapshot.placeholder.summary.sparkline : model.sparkline
-        return HStack(alignment: .bottom, spacing: 6) {
-            ForEach(values.indices, id: \.self) { index in
-                Capsule()
-                    .fill(index == values.indices.last ? WidgetTheme.accent : WidgetTheme.textSecondary.opacity(0.5))
-                    .frame(width: 10, height: max(6, values[index] * 36))
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func isToday(index: Int) -> Bool {
@@ -91,5 +81,50 @@ struct SummaryTrendWidgetView: View {
         formatter.maximumFractionDigits = 2
         let number = formatter.string(from: value as NSDecimalNumber) ?? "0.00"
         return "¥\(number)"
+    }
+}
+
+private struct LineChart: View {
+    let values: [Double]
+
+    private var normalizedValues: [Double] {
+        let source = values.isEmpty ? WidgetSnapshot.placeholder.summary.sparkline : values
+        let maxValue = source.max() ?? 1
+        if maxValue <= 0 { return source.map { _ in 0 } }
+        return source.map { $0 / maxValue }
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            let points = buildPoints(size: proxy.size)
+            ZStack {
+                Path { path in
+                    guard let first = points.first else { return }
+                    path.move(to: first)
+                    points.dropFirst().forEach { path.addLine(to: $0) }
+                }
+                .stroke(WidgetTheme.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+
+                if let last = points.last {
+                    Circle()
+                        .fill(WidgetTheme.accent)
+                        .frame(width: 8, height: 8)
+                        .position(last)
+                }
+            }
+        }
+    }
+
+    private func buildPoints(size: CGSize) -> [CGPoint] {
+        let values = normalizedValues
+        guard values.count > 1 else { return [] }
+        let stepX = size.width / CGFloat(values.count - 1)
+        let minY: CGFloat = 8
+        let maxY = size.height - 8
+        return values.enumerated().map { index, value in
+            let x = CGFloat(index) * stepX
+            let y = maxY - (maxY - minY) * CGFloat(value)
+            return CGPoint(x: x, y: y)
+        }
     }
 }

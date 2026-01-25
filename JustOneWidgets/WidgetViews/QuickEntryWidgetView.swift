@@ -50,6 +50,7 @@ struct QuickEntryWidgetView: View {
             }
             .padding(16)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .widgetURL(URL(string: "justone://quickEntry"))
         .joWidgetBackground()
     }
