@@ -63,6 +63,9 @@ struct JOTabScaffold: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     .ignoresSafeArea(.keyboard)
+    .onOpenURL { url in
+        handleDeepLink(url)
+    }
     .sheet(isPresented: $showsQuickEntry) {
             QuickEntryView(
                 repository: environment.container.repositories.bill,
@@ -83,6 +86,19 @@ struct JOTabScaffold: View {
     private var profileStack: some View {
         NavigationStack {
             ProfileView()
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard let route = DeepLinkRouter.parse(url) else { return }
+        switch route {
+        case .quickEntry:
+            selectedIndex = TabIndex.home.rawValue
+            showsQuickEntry = true
+        case .home:
+            selectedIndex = TabIndex.home.rawValue
+        case .statistics:
+            selectedIndex = TabIndex.home.rawValue
         }
     }
 }

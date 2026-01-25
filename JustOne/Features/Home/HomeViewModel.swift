@@ -69,6 +69,7 @@ final class HomeViewModel: ObservableObject {
             let categoryMap = loadCategories()
             updateSummary(with: bills)
             groups = buildGroups(from: bills, categoryMap: categoryMap)
+            WidgetSnapshotService.refresh(using: billRepository, now: nowProvider())
         } catch {
             billById = [:]
             summary = Summary(monthTitle: monthTitle(for: nowProvider()), expenseCents: 0, incomeCents: 0)
@@ -85,6 +86,7 @@ final class HomeViewModel: ObservableObject {
         let trashUntil = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now
         do {
             try billRepository.softDelete(id: id, deletedAt: now, trashUntil: trashUntil)
+            WidgetSnapshotService.refresh(using: billRepository, now: now)
             NotificationCenter.default.post(name: .billDidChange, object: nil)
             load()
         } catch {

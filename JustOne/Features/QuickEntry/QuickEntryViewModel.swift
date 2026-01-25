@@ -151,6 +151,7 @@ final class QuickEntryViewModel: ObservableObject {
                 )
                 _ = try billRepository.create(draft)
             }
+            WidgetSnapshotService.refresh(using: billRepository)
             NotificationCenter.default.post(name: .billDidChange, object: nil)
             errorMessage = nil
             return true

@@ -12,6 +12,7 @@ struct JustOneApp: App {
     private let environment = AppEnvironment.live
     init() {
         UITabBar.appearance().isHidden = true
+        WidgetSnapshotService.refresh(using: environment.container.repositories.bill)
     }
 
     var body: some Scene {
