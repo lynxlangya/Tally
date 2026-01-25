@@ -32,10 +32,10 @@ struct SummaryTrendWidgetView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("本月结余")
+                        Text("本月支出")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(WidgetTheme.textSecondary)
-                        Text(formatCurrency(cents: model.monthBalanceCents))
+                        Text(formatCurrency(cents: model.monthExpenseCents))
                             .font(.system(size: 26, weight: .semibold))
                             .foregroundStyle(WidgetTheme.textPrimary)
                     }
@@ -84,7 +84,7 @@ struct SummaryTrendWidgetView: View {
     }
 
     private func formatCurrency(cents: Int) -> String {
-        let value = Decimal(cents) / 100
+        let value = Decimal(abs(cents)) / 100
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.minimumFractionDigits = 2
