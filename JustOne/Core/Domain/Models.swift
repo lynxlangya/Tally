@@ -42,6 +42,9 @@ struct RecurringTaskRecord: Identifiable, Equatable, Codable {
     let amount: Money
     let categoryId: UUID?
     let note: String?
+    let firstDate: Date
+    let repeatRule: String
+    let nextFireDate: Date
     let hour: Int
     let minute: Int
     let lastRunAtUTC: Date?

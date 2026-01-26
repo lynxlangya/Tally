@@ -4,17 +4,23 @@ struct QuickEntryView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: QuickEntryViewModel
     @State private var showsDatePicker = false
+    private let selectionOnly: Bool
+    private let onCategorySelected: ((CategoryRecord) -> Void)?
 
     init(
         repository: BillRepository,
         categoryRepository: CategoryRepository,
-        editingBill: BillRecord? = nil
+        editingBill: BillRecord? = nil,
+        selectionOnly: Bool = false,
+        onCategorySelected: ((CategoryRecord) -> Void)? = nil
     ) {
         _viewModel = StateObject(wrappedValue: QuickEntryViewModel(
             repository: repository,
             categoryRepository: categoryRepository,
             editingBill: editingBill
         ))
+        self.selectionOnly = selectionOnly
+        self.onCategorySelected = onCategorySelected
     }
 
     var body: some View {
@@ -89,7 +95,12 @@ struct QuickEntryView: View {
                 LazyVGrid(columns: categoryColumns, spacing: QuickEntryLayout.categoryGridSpacingY) {
                     ForEach(viewModel.categories) { category in
                         Button {
-                            viewModel.selectCategory(category)
+                            if selectionOnly {
+                                onCategorySelected?(category)
+                                dismiss()
+                            } else {
+                                viewModel.selectCategory(category)
+                            }
                         } label: {
                             QuickEntryCategoryItem(
                                 category: category,

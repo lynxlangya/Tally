@@ -31,6 +31,9 @@
         <attribute name="amount" optional="NO" attributeType="Integer 64" usesScalarValueType="YES"/>
         <attribute name="categoryId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="note" optional="YES" attributeType="String"/>
+        <attribute name="firstDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="repeatRule" optional="YES" attributeType="String"/>
+        <attribute name="nextFireDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="hour" optional="NO" attributeType="Integer 16" usesScalarValueType="YES"/>
         <attribute name="minute" optional="NO" attributeType="Integer 16" usesScalarValueType="YES"/>
         <attribute name="lastRunAtUTC" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

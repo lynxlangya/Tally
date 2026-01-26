@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
+    @Environment(\.appEnvironment) private var environment
 
     var body: some View {
         VStack(spacing: JOSpacing.lg) {
@@ -56,6 +57,14 @@ struct SettingsView: View {
             LanguageSettingsView()
         case .theme:
             ThemeSettingsView()
+        case .recurring:
+            RecurringBillsView(
+                recurringRepository: environment.container.repositories.recurring,
+                categoryRepository: environment.container.repositories.category,
+                billRepository: environment.container.repositories.bill
+            )
+        case .widget:
+            WidgetPreviewView()
         default:
             PlaceholderView(title: destination.title)
         }
@@ -101,8 +110,6 @@ private enum SettingsDestination: String {
 
 private let settingItems: [SettingsItem] = [
     SettingsItem(title: "账号设置", subtitle: nil, systemImage: "person.fill", destination: .account),
-    SettingsItem(title: "导出数据", subtitle: nil, systemImage: "square.and.arrow.up", destination: .export),
-    SettingsItem(title: "解锁密码", subtitle: nil, systemImage: "lock.fill", destination: .lock),
     SettingsItem(title: "定时记账", subtitle: nil, systemImage: "clock.fill", destination: .recurring),
     SettingsItem(title: "桌面小组件", subtitle: nil, systemImage: "square.grid.2x2.fill", destination: .widget),
     SettingsItem(title: "主题设置", subtitle: nil, systemImage: "paintpalette.fill", destination: .theme),

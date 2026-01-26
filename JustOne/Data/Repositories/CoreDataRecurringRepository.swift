@@ -1,4 +1,5 @@
 import CoreData
+import Foundation
 
 final class CoreDataRecurringRepository: RecurringRepository {
     private let context: NSManagedObjectContext
@@ -10,7 +11,7 @@ final class CoreDataRecurringRepository: RecurringRepository {
     func list() throws -> [RecurringTaskRecord] {
         try context.performAndWaitThrowing {
             let request = NSFetchRequest<NSManagedObject>(entityName: "RecurringTask")
-            request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: true)]
+            request.sortDescriptors = [NSSortDescriptor(key: "nextFireDate", ascending: true)]
             let objects = try context.fetch(request)
             return try objects.map { try mapRecurring(from: $0) }
         }
@@ -72,6 +73,9 @@ final class CoreDataRecurringRepository: RecurringRepository {
         object.setValue(Int64(record.amount.cents), forKey: "amount")
         object.setValue(record.categoryId, forKey: "categoryId")
         object.setValue(record.note, forKey: "note")
+        object.setValue(record.firstDate, forKey: "firstDate")
+        object.setValue(record.repeatRule, forKey: "repeatRule")
+        object.setValue(record.nextFireDate, forKey: "nextFireDate")
         object.setValue(Int16(record.hour), forKey: "hour")
         object.setValue(Int16(record.minute), forKey: "minute")
         object.setValue(record.lastRunAtUTC, forKey: "lastRunAtUTC")
@@ -95,6 +99,9 @@ final class CoreDataRecurringRepository: RecurringRepository {
         let categoryId = object.value(forKey: "categoryId") as? UUID
         let note = object.value(forKey: "note") as? String
         let lastRunAtUTC = object.value(forKey: "lastRunAtUTC") as? Date
+        let firstDate = object.value(forKey: "firstDate") as? Date ?? createdAt
+        let repeatRule = object.value(forKey: "repeatRule") as? String ?? RepeatRule.daily.rawValue
+        let nextFireDate = object.value(forKey: "nextFireDate") as? Date ?? firstDate
 
         return RecurringTaskRecord(
             id: id,
@@ -102,6 +109,9 @@ final class CoreDataRecurringRepository: RecurringRepository {
             amount: Money(cents: amountInt),
             categoryId: categoryId,
             note: note,
+            firstDate: firstDate,
+            repeatRule: repeatRule,
+            nextFireDate: nextFireDate,
             hour: Int(hourValue),
             minute: Int(minuteValue),
             lastRunAtUTC: lastRunAtUTC,
