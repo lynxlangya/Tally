@@ -1,12 +1,18 @@
 import SwiftUI
+import UIKit
 
 struct ProfileView: View {
     @Environment(\.appEnvironment) private var environment
     @Environment(\.tabBarVisibility) private var tabBarVisibility
-    @State private var dailyReminderEnabled = true
+    @AppStorage("dailyReminderEnabled") private var dailyReminderEnabled: Bool = false
     @State private var billCount: Int = 0
     @AppStorage("profileName") private var profileName: String = "Alex Doe"
     @AppStorage("profileAvatarData") private var avatarData: Data = Data()
+    @State private var showReminderSettingsPrompt = false
+    @State private var suppressReminderToggle = false
+
+    private let reminderHour = 20
+    private let reminderMinute = 0
 
     var body: some View {
         ZStack {
@@ -26,6 +32,19 @@ struct ProfileView: View {
         .onAppear {
             tabBarVisibility?.setVisible(true)
             loadBillCount()
+            Task { await syncReminderAuthorization() }
+        }
+        .onChange(of: dailyReminderEnabled) {
+            guard !suppressReminderToggle else { return }
+            handleReminderToggle(dailyReminderEnabled)
+        }
+        .alert("通知权限未开启", isPresented: $showReminderSettingsPrompt) {
+            Button("取消", role: .cancel) { }
+            Button("去设置") {
+                openAppSettings()
+            }
+        } message: {
+            Text("请在系统设置中开启通知权限后再使用每日提醒。")
         }
     }
 
@@ -146,6 +165,73 @@ struct ProfileView: View {
     private var avatarImage: UIImage? {
         guard !avatarData.isEmpty else { return nil }
         return UIImage(data: avatarData)
+    }
+
+    private func handleReminderToggle(_ enabled: Bool) {
+        if enabled {
+            Task { await attemptEnableReminder() }
+        } else {
+            ReminderNotificationManager.shared.cancelDailyReminder()
+        }
+    }
+
+    @MainActor
+    private func attemptEnableReminder() async {
+        let status = await ReminderNotificationManager.shared.authorizationStatus()
+        switch status {
+        case .notDetermined:
+            let granted = await ReminderNotificationManager.shared.requestAuthorization()
+            if granted {
+                await ReminderNotificationManager.shared.scheduleDailyReminder(
+                    hour: reminderHour,
+                    minute: reminderMinute
+                )
+                updateReminderToggle(true)
+            } else {
+                updateReminderToggle(false)
+                showReminderSettingsPrompt = true
+            }
+        case .denied:
+            updateReminderToggle(false)
+            showReminderSettingsPrompt = true
+        case .authorized, .provisional, .ephemeral:
+            await ReminderNotificationManager.shared.scheduleDailyReminder(
+                hour: reminderHour,
+                minute: reminderMinute
+            )
+            updateReminderToggle(true)
+        @unknown default:
+            updateReminderToggle(false)
+        }
+    }
+
+    @MainActor
+    private func syncReminderAuthorization() async {
+        let status = await ReminderNotificationManager.shared.authorizationStatus()
+        if dailyReminderEnabled {
+            switch status {
+            case .authorized, .provisional, .ephemeral:
+                await ReminderNotificationManager.shared.scheduleDailyReminder(
+                    hour: reminderHour,
+                    minute: reminderMinute
+                )
+            default:
+                updateReminderToggle(false)
+            }
+        }
+    }
+
+    private func updateReminderToggle(_ enabled: Bool) {
+        suppressReminderToggle = true
+        dailyReminderEnabled = enabled
+        DispatchQueue.main.async {
+            suppressReminderToggle = false
+        }
+    }
+
+    private func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 }
 
