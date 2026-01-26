@@ -80,12 +80,14 @@ struct JOTabScaffold: View {
                 repository: environment.container.repositories.bill,
                 categoryRepository: environment.container.repositories.category
             )
+            .enableInteractivePop()
         }
     }
 
     private var profileStack: some View {
         NavigationStack {
             ProfileView()
+                .enableInteractivePop()
         }
     }
 
