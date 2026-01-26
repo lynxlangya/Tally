@@ -46,10 +46,13 @@ struct JOCategoryIconTile: View {
                     .fill(backgroundColor)
                     .frame(width: size, height: size)
 
-                Image(systemName: iconName)
-                    .font(.system(size: iconSize, weight: .semibold))
-                    .foregroundStyle(iconColor)
-                    .shadow(color: iconColor.opacity(shadowOpacity), radius: 4, x: 0, y: 0)
+                JOIcon(
+                    name: iconName,
+                    size: iconSize,
+                    weight: .semibold,
+                    color: iconColor
+                )
+                .shadow(color: iconColor.opacity(shadowOpacity), radius: 4, x: 0, y: 0)
             }
 
             if showsTitle {

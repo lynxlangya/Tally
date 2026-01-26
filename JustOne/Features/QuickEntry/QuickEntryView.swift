@@ -138,9 +138,12 @@ struct QuickEntryView: View {
                                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
                         )
                         .overlay(
-                            Image(systemName: category.iconKey)
-                                .font(.system(size: 32, weight: .semibold))
-                                .foregroundStyle(categoryColor(for: category))
+                            JOIcon(
+                                name: category.iconKey,
+                                size: 32,
+                                weight: .semibold,
+                                color: categoryColor(for: category)
+                            )
                         )
                         .onTapGesture {
                             viewModel.resetToCategory()

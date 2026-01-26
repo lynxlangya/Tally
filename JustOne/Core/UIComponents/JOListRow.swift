@@ -29,13 +29,16 @@ struct JOListRow: View {
 
     var body: some View {
         HStack(spacing: JOSpacing.md) {
-            Image(systemName: iconName)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(iconColor)
-                .frame(width: 46, height: 46)
-                .background(JOColors.categoryItemBackground)
-                .clipShape(Circle())
-                .shadow(color: iconColor.opacity(0.1), radius: 6, x: 0, y: 0)
+            JOIcon(
+                name: iconName,
+                size: 15,
+                weight: .semibold,
+                color: iconColor
+            )
+            .frame(width: 46, height: 46)
+            .background(JOColors.categoryItemBackground)
+            .clipShape(Circle())
+            .shadow(color: iconColor.opacity(0.1), radius: 6, x: 0, y: 0)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)

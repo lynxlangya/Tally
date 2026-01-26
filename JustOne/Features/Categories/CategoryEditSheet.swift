@@ -125,9 +125,12 @@ struct CategoryEditSheet: View {
                     .shadow(color: selectedColor.opacity(0.35), radius: 18, x: 0, y: 8)
                     .shadow(color: selectedColor.opacity(0.2), radius: 8, x: 0, y: 4)
 
-                Image(systemName: selectedIcon)
-                    .font(.system(size: Constants.previewIconSize, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.95))
+                JOIcon(
+                    name: selectedIcon,
+                    size: Constants.previewIconSize,
+                    weight: .semibold,
+                    color: Color.white.opacity(0.95)
+                )
             }
         }
         .frame(maxWidth: .infinity)
@@ -373,9 +376,12 @@ struct IconSwatch: View {
                     .strokeBorder(isSelected ? Color.white.opacity(0.95) : Color.clear, lineWidth: 2)
             )
             .overlay(
-                Image(systemName: icon)
-                    .font(.system(size: size * 0.44 - 3, weight: .semibold))
-                    .foregroundStyle(isSelected ? Color.white.opacity(0.95) : Color.white.opacity(0.4))
+                JOIcon(
+                    name: icon,
+                    size: size * 0.44 - 3,
+                    weight: .semibold,
+                    color: isSelected ? Color.white.opacity(0.95) : Color.white.opacity(0.4)
+                )
             )
     }
 }

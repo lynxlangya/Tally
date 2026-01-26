@@ -55,14 +55,14 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		BD73D1542F1A35C000069ADD /* JustOne */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = JustOne;
-			sourceTree = "<group>";
-		};
 		78EA632B16EF44349FA8D161 /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		BD73D1542F1A35C000069ADD /* JustOne */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = JustOne;
 			sourceTree = "<group>";
 		};
 		BDA66FF32F24C12100EDBBCA /* JustOneWidgets */ = {
@@ -143,8 +143,8 @@
 				BDA670022F24C12200EDBBCA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				BD73D1542F1A35C000069ADD /* JustOne */,
 				78EA632B16EF44349FA8D161 /* Shared */,
+				BD73D1542F1A35C000069ADD /* JustOne */,
 			);
 			name = JustOne;
 			packageProductDependencies = (
@@ -166,8 +166,8 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				BDA66FF32F24C12100EDBBCA /* JustOneWidgets */,
 				78EA632B16EF44349FA8D161 /* Shared */,
+				BDA66FF32F24C12100EDBBCA /* JustOneWidgets */,
 			);
 			name = JustOneWidgetsExtension;
 			packageProductDependencies = (
