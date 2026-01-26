@@ -60,6 +60,11 @@
 			path = JustOne;
 			sourceTree = "<group>";
 		};
+		78EA632B16EF44349FA8D161 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		BDA66FF32F24C12100EDBBCA /* JustOneWidgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -95,6 +100,7 @@
 			children = (
 				BDA670092F24C13800EDBBCA /* JustOneWidgetsExtension.entitlements */,
 				BD73D1542F1A35C000069ADD /* JustOne */,
+				78EA632B16EF44349FA8D161 /* Shared */,
 				BDA66FF32F24C12100EDBBCA /* JustOneWidgets */,
 				BDA66FEE2F24C12100EDBBCA /* Frameworks */,
 				BD73D1532F1A35C000069ADD /* Products */,
@@ -138,6 +144,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				BD73D1542F1A35C000069ADD /* JustOne */,
+				78EA632B16EF44349FA8D161 /* Shared */,
 			);
 			name = JustOne;
 			packageProductDependencies = (
@@ -160,6 +167,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				BDA66FF32F24C12100EDBBCA /* JustOneWidgets */,
+				78EA632B16EF44349FA8D161 /* Shared */,
 			);
 			name = JustOneWidgetsExtension;
 			packageProductDependencies = (

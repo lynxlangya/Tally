@@ -46,6 +46,11 @@ enum WidgetDataStore {
         return snapshot
     }
 
+    static func saveSnapshot(_ snapshot: WidgetSnapshot) {
+        guard let data = try? JSONEncoder().encode(snapshot) else { return }
+        sharedDefaults()?.set(data, forKey: snapshotKey)
+    }
+
     private static func sharedDefaults() -> UserDefaults? {
         UserDefaults(suiteName: appGroupId) ?? .standard
     }
