@@ -17,41 +17,54 @@ struct WidgetPreviewView: View {
                         .font(JOTypography.body)
                         .foregroundStyle(JOColors.textSecondary)
                 }
+                .padding(.bottom, 4)
 
                 VStack(alignment: .leading, spacing: JOSpacing.md) {
-                    Text("小组件 · 快速记账")
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.textSecondary)
+                    SectionLabel(text: "小组件 · 快速记账")
                     HStack {
                         Spacer()
-                        SmallWidgetPreview()
-                            .frame(width: 140, height: 140)
+                        ZStack {
+                            GlowOrb()
+                                .frame(width: 160, height: 160)
+                            SmallWidgetPreview()
+                                .frame(width: 140, height: 140)
+                        }
                         Spacer()
                     }
                 }
 
                 VStack(alignment: .leading, spacing: JOSpacing.md) {
-                    Text("中号组件 · 概览与趋势")
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.textSecondary)
-                    MediumWidgetPreview()
-                        .frame(maxWidth: .infinity)
+                    SectionLabel(text: "中号组件 · 概览与趋势")
+                    ZStack {
+                        GlowOrb()
+                            .frame(height: 150)
+                            .opacity(0.6)
+                        MediumWidgetPreview()
+                            .frame(maxWidth: .infinity)
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: JOSpacing.md) {
-                    Text("如何添加小组件？")
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.textSecondary)
+                    SectionLabel(text: "如何添加小组件？")
                     InstructionRow(text: "回到手机主屏幕，长按任意空白区域直到图标开始抖动。")
                     InstructionRow(text: "点击左上角的“+”按钮。")
                     InstructionRow(text: "在搜索框输入 记一笔 并选择喜欢的样式。")
                 }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(JOColors.surface.opacity(0.35))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(JOColors.cardBorder.opacity(0.6), lineWidth: 1)
+                        )
+                )
             }
             .padding(.horizontal, JOSpacing.lg)
             .padding(.top, JOSpacing.lg)
             .padding(.bottom, JOSpacing.xl)
         }
-        .background(JOColors.background.ignoresSafeArea())
+        .background(WidgetPreviewBackground().ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
@@ -72,17 +85,44 @@ struct WidgetPreviewView: View {
 private struct SmallWidgetPreview: View {
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(JOColors.surface.opacity(0.9))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(JOColors.cardBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            JOColors.surface.opacity(0.95),
+                            JOColors.surface.opacity(0.74)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(JOColors.cardBorder.opacity(0.25), lineWidth: 0.7)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.12),
+                                    Color.clear,
+                                    Color.black.opacity(0.22)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                        .blendMode(.overlay)
+                )
+                .shadow(color: JOColors.accent.opacity(0.1), radius: 10, x: 0, y: 6)
+                .rotation3DEffect(.degrees(4), axis: (x: 1, y: -0.2, z: 0))
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(JOColors.accent.opacity(0.15))
+                        .fill(JOColors.accent.opacity(0.2))
                         .frame(width: 20, height: 20)
                         .overlay(
                             Image(systemName: "square.and.pencil")
@@ -97,6 +137,8 @@ private struct SmallWidgetPreview: View {
                 Text("¥88.5")
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(JOColors.textPrimary)
+
+                Spacer().frame(height: 2)
 
                 Capsule()
                     .fill(JOColors.accent)
@@ -116,7 +158,8 @@ private struct SmallWidgetPreview: View {
                         )
                 }
             }
-            .padding(12)
+            .padding(.vertical, 14)
+            .padding(.horizontal, 12)
         }
         .frame(height: 140)
     }
@@ -126,15 +169,42 @@ private struct MediumWidgetPreview: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(JOColors.surface.opacity(0.9))
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            JOColors.surface.opacity(0.95),
+                            JOColors.surface.opacity(0.68)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(JOColors.cardBorder, lineWidth: 1)
+                        .stroke(JOColors.cardBorder.opacity(0.25), lineWidth: 0.7)
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.12),
+                                    Color.clear,
+                                    Color.black.opacity(0.22)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                        .blendMode(.overlay)
+                )
+                .shadow(color: JOColors.accent.opacity(0.1), radius: 12, x: 0, y: 7)
+                .rotation3DEffect(.degrees(3), axis: (x: 1, y: -0.15, z: 0))
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 14) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("本月支出")
                             .font(JOTypography.caption)
                             .foregroundStyle(JOColors.textSecondary)
@@ -194,7 +264,7 @@ private struct WidgetLinePreview: View {
                 CGPoint(x: width, y: height * 0.8)
             ]
 
-            Path { path in
+            let linePath = Path { path in
                 path.move(to: points[0])
                 for index in 1..<points.count {
                     let prev = points[index - 1]
@@ -206,7 +276,83 @@ private struct WidgetLinePreview: View {
                     }
                 }
             }
-            .stroke(JOColors.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+
+            linePath
+                .stroke(JOColors.accent, style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
+                .shadow(color: JOColors.accent.opacity(0.4), radius: 6, x: 0, y: 4)
+
+            let fillPath = Path { path in
+                path.addPath(linePath)
+                path.addLine(to: CGPoint(x: width, y: height))
+                path.addLine(to: CGPoint(x: 0, y: height))
+                path.closeSubpath()
+            }
+
+            fillPath
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            JOColors.accent.opacity(0.25),
+                            JOColors.accent.opacity(0.0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+        }
+    }
+}
+
+private struct SectionLabel: View {
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Capsule()
+                .fill(JOColors.accent.opacity(0.6))
+                .frame(width: 14, height: 4)
+            Text(text)
+                .font(JOTypography.caption)
+                .foregroundStyle(JOColors.textSecondary)
+        }
+    }
+}
+
+private struct GlowOrb: View {
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(JOColors.accent.opacity(0.25))
+                .blur(radius: 28)
+            Circle()
+                .fill(JOColors.accent.opacity(0.12))
+                .blur(radius: 50)
+        }
+    }
+}
+
+private struct WidgetPreviewBackground: View {
+    var body: some View {
+        ZStack {
+            JOColors.background
+            RadialGradient(
+                colors: [
+                    JOColors.accent.opacity(0.12),
+                    .clear
+                ],
+                center: .topTrailing,
+                startRadius: 40,
+                endRadius: 220
+            )
+            RadialGradient(
+                colors: [
+                    JOColors.accent.opacity(0.08),
+                    .clear
+                ],
+                center: .bottomLeading,
+                startRadius: 30,
+                endRadius: 240
+            )
         }
     }
 }
