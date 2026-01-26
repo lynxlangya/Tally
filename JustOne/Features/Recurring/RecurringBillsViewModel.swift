@@ -51,6 +51,15 @@ final class RecurringBillsViewModel: ObservableObject {
         }
     }
 
+    func delete(id: UUID) {
+        do {
+            try recurringRepository.delete(id: id)
+            load()
+        } catch {
+            // TODO: surface error when error handling UX is defined.
+        }
+    }
+
     private func loadCategories() -> [UUID: CategoryRecord] {
         var map: [UUID: CategoryRecord] = [:]
         if let expense = try? categoryRepository.list(type: .expense) {
@@ -76,11 +85,15 @@ final class RecurringBillsViewModel: ObservableObject {
         return ("未分类", "questionmark", Color(hex: hex))
     }
 
-    private static func formatDate(_ date: Date) -> String {
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter.string(from: date)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    private static func formatDate(_ date: Date) -> String {
+        dateFormatter.string(from: date)
     }
 }

@@ -37,49 +37,43 @@ struct RecurringBillFormSheet: View {
                 header
 
                 VStack(spacing: JOSpacing.md) {
-                    formRow(title: "类别") {
-                        Button {
-                            showsCategoryPicker = true
-                        } label: {
-                            HStack(spacing: 8) {
-                                if let selected = viewModel.selectedCategory {
-                                    JOCategoryIconTile(
-                                        iconName: selected.iconKey,
-                                        title: selected.name,
-                                        iconColor: viewModel.selectedCategoryColor,
-                                        size: 28,
-                                        iconSize: 14,
-                                        showsTitle: false
-                                    )
-                                    Text(selected.name)
-                                        .foregroundStyle(JOColors.textPrimary)
-                                } else {
-                                    Text("请选择")
-                                        .foregroundStyle(JOColors.textSecondary)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
+                    formRow(title: "类别", action: {
+                        showsCategoryPicker = true
+                    }) {
+                        HStack(spacing: 8) {
+                            if let selected = viewModel.selectedCategory {
+                                JOCategoryIconTile(
+                                    iconName: selected.iconKey,
+                                    title: selected.name,
+                                    iconColor: viewModel.selectedCategoryColor,
+                                    size: 28,
+                                    iconSize: 14,
+                                    showsTitle: false
+                                )
+                                Text(selected.name)
+                                    .foregroundStyle(JOColors.textPrimary)
+                            } else {
+                                Text("请选择")
                                     .foregroundStyle(JOColors.textSecondary)
                             }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(JOColors.textSecondary)
                         }
-                        .buttonStyle(.plain)
                     }
 
-                    formRow(title: "首次记账日期") {
-                        Button {
-                            showsDatePicker = true
-                        } label: {
-                            HStack {
-                                Text(viewModel.firstDateText)
-                                    .foregroundStyle(JOColors.textPrimary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(JOColors.textSecondary)
-                            }
+                    formRow(title: "首次记账日期", action: {
+                        showsDatePicker = true
+                    }) {
+                        HStack {
+                            Text(viewModel.firstDateText)
+                                .foregroundStyle(JOColors.textPrimary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(JOColors.textSecondary)
                         }
-                        .buttonStyle(.plain)
                     }
 
                     formRow(title: "金额") {
@@ -185,8 +179,12 @@ struct RecurringBillFormSheet: View {
         }
     }
 
-    private func formRow<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        HStack(spacing: JOSpacing.md) {
+    private func formRow<Content: View>(
+        title: String,
+        action: (() -> Void)? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        let row = HStack(spacing: JOSpacing.md) {
             Text(title)
                 .font(JOTypography.body)
                 .foregroundStyle(JOColors.textSecondary)
@@ -201,6 +199,17 @@ struct RecurringBillFormSheet: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(JOColors.cardBorder, lineWidth: 1)
         )
+
+        if let action {
+            return AnyView(
+                Button(action: action) {
+                    row
+                }
+                .buttonStyle(.plain)
+            )
+        }
+
+        return AnyView(row)
     }
 }
 

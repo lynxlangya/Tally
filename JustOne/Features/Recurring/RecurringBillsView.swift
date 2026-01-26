@@ -34,14 +34,23 @@ struct RecurringBillsView: View {
                     )
                     Spacer(minLength: 0)
                 } else {
-                    ScrollView {
-                        VStack(spacing: JOSpacing.md) {
-                            ForEach(viewModel.items) { item in
-                                RecurringBillRow(item: item)
-                            }
+                    List {
+                        ForEach(viewModel.items) { item in
+                            RecurringBillRow(item: item)
+                                .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        viewModel.delete(id: item.id)
+                                    } label: {
+                                        Label("删除", systemImage: "trash")
+                                    }
+                                }
                         }
-                        .padding(.bottom, JOSpacing.xl)
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
             .padding(.horizontal, JOSpacing.lg)
