@@ -50,6 +50,39 @@ final class MockBillRepository: BillRepository {
             .sorted { $0.occurredAtUTC > $1.occurredAtUTC }
     }
 
+    func list(fromDayKey: String, toDayKey: String, type: BillType?) throws -> [BillRecord] {
+        storage.values
+            .filter { record in
+                guard record.deletedAt == nil else { return false }
+                guard record.occurredLocalDate >= fromDayKey && record.occurredLocalDate <= toDayKey else { return false }
+                if let type {
+                    return record.type == type
+                }
+                return true
+            }
+            .sorted { $0.occurredAtUTC > $1.occurredAtUTC }
+    }
+
+    func list(monthKey: String, type: BillType?) throws -> [BillRecord] {
+        storage.values
+            .filter { record in
+                guard record.deletedAt == nil else { return false }
+                guard record.occurredLocalDate.hasPrefix(monthKey) else { return false }
+                if let type {
+                    return record.type == type
+                }
+                return true
+            }
+            .sorted { $0.occurredAtUTC > $1.occurredAtUTC }
+    }
+
+    func listYears() throws -> [Int] {
+        let years = storage.values
+            .filter { $0.deletedAt == nil }
+            .compactMap { Int($0.occurredLocalDate.prefix(4)) }
+        return Array(Set(years)).sorted()
+    }
+
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
         guard let record = storage[id] else { throw RepositoryError.notFound }
         let updated = BillRecord(

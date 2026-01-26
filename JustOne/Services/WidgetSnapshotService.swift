@@ -6,8 +6,10 @@ import WidgetKit
 enum WidgetSnapshotService {
     static func refresh(using repository: BillRepository, now: Date = Date()) {
         do {
-            let bills = try repository.list().filter { $0.deletedAt == nil }
-            let snapshot = buildSnapshot(from: bills, now: now)
+            let todayKey = DayKeyFormatter.dayKey(for: now)
+            let monthKey = String(todayKey.prefix(7))
+            let monthBills = try repository.list(monthKey: monthKey, type: nil)
+            let snapshot = buildSnapshot(from: monthBills, now: now)
             WidgetDataStore.saveSnapshot(snapshot)
             #if canImport(WidgetKit)
             WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.quickEntry)
@@ -20,17 +22,15 @@ enum WidgetSnapshotService {
 
     private static func buildSnapshot(from bills: [BillRecord], now: Date) -> WidgetSnapshot {
         let todayKey = DayKeyFormatter.dayKey(for: now)
-        let monthKey = String(todayKey.prefix(7))
 
         let todayExpense = bills
             .filter { $0.type == .expense && $0.occurredLocalDate == todayKey }
             .reduce(0) { $0 + $1.amount.cents }
 
-        let monthBills = bills.filter { $0.occurredLocalDate.hasPrefix(monthKey) }
-        let monthExpense = monthBills
+        let monthExpense = bills
             .filter { $0.type == .expense }
             .reduce(0) { $0 + $1.amount.cents }
-        let monthIncome = monthBills
+        let monthIncome = bills
             .filter { $0.type == .income }
             .reduce(0) { $0 + $1.amount.cents }
         let monthBalance = monthIncome - monthExpense

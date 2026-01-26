@@ -117,6 +117,57 @@ final class CoreDataBillRepository: BillRepository {
         }
     }
 
+    func list(fromDayKey: String, toDayKey: String, type: BillType?) throws -> [BillRecord] {
+        try context.performAndWaitThrowing {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "Bill")
+            var predicates: [NSPredicate] = [
+                NSPredicate(format: "deletedAt == nil"),
+                NSPredicate(format: "occurredLocalDate >= %@", fromDayKey),
+                NSPredicate(format: "occurredLocalDate <= %@", toDayKey)
+            ]
+            if let type {
+                predicates.append(NSPredicate(format: "type == %@", type.rawValue))
+            }
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+            request.sortDescriptors = [NSSortDescriptor(key: "occurredAtUTC", ascending: false)]
+            let objects = try context.fetch(request)
+            return try objects.map { try BillRecordMapper.map(from: $0) }
+        }
+    }
+
+    func list(monthKey: String, type: BillType?) throws -> [BillRecord] {
+        try context.performAndWaitThrowing {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "Bill")
+            var predicates: [NSPredicate] = [
+                NSPredicate(format: "deletedAt == nil"),
+                NSPredicate(format: "occurredLocalDate BEGINSWITH %@", monthKey)
+            ]
+            if let type {
+                predicates.append(NSPredicate(format: "type == %@", type.rawValue))
+            }
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+            request.sortDescriptors = [NSSortDescriptor(key: "occurredAtUTC", ascending: false)]
+            let objects = try context.fetch(request)
+            return try objects.map { try BillRecordMapper.map(from: $0) }
+        }
+    }
+
+    func listYears() throws -> [Int] {
+        try context.performAndWaitThrowing {
+            let request = NSFetchRequest<NSDictionary>(entityName: "Bill")
+            request.resultType = .dictionaryResultType
+            request.propertiesToFetch = ["occurredLocalDate"]
+            request.returnsDistinctResults = true
+            request.predicate = NSPredicate(format: "deletedAt == nil")
+            let results = try context.fetch(request)
+            let years = results.compactMap { dict -> Int? in
+                guard let key = dict["occurredLocalDate"] as? String else { return nil }
+                return Int(key.prefix(4))
+            }
+            return Array(Set(years)).sorted()
+        }
+    }
+
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
         try context.performAndWaitThrowing {
             let object = try fetchBillObject(id: id)

@@ -33,8 +33,9 @@ final class BillsListViewModel: ObservableObject {
 
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
-    private var allBills: [BillRecord] = []
     private var categoriesById: [UUID: CategoryRecord] = [:]
+    private var currentBills: [BillRecord] = []
+    private var currentBillsById: [UUID: BillRecord] = [:]
 
     private let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
@@ -98,11 +99,9 @@ final class BillsListViewModel: ObservableObject {
 
     func load() {
         do {
-            let bills = try billRepository.list()
             let expenseCategories = try categoryRepository.list(type: .expense)
             let incomeCategories = try categoryRepository.list(type: .income)
             let categories = expenseCategories + incomeCategories
-            allBills = bills
             categoriesById = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
             errorMessage = nil
             updateAvailableYears()
@@ -118,50 +117,68 @@ final class BillsListViewModel: ObservableObject {
     }
 
     private func applyFilters() {
-        let filtered = filteredBills(for: normalizedAnchorDate)
-        summaryTotalCents = filtered.reduce(0) { $0 + $1.amount.cents }
-        summaryChange = computeSummaryChange(currentTotal: summaryTotalCents)
+        let range = dayKeyRange(for: normalizedAnchorDate)
+        do {
+            let filtered = try billRepository.list(
+                fromDayKey: range.start,
+                toDayKey: range.end,
+                type: selectedType
+            )
+            currentBills = filtered
+            currentBillsById = Dictionary(uniqueKeysWithValues: filtered.map { ($0.id, $0) })
 
-        let trend = buildTrend(for: filtered)
-        trendPoints = trend.points
-        trendHighlightIndex = trend.highlightIndex
-        axisLabels = trend.axisLabels
-        trendValuesCents = trend.valuesCents
+            summaryTotalCents = filtered.reduce(0) { $0 + $1.amount.cents }
+            summaryChange = computeSummaryChange(currentTotal: summaryTotalCents)
 
-        rankingItems = buildRanking(for: filtered)
+            let trend = buildTrend(for: filtered)
+            trendPoints = trend.points
+            trendHighlightIndex = trend.highlightIndex
+            axisLabels = trend.axisLabels
+            trendValuesCents = trend.valuesCents
 
-        let grouped = Dictionary(grouping: filtered, by: { $0.occurredLocalDate })
-        groupedRows = grouped.mapValues { bills in
-            bills.sorted { $0.occurredAtUTC > $1.occurredAtUTC }
-                .map { makeRowItem(for: $0) }
+            rankingItems = buildRanking(for: filtered)
+
+            let grouped = Dictionary(grouping: filtered, by: { $0.occurredLocalDate })
+            groupedRows = grouped.mapValues { bills in
+                bills.sorted { $0.occurredAtUTC > $1.occurredAtUTC }
+                    .map { makeRowItem(for: $0) }
+            }
+            dayKeys = groupedRows.keys.sorted(by: >)
+            errorMessage = nil
+        } catch {
+            currentBills = []
+            currentBillsById = [:]
+            groupedRows = [:]
+            dayKeys = []
+            rankingItems = []
+            trendPoints = []
+            trendHighlightIndex = nil
+            axisLabels = []
+            trendValuesCents = []
+            summaryTotalCents = 0
+            summaryChange = nil
+            errorMessage = String(describing: error)
         }
-        dayKeys = groupedRows.keys.sorted(by: >)
     }
 
     private func updateAvailableYears() {
-        let years = allBills
-            .filter { $0.deletedAt == nil }
-            .compactMap { Int($0.occurredLocalDate.prefix(4)) }
-        let currentYear = calendar.component(.year, from: Date())
-        let uniqueYears = Array(Set(years + [currentYear])).sorted()
-        availableYears = uniqueYears.isEmpty ? [currentYear] : uniqueYears
-    }
-
-    private func filteredBills(for anchor: Date) -> [BillRecord] {
-        allBills.filter { bill in
-            bill.deletedAt == nil
-                && bill.type == selectedType
-                && isInSelectedRange(dayKey: bill.occurredLocalDate, anchor: anchor)
+        do {
+            let years = try billRepository.listYears()
+            let currentYear = calendar.component(.year, from: Date())
+            let uniqueYears = Array(Set(years + [currentYear])).sorted()
+            availableYears = uniqueYears.isEmpty ? [currentYear] : uniqueYears
+        } catch {
+            let currentYear = calendar.component(.year, from: Date())
+            availableYears = [currentYear]
         }
     }
 
     func billRecord(for id: UUID) -> BillRecord? {
-        allBills.first { $0.id == id }
+        currentBillsById[id]
     }
 
     func categoryDetail(for categoryId: UUID) -> CategoryDetail {
-        let filtered = filteredBills(for: normalizedAnchorDate)
-        let items = filtered
+        let items = currentBills
             .filter { bill in
                 let billCategoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
                 return billCategoryId == categoryId
@@ -190,18 +207,21 @@ final class BillsListViewModel: ObservableObject {
         )
     }
 
-    private func isInSelectedRange(dayKey: String, anchor: Date) -> Bool {
-        guard let date = DayKeyFormatter.date(from: dayKey, timeZone: calendar.timeZone) else { return false }
+    private func dayKeyRange(for anchor: Date) -> (start: String, end: String) {
+        let interval: DateInterval
         switch timeRange {
         case .week:
-            return calendar.component(.weekOfYear, from: date) == calendar.component(.weekOfYear, from: anchor)
-                && calendar.component(.yearForWeekOfYear, from: date) == calendar.component(.yearForWeekOfYear, from: anchor)
+            interval = calendar.dateInterval(of: .weekOfYear, for: anchor) ?? DateInterval(start: anchor, end: anchor)
         case .month:
-            return calendar.component(.year, from: date) == calendar.component(.year, from: anchor)
-                && calendar.component(.month, from: date) == calendar.component(.month, from: anchor)
+            interval = calendar.dateInterval(of: .month, for: anchor) ?? DateInterval(start: anchor, end: anchor)
         case .year:
-            return calendar.component(.year, from: date) == calendar.component(.year, from: anchor)
+            interval = calendar.dateInterval(of: .year, for: anchor) ?? DateInterval(start: anchor, end: anchor)
         }
+
+        let endDate = calendar.date(byAdding: .day, value: -1, to: interval.end) ?? interval.end
+        let startKey = DayKeyFormatter.dayKey(for: interval.start, timeZone: calendar.timeZone)
+        let endKey = DayKeyFormatter.dayKey(for: endDate, timeZone: calendar.timeZone)
+        return (startKey, endKey)
     }
 
     private func computeSummaryChange(currentTotal: Int) -> SummaryChange? {
@@ -215,7 +235,12 @@ final class BillsListViewModel: ObservableObject {
             previousAnchor = calendar.date(byAdding: .year, value: -1, to: normalizedAnchorDate) ?? normalizedAnchorDate
         }
 
-        let previousTotal = filteredBills(for: previousAnchor).reduce(0) { $0 + $1.amount.cents }
+        let previousRange = dayKeyRange(for: previousAnchor)
+        let previousTotal = (try? billRepository.list(
+            fromDayKey: previousRange.start,
+            toDayKey: previousRange.end,
+            type: selectedType
+        ))?.reduce(0) { $0 + $1.amount.cents } ?? 0
         guard previousTotal > 0 else { return nil }
 
         let delta = Double(currentTotal - previousTotal) / Double(previousTotal)

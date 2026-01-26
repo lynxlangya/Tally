@@ -5,6 +5,9 @@ protocol BillRepository {
     func update(_ record: BillRecord) throws -> BillRecord
     func fetch(by dayKey: String) throws -> [BillRecord]
     func list() throws -> [BillRecord]
+    func list(fromDayKey: String, toDayKey: String, type: BillType?) throws -> [BillRecord]
+    func list(monthKey: String, type: BillType?) throws -> [BillRecord]
+    func listYears() throws -> [Int]
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws
     func restore(id: UUID) throws
     func purgeExpired(asOf date: Date) throws

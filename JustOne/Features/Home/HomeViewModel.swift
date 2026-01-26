@@ -61,9 +61,8 @@ final class HomeViewModel: ObservableObject {
 
     func load() {
         do {
-            let allBills = try billRepository.list().filter { $0.deletedAt == nil }
             let monthKey = currentMonthKey()
-            let bills = allBills.filter { $0.occurredLocalDate.hasPrefix(monthKey) }
+            let bills = try billRepository.list(monthKey: monthKey, type: nil)
             billById = Dictionary(uniqueKeysWithValues: bills.map { ($0.id, $0) })
 
             let categoryMap = loadCategories()
@@ -111,14 +110,10 @@ final class HomeViewModel: ObservableObject {
 
     private func updateSummary(with bills: [BillRecord]) {
         let now = nowProvider()
-        let todayKey = DayKeyFormatter.dayKey(for: now)
-        let monthKey = String(todayKey.prefix(7))
-        let monthBills = bills.filter { $0.occurredLocalDate.hasPrefix(monthKey) }
-
-        let expenseCents = monthBills
+        let expenseCents = bills
             .filter { $0.type == .expense }
             .reduce(0) { $0 + $1.amount.cents }
-        let incomeCents = monthBills
+        let incomeCents = bills
             .filter { $0.type == .income }
             .reduce(0) { $0 + $1.amount.cents }
 
