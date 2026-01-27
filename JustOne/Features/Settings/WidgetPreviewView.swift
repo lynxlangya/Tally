@@ -17,9 +17,9 @@ struct WidgetPreviewView: View {
                         .font(JOTypography.body)
                         .foregroundStyle(JOColors.textSecondary)
                 }
-                .padding(.bottom, 4)
+                .padding(.bottom, JOSpacing.md)
 
-                VStack(alignment: .leading, spacing: JOSpacing.md) {
+                VStack(alignment: .leading, spacing: JOSpacing.lg) {
                     SectionLabel(text: "小组件 · 快速记账")
                     HStack {
                         Spacer()
@@ -32,8 +32,9 @@ struct WidgetPreviewView: View {
                         Spacer()
                     }
                 }
+                .padding(.vertical, JOSpacing.sm)
 
-                VStack(alignment: .leading, spacing: JOSpacing.md) {
+                VStack(alignment: .leading, spacing: JOSpacing.lg) {
                     SectionLabel(text: "中号组件 · 概览与趋势")
                     ZStack {
                         GlowOrb()
@@ -43,6 +44,7 @@ struct WidgetPreviewView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
+                .padding(.vertical, JOSpacing.sm)
 
                 VStack(alignment: .leading, spacing: JOSpacing.md) {
                     SectionLabel(text: "如何添加小组件？")
@@ -50,15 +52,7 @@ struct WidgetPreviewView: View {
                     InstructionRow(text: "点击左上角的“+”按钮。")
                     InstructionRow(text: "在搜索框输入 记一笔 并选择喜欢的样式。")
                 }
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(JOColors.surface.opacity(0.35))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .stroke(JOColors.cardBorder.opacity(0.6), lineWidth: 1)
-                        )
-                )
+                .padding(.vertical, JOSpacing.sm)
             }
             .padding(.horizontal, JOSpacing.lg)
             .padding(.top, JOSpacing.lg)
