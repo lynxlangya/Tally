@@ -10,7 +10,6 @@ struct HomeView: View {
 
     private let repository: BillRepository
     private let categoryRepository: CategoryRepository
-
     init(repository: BillRepository, categoryRepository: CategoryRepository) {
         self.repository = repository
         self.categoryRepository = categoryRepository
@@ -24,12 +23,12 @@ struct HomeView: View {
         ZStack {
             JOColors.background.ignoresSafeArea()
 
-            VStack(spacing: JOSpacing.lg) {
+            VStack(spacing: JOSpacing.md) {
                 header
 
                 listContent
             }
-            .padding(.top, JOSpacing.xl)
+            .padding(.top, JOSpacing.md)
         }
         .overlay(alignment: .bottom) {
             GeometryReader { proxy in
@@ -77,28 +76,8 @@ struct HomeView: View {
     }
 
     private var header: some View {
-        HStack {
-            Color.clear
-                .frame(width: 40, height: 40)
-
-            Spacer()
-
-            Button {
-            } label: {
-                HStack(spacing: JOSpacing.xs) {
-                    Text(viewModel.summary.monthTitle)
-                        .font(JOTypography.headline)
-                        .foregroundStyle(JOColors.textPrimary)
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(JOColors.textSecondary)
-                }
-                .padding(.horizontal, JOSpacing.md)
-                .padding(.vertical, JOSpacing.sm)
-                .background(JOColors.surface.opacity(0.8))
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
+        HStack(alignment: .top, spacing: JOSpacing.lg) {
+            summarySection
 
             Spacer()
 
@@ -107,6 +86,8 @@ struct HomeView: View {
             }
         }
         .padding(.horizontal, JOSpacing.lg)
+        .padding(.top, JOSpacing.md)
+        .padding(.bottom, JOSpacing.sm)
     }
 
     private var summarySection: some View {
@@ -140,20 +121,6 @@ struct HomeView: View {
 
     private var listContent: some View {
         List {
-            Section {
-                summarySection
-                    .listRowInsets(
-                        EdgeInsets(
-                            top: 0,
-                            leading: JOSpacing.lg,
-                            bottom: JOSpacing.lg,
-                            trailing: JOSpacing.lg
-                        )
-                    )
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-            }
-
             if viewModel.groups.isEmpty {
                 Section {
                     JOEmptyStateView(
