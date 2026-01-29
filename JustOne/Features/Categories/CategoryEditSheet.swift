@@ -1,5 +1,9 @@
 import SwiftUI
 
+private enum EmojiIconToken {
+    static let placeholder = "__emoji__"
+}
+
 struct CategoryEditSheet: View {
     let type: BillType
     let existing: CategoryRecord?
@@ -12,6 +16,8 @@ struct CategoryEditSheet: View {
     @State private var selectedColorIndex: Int
     @State private var randomColorHex: UInt32
     @State private var usesRandomColor: Bool
+    @State private var emojiInput: String
+    @FocusState private var isEmojiFieldFocused: Bool
     private enum Constants {
         static let nameLimit = 5
         static let previewSize: CGFloat = 120
@@ -25,6 +31,8 @@ struct CategoryEditSheet: View {
         static let iconSpacing: CGFloat = 12
         static let sectionTitleOpacity: CGFloat = 0.45
         static let actionBarBottomOffset: CGFloat = 35
+        static let emojiPrefix = "emoji:"
+        static let emojiPlaceholderGlyph = "😀"
     }
 
     init(
@@ -42,6 +50,7 @@ struct CategoryEditSheet: View {
         let initialIcon = existing?.iconKey ?? defaultIcon
         _selectedIcon = State(initialValue: initialIcon)
         _name = State(initialValue: existing?.name ?? "")
+        _emojiInput = State(initialValue: "")
 
         let fallbackHex = existing.map { CategoryColorPalette.defaultHex(for: $0.id) }
             ?? (CategoryColorPalette.hexValues.first ?? 0x13EC37)
@@ -70,6 +79,14 @@ struct CategoryEditSheet: View {
 
     private var selectedColor: Color {
         Color(hex: selectedColorHex)
+    }
+
+    private var isEmojiSelected: Bool {
+        selectedIcon.hasPrefix(Constants.emojiPrefix)
+    }
+
+    private var previewBackgroundColor: Color {
+        isEmojiSelected ? JOColors.categoryItemBackground : selectedColor
     }
 
     var body: some View {
@@ -120,10 +137,10 @@ struct CategoryEditSheet: View {
         VStack {
             ZStack {
                 Circle()
-                    .fill(selectedColor)
+                    .fill(previewBackgroundColor)
                     .frame(width: Constants.previewSize, height: Constants.previewSize)
-                    .shadow(color: selectedColor.opacity(0.35), radius: 18, x: 0, y: 8)
-                    .shadow(color: selectedColor.opacity(0.2), radius: 8, x: 0, y: 4)
+                    .shadow(color: previewBackgroundColor.opacity(0.35), radius: 18, x: 0, y: 8)
+                    .shadow(color: previewBackgroundColor.opacity(0.2), radius: 8, x: 0, y: 4)
 
                 JOIcon(
                     name: selectedIcon,
@@ -135,6 +152,7 @@ struct CategoryEditSheet: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 30)
+        .background(emojiInputField)
     }
 
     private var nameSection: some View {
@@ -211,6 +229,8 @@ struct CategoryEditSheet: View {
             }
             .padding(.vertical, 4)
         }
+        .opacity(isEmojiSelected ? 0.4 : 1)
+        .allowsHitTesting(!isEmojiSelected)
     }
 
     private var iconSection: some View {
@@ -222,17 +242,29 @@ struct CategoryEditSheet: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHGrid(rows: iconRows, spacing: Constants.iconSpacing) {
-                    ForEach(Array(CategoryIconCatalog.icons.enumerated()), id: \.offset) { _, icon in
+                    ForEach(Array(iconChoices.enumerated()), id: \.offset) { _, icon in
                         Button {
-                            selectedIcon = icon
+                            if icon == EmojiIconToken.placeholder {
+                                if existing?.isSystem != true {
+                                    emojiInput = ""
+                                    isEmojiFieldFocused = true
+                                }
+                            } else {
+                                selectedIcon = icon
+                            }
                         } label: {
                             IconSwatch(
                                 icon: icon,
-                                isSelected: selectedIcon == icon,
+                                isSelected: icon == EmojiIconToken.placeholder ? isEmojiSelected : selectedIcon == icon,
+                                emojiValue: isEmojiSelected && icon == EmojiIconToken.placeholder
+                                    ? String(selectedIcon.dropFirst(Constants.emojiPrefix.count))
+                                    : Constants.emojiPlaceholderGlyph,
                                 size: Constants.iconCellSize
                             )
                         }
                         .buttonStyle(.plain)
+                        .opacity(existing?.isSystem == true && icon == EmojiIconToken.placeholder ? 0.35 : 1)
+                        .disabled(existing?.isSystem == true && icon == EmojiIconToken.placeholder)
                     }
                 }
                 .frame(height: iconGridHeight)
@@ -292,9 +324,34 @@ struct CategoryEditSheet: View {
         )
     }
 
+    private var iconChoices: [String] {
+        [EmojiIconToken.placeholder] + CategoryIconCatalog.icons
+    }
+
     private var iconGridHeight: CGFloat {
         Constants.iconCellSize * CGFloat(Constants.iconRowCount)
             + Constants.iconSpacing * CGFloat(Constants.iconRowCount - 1)
+    }
+
+    private var emojiInputField: some View {
+        TextField("", text: $emojiInput)
+            .focused($isEmojiFieldFocused)
+            .textInputAutocapitalization(.never)
+            .disableAutocorrection(true)
+            .opacity(0.001)
+            .frame(width: 1, height: 1)
+            .onChange(of: emojiInput) {
+                let emoji = emojiInput.firstEmojiOnly
+                guard !emoji.isEmpty else { return }
+                usesRandomColor = false
+                selectedColorIndex = 0
+                if let fallback = CategoryColorPalette.hexValues.first {
+                    randomColorHex = fallback
+                }
+                selectedIcon = Constants.emojiPrefix + emoji
+                emojiInput = ""
+                isEmojiFieldFocused = false
+            }
     }
 }
 
@@ -365,6 +422,7 @@ struct RandomColorSwatch: View {
 struct IconSwatch: View {
     let icon: String
     let isSelected: Bool
+    let emojiValue: String
     let size: CGFloat
 
     var body: some View {
@@ -376,12 +434,42 @@ struct IconSwatch: View {
                     .strokeBorder(isSelected ? Color.white.opacity(0.95) : Color.clear, lineWidth: 2)
             )
             .overlay(
-                JOIcon(
-                    name: icon,
-                    size: size * 0.44 - 3,
-                    weight: .semibold,
-                    color: isSelected ? Color.white.opacity(0.95) : Color.white.opacity(0.4)
-                )
+                Group {
+                    if icon == EmojiIconToken.placeholder {
+                        Text(emojiValue)
+                            .font(.system(size: size * 0.44, weight: .semibold))
+                    } else {
+                        JOIcon(
+                            name: icon,
+                            size: size * 0.44 - 3,
+                            weight: .semibold,
+                            color: isSelected ? Color.white.opacity(0.95) : Color.white.opacity(0.4)
+                        )
+                    }
+                }
             )
+    }
+}
+
+private extension String {
+    var firstEmojiOnly: String {
+        for char in self {
+            if char.isEmojiCandidate {
+                return String(char)
+            }
+        }
+        return ""
+    }
+}
+
+private extension Character {
+    var isEmojiCandidate: Bool {
+        let isEmoji = unicodeScalars.contains { scalar in
+            scalar.properties.isEmojiPresentation || scalar.properties.isEmoji
+        }
+        let isPlainAlphaNumeric = unicodeScalars.allSatisfy { scalar in
+            scalar.isASCII && CharacterSet.alphanumerics.contains(scalar)
+        }
+        return isEmoji && !isPlainAlphaNumeric
     }
 }

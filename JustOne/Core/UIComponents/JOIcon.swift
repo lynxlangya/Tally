@@ -23,7 +23,11 @@ struct JOIcon: View {
     }
 
     var body: some View {
-        if UIImage(systemName: name) != nil {
+        if name.hasPrefix("emoji:") {
+            let emoji = String(name.dropFirst("emoji:".count))
+            Text(emoji)
+                .font(.system(size: size, weight: weight))
+        } else if UIImage(systemName: name) != nil {
             Image(systemName: name)
                 .font(.system(size: size, weight: weight))
                 .foregroundStyle(color)
