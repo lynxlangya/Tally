@@ -32,10 +32,13 @@ final class DIContainer {
         let security: SecurityService
         let seed: SeedService
 
-        static func live(context: NSManagedObjectContext) -> Services {
+        static func live(context: NSManagedObjectContext, repositories: Repositories) -> Services {
             Services(
                 export: StubExportService(),
-                recurring: StubRecurringService(),
+                recurring: DefaultRecurringService(
+                    recurringRepository: repositories.recurring,
+                    billRepository: repositories.bill
+                ),
                 security: StubSecurityService(),
                 seed: CoreDataSeedService(context: context)
             )
@@ -62,6 +65,6 @@ final class DIContainer {
     static func live(persistenceController: PersistenceController) -> DIContainer {
         let context = persistenceController.container.viewContext
         let repos = Repositories.live(context: context)
-        return DIContainer(repositories: repos, services: Services.live(context: context))
+        return DIContainer(repositories: repos, services: Services.live(context: context, repositories: repos))
     }
 }

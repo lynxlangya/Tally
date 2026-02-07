@@ -44,15 +44,22 @@
 		BDA670092F24C13800EDBBCA /* JustOneWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JustOneWidgetsExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		BDA670042F24C12200EDBBCA /* Exceptions for "JustOneWidgets" folder in "JustOneWidgetsExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = BDA66FEC2F24C12100EDBBCA /* JustOneWidgetsExtension */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+	/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+			7A2A917A2A9148C9B1F29311 /* Exceptions for "JustOne" folder in "JustOne" target */ = {
+				isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+				membershipExceptions = (
+					Info.plist,
+				);
+				target = BD73D1512F1A35C000069ADD /* JustOne */;
+			};
+			BDA670042F24C12200EDBBCA /* Exceptions for "JustOneWidgets" folder in "JustOneWidgetsExtension" target */ = {
+				isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+				membershipExceptions = (
+					Info.plist,
+				);
+				target = BDA66FEC2F24C12100EDBBCA /* JustOneWidgetsExtension */;
+			};
+	/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		78EA632B16EF44349FA8D161 /* Shared */ = {
@@ -60,11 +67,14 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		BD73D1542F1A35C000069ADD /* JustOne */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = JustOne;
-			sourceTree = "<group>";
-		};
+			BD73D1542F1A35C000069ADD /* JustOne */ = {
+				isa = PBXFileSystemSynchronizedRootGroup;
+				exceptions = (
+					7A2A917A2A9148C9B1F29311 /* Exceptions for "JustOne" folder in "JustOne" target */,
+				);
+				path = JustOne;
+				sourceTree = "<group>";
+			};
 		BDA66FF32F24C12100EDBBCA /* JustOneWidgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -389,6 +399,7 @@
 				DEVELOPMENT_TEAM = P3X5CXXARL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+					INFOPLIST_FILE = JustOne/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -422,6 +433,7 @@
 				DEVELOPMENT_TEAM = P3X5CXXARL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+					INFOPLIST_FILE = JustOne/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

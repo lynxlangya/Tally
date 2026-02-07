@@ -27,7 +27,14 @@ final class QuickEntryViewModel: ObservableObject {
     @Published var selectedCategory: CategoryRecord?
     @Published var note: String = ""
     @Published var amountText: String = "0"
-    @Published var selectedDate: Date
+    @Published var selectedDate: Date {
+        didSet {
+            guard editingBill != nil else { return }
+            if selectedDate != oldValue {
+                didUserEditDate = true
+            }
+        }
+    }
     @Published var errorMessage: String?
 
     private let billRepository: BillRepository
@@ -36,6 +43,7 @@ final class QuickEntryViewModel: ObservableObject {
     private let nowProvider: () -> Date
     private var categoriesById: [UUID: CategoryRecord] = [:]
     private var didApplyEditing = false
+    private var didUserEditDate = false
 
     init(
         repository: BillRepository,
@@ -49,7 +57,11 @@ final class QuickEntryViewModel: ObservableObject {
         self.nowProvider = nowProvider
 
         if let bill = editingBill {
-            self.selectedDate = bill.occurredAtUTC
+            self.selectedDate = TimePolicy.editorDate(
+                from: bill.occurredAtUTC,
+                tzId: bill.tzId,
+                tzOffset: bill.tzOffset
+            )
             self.selectedType = bill.type
             self.step = .amount
             self.note = bill.note ?? ""
@@ -119,10 +131,20 @@ final class QuickEntryViewModel: ObservableObject {
         }
 
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         do {
             if let editingBill = editingBill {
-                let snapshot = TimePolicy.snapshot(for: selectedDate)
+                let snapshot: TimeSnapshot
+                if didUserEditDate {
+                    snapshot = TimePolicy.snapshot(for: selectedDate)
+                } else {
+                    snapshot = TimeSnapshot(
+                        occurredAtUTC: editingBill.occurredAtUTC,
+                        tzId: editingBill.tzId,
+                        tzOffset: editingBill.tzOffset,
+                        occurredLocalDate: editingBill.occurredLocalDate
+                    )
+                }
                 let updatedBill = BillRecord(
                     id: editingBill.id,
                     type: selectedType,

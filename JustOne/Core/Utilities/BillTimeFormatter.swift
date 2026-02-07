@@ -1,14 +1,15 @@
 import Foundation
 
-enum DayKeyFormatter {
-    private static let threadDictionaryKey = "justone.daykey.formatter.storage"
+enum BillTimeFormatter {
+    private static let threadDictionaryKey = "justone.bill.time.formatter.storage"
 
-    static func dayKey(for date: Date, timeZone: TimeZone = .current) -> String {
-        formatter(for: timeZone).string(from: date)
+    static func timeText(for bill: BillRecord) -> String {
+        timeText(from: bill.occurredAtUTC, tzId: bill.tzId, tzOffset: bill.tzOffset)
     }
 
-    static func date(from dayKey: String, timeZone: TimeZone = .current) -> Date? {
-        formatter(for: timeZone).date(from: dayKey)
+    static func timeText(from occurredAtUTC: Date, tzId: String, tzOffset: Int) -> String {
+        let timeZone = TimePolicy.timeZone(tzId: tzId, tzOffset: tzOffset)
+        return formatter(for: timeZone).string(from: occurredAtUTC)
     }
 
     private static func formatter(for timeZone: TimeZone) -> DateFormatter {
@@ -28,8 +29,8 @@ enum DayKeyFormatter {
 
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "HH:mm"
         formatter.timeZone = timeZone
         storage[timeZone.identifier] = formatter
         return formatter

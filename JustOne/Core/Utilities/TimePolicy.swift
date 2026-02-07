@@ -27,4 +27,26 @@ enum TimePolicy {
         calendar.timeZone = timeZone
         return calendar.dateComponents(in: timeZone, from: occurredAtUTC)
     }
+
+    static func timeZone(tzId: String, tzOffset: Int) -> TimeZone {
+        TimeZone(identifier: tzId)
+            ?? TimeZone(secondsFromGMT: tzOffset)
+            ?? .current
+    }
+
+    static func editorDate(
+        from occurredAtUTC: Date,
+        tzId: String,
+        tzOffset: Int,
+        displayTimeZone: TimeZone = .current
+    ) -> Date {
+        let sourceTimeZone = timeZone(tzId: tzId, tzOffset: tzOffset)
+        var sourceCalendar = Calendar(identifier: .gregorian)
+        sourceCalendar.timeZone = sourceTimeZone
+        let components = sourceCalendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: occurredAtUTC)
+
+        var displayCalendar = Calendar(identifier: .gregorian)
+        displayCalendar.timeZone = displayTimeZone
+        return displayCalendar.date(from: components) ?? occurredAtUTC
+    }
 }

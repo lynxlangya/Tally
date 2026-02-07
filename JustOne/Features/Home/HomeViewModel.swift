@@ -143,7 +143,7 @@ final class HomeViewModel: ObservableObject {
             }
             let viewItems = sortedItems.map { bill in
                 let category = categoryDisplay(for: bill, categoryMap: categoryMap)
-                let timeText = timeText(from: bill.occurredAtUTC)
+                let timeText = BillTimeFormatter.timeText(for: bill)
                 let noteText = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 let subtitle = noteText.isEmpty ? timeText : "\(timeText) · \(noteText)"
 
@@ -200,13 +200,6 @@ final class HomeViewModel: ObservableObject {
             return "\(month)月\(day)日"
         }
         return dayKey
-    }
-
-    private func timeText(from date: Date) -> String {
-        let components = TimePolicy.displayComponents(from: date)
-        let hour = components.hour ?? 0
-        let minute = components.minute ?? 0
-        return String(format: "%02d:%02d", hour, minute)
     }
 
     private func monthTitle(for date: Date) -> String {

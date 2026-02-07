@@ -56,17 +56,7 @@ struct CoreDataSeedService: SeedService {
     ]
 
     func seedIfNeeded() throws {
-        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Category")
-        fetchRequest.fetchLimit = 1
-        let existingCount = try context.count(for: fetchRequest)
-        if existingCount == 0 {
-            for seed in categories {
-                let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
-                apply(seed, to: object)
-            }
-        } else {
-            try ensureSystemCategories()
-        }
+        try ensurePresetCategories()
 
         if context.hasChanges {
             try context.save()
@@ -94,15 +84,20 @@ struct CoreDataSeedService: SeedService {
         }
     }
 
-    private func ensureSystemCategories() throws {
-        let systemSeeds = categories.filter { $0.isSystem }
-        for seed in systemSeeds {
+    private func ensurePresetCategories() throws {
+        for seed in categories {
             let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
             request.fetchLimit = 1
             request.predicate = NSPredicate(format: "id == %@", seed.id as CVarArg)
             let objects = try context.fetch(request)
-            let object = objects.first ?? NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
-            apply(seed, to: object)
+            if let existing = objects.first {
+                if seed.isSystem {
+                    apply(seed, to: existing)
+                }
+            } else {
+                let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
+                apply(seed, to: object)
+            }
         }
     }
 

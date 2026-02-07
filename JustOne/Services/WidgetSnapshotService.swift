@@ -22,20 +22,25 @@ enum WidgetSnapshotService {
 
     private static func buildSnapshot(from bills: [BillRecord], now: Date) -> WidgetSnapshot {
         let todayKey = DayKeyFormatter.dayKey(for: now)
+        var todayExpense = 0
+        var monthExpense = 0
+        var monthIncome = 0
+        var expenseByDay: [String: Int] = [:]
 
-        let todayExpense = bills
-            .filter { $0.type == .expense && $0.occurredLocalDate == todayKey }
-            .reduce(0) { $0 + $1.amount.cents }
-
-        let monthExpense = bills
-            .filter { $0.type == .expense }
-            .reduce(0) { $0 + $1.amount.cents }
-        let monthIncome = bills
-            .filter { $0.type == .income }
-            .reduce(0) { $0 + $1.amount.cents }
+        for bill in bills {
+            if bill.type == .expense {
+                monthExpense += bill.amount.cents
+                expenseByDay[bill.occurredLocalDate, default: 0] += bill.amount.cents
+                if bill.occurredLocalDate == todayKey {
+                    todayExpense += bill.amount.cents
+                }
+            } else {
+                monthIncome += bill.amount.cents
+            }
+        }
         let monthBalance = monthIncome - monthExpense
 
-        let sparkline = buildSparkline(from: bills, now: now)
+        let sparkline = buildSparkline(from: expenseByDay, now: now)
 
         return WidgetSnapshot(
             updatedAt: now,
@@ -49,7 +54,7 @@ enum WidgetSnapshotService {
         )
     }
 
-    private static func buildSparkline(from bills: [BillRecord], now: Date) -> [Double] {
+    private static func buildSparkline(from expenseByDay: [String: Int], now: Date) -> [Double] {
         let calendar = Calendar.current
         guard let range = calendar.range(of: .day, in: .month, for: now) else {
             return [0.2, 0.3, 0.15, 0.4, 0.25, 0.35, 0.2]
@@ -65,10 +70,7 @@ enum WidgetSnapshotService {
         }
         let values = days.map { date -> Double in
             let key = DayKeyFormatter.dayKey(for: date)
-            let sum = bills
-                .filter { $0.type == .expense && $0.occurredLocalDate == key }
-                .reduce(0) { $0 + $1.amount.cents }
-            return Double(sum)
+            return Double(expenseByDay[key, default: 0])
         }
         let maxValue = values.max() ?? 1
         if maxValue <= 0 {

@@ -45,14 +45,6 @@ final class BillsListViewModel: ObservableObject {
         return calendar
     }()
 
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
-
     private static let detailDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
@@ -252,6 +244,13 @@ final class BillsListViewModel: ObservableObject {
     private func buildTrend(for bills: [BillRecord]) -> (points: [Double], highlightIndex: Int?, axisLabels: [String], valuesCents: [Int]) {
         let totals: [Int]
         let axisLabels: [String]
+        let dayTotals = bills.reduce(into: [String: Int]()) { result, bill in
+            result[bill.occurredLocalDate, default: 0] += bill.amount.cents
+        }
+        let monthTotals = bills.reduce(into: [String: Int]()) { result, bill in
+            let monthKey = String(bill.occurredLocalDate.prefix(7))
+            result[monthKey, default: 0] += bill.amount.cents
+        }
 
         switch timeRange {
         case .week:
@@ -259,7 +258,7 @@ final class BillsListViewModel: ObservableObject {
             totals = (0..<7).map { offset in
                 let date = calendar.date(byAdding: .day, value: offset, to: start) ?? start
                 let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
-                return bills.filter { $0.occurredLocalDate == dayKey }.reduce(0) { $0 + $1.amount.cents }
+                return dayTotals[dayKey, default: 0]
             }
             axisLabels = ["一", "二", "三", "四", "五", "六", "日"]
         case .month:
@@ -268,7 +267,7 @@ final class BillsListViewModel: ObservableObject {
             totals = dayRange.map { day in
                 let date = calendar.date(byAdding: .day, value: day - 1, to: start) ?? start
                 let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
-                return bills.filter { $0.occurredLocalDate == dayKey }.reduce(0) { $0 + $1.amount.cents }
+                return dayTotals[dayKey, default: 0]
             }
             let month = calendar.component(.month, from: normalizedAnchorDate)
             let lastDay = dayRange.count
@@ -277,7 +276,7 @@ final class BillsListViewModel: ObservableObject {
             let year = calendar.component(.year, from: normalizedAnchorDate)
             totals = (1...12).map { month in
                 let prefix = String(format: "%04d-%02d", year, month)
-                return bills.filter { $0.occurredLocalDate.hasPrefix(prefix) }.reduce(0) { $0 + $1.amount.cents }
+                return monthTotals[prefix, default: 0]
             }
             axisLabels = ["1月", "6月", "12月"]
         }
@@ -318,7 +317,7 @@ final class BillsListViewModel: ObservableObject {
         let iconName = category?.iconKey ?? "questionmark"
         let iconHex = category?.colorHex.flatMap { UInt32($0) }
 
-        let timeString = Self.timeFormatterString(for: bill)
+        let timeString = BillTimeFormatter.timeText(for: bill)
         let note = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let subtitle = note.isEmpty ? timeString : "\(timeString) · \(note)"
 
@@ -341,15 +340,6 @@ final class BillsListViewModel: ObservableObject {
     private func startOfMonth(for date: Date) -> Date {
         let components = calendar.dateComponents([.year, .month], from: date)
         return calendar.date(from: components) ?? date
-    }
-
-    private static func timeFormatterString(for bill: BillRecord) -> String {
-        let formatter = timeFormatter
-        let timeZone = TimeZone(identifier: bill.tzId)
-            ?? TimeZone(secondsFromGMT: bill.tzOffset)
-            ?? .current
-        formatter.timeZone = timeZone
-        return formatter.string(from: bill.occurredAtUTC)
     }
 
     private static func detailDateString(for bill: BillRecord) -> String {
