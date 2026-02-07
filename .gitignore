@@ -1,0 +1,7 @@
+# Xcode user-specific files
+*.xcuserstate
+xcuserdata/
+**/xcuserdata/
+
+# Xcode workspace user settings
+*.xcworkspace/xcuserdata/
