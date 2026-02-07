@@ -20,6 +20,13 @@
 			remoteGlobalIDString = BDA66FEC2F24C12100EDBBCA;
 			remoteInfo = JustOneWidgetsExtension;
 		};
+		E1A100001234567800000007 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD73D14A2F1A35C000069ADD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BD73D1512F1A35C000069ADD;
+			remoteInfo = JustOne;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,24 +49,25 @@
 		BDA66FEF2F24C12100EDBBCA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		BDA66FF12F24C12100EDBBCA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		BDA670092F24C13800EDBBCA /* JustOneWidgetsExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JustOneWidgetsExtension.entitlements; sourceTree = "<group>"; };
+		E1A100001234567800000001 /* JustOneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JustOneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-	/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-			7A2A917A2A9148C9B1F29311 /* Exceptions for "JustOne" folder in "JustOne" target */ = {
-				isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-				membershipExceptions = (
-					Info.plist,
-				);
-				target = BD73D1512F1A35C000069ADD /* JustOne */;
-			};
-			BDA670042F24C12200EDBBCA /* Exceptions for "JustOneWidgets" folder in "JustOneWidgetsExtension" target */ = {
-				isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-				membershipExceptions = (
-					Info.plist,
-				);
-				target = BDA66FEC2F24C12100EDBBCA /* JustOneWidgetsExtension */;
-			};
-	/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7A2A917A2A9148C9B1F29311 /* Exceptions for "JustOne" folder in "JustOne" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BD73D1512F1A35C000069ADD /* JustOne */;
+		};
+		BDA670042F24C12200EDBBCA /* Exceptions for "JustOneWidgets" folder in "JustOneWidgetsExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BDA66FEC2F24C12100EDBBCA /* JustOneWidgetsExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		78EA632B16EF44349FA8D161 /* Shared */ = {
@@ -67,20 +75,25 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-			BD73D1542F1A35C000069ADD /* JustOne */ = {
-				isa = PBXFileSystemSynchronizedRootGroup;
-				exceptions = (
-					7A2A917A2A9148C9B1F29311 /* Exceptions for "JustOne" folder in "JustOne" target */,
-				);
-				path = JustOne;
-				sourceTree = "<group>";
-			};
+		BD73D1542F1A35C000069ADD /* JustOne */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7A2A917A2A9148C9B1F29311 /* Exceptions for "JustOne" folder in "JustOne" target */,
+			);
+			path = JustOne;
+			sourceTree = "<group>";
+		};
 		BDA66FF32F24C12100EDBBCA /* JustOneWidgets */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				BDA670042F24C12200EDBBCA /* Exceptions for "JustOneWidgets" folder in "JustOneWidgetsExtension" target */,
 			);
 			path = JustOneWidgets;
+			sourceTree = "<group>";
+		};
+		E1A100001234567800000002 /* JustOneTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = JustOneTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -102,6 +115,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E1A100001234567800000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -111,6 +131,7 @@
 				BDA670092F24C13800EDBBCA /* JustOneWidgetsExtension.entitlements */,
 				BD73D1542F1A35C000069ADD /* JustOne */,
 				78EA632B16EF44349FA8D161 /* Shared */,
+				E1A100001234567800000002 /* JustOneTests */,
 				BDA66FF32F24C12100EDBBCA /* JustOneWidgets */,
 				BDA66FEE2F24C12100EDBBCA /* Frameworks */,
 				BD73D1532F1A35C000069ADD /* Products */,
@@ -122,6 +143,7 @@
 			children = (
 				BD73D1522F1A35C000069ADD /* JustOne.app */,
 				BDA66FED2F24C12100EDBBCA /* JustOneWidgetsExtension.appex */,
+				E1A100001234567800000001 /* JustOneTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -186,6 +208,29 @@
 			productReference = BDA66FED2F24C12100EDBBCA /* JustOneWidgetsExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		E1A100001234567800000006 /* JustOneTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1A10000123456780000000B /* Build configuration list for PBXNativeTarget "JustOneTests" */;
+			buildPhases = (
+				E1A100001234567800000005 /* Sources */,
+				E1A100001234567800000003 /* Frameworks */,
+				E1A100001234567800000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E1A100001234567800000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E1A100001234567800000002 /* JustOneTests */,
+			);
+			name = JustOneTests;
+			packageProductDependencies = (
+			);
+			productName = JustOneTests;
+			productReference = E1A100001234567800000001 /* JustOneTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -200,6 +245,9 @@
 						CreatedOnToolsVersion = 26.2;
 					};
 					BDA66FEC2F24C12100EDBBCA = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					E1A100001234567800000006 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -220,6 +268,7 @@
 			targets = (
 				BD73D1512F1A35C000069ADD /* JustOne */,
 				BDA66FEC2F24C12100EDBBCA /* JustOneWidgetsExtension */,
+				E1A100001234567800000006 /* JustOneTests */,
 			);
 		};
 /* End PBXProject section */
@@ -233,6 +282,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		BDA66FEB2F24C12100EDBBCA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1A100001234567800000004 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -256,6 +312,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E1A100001234567800000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -263,6 +326,11 @@
 			isa = PBXTargetDependency;
 			target = BDA66FEC2F24C12100EDBBCA /* JustOneWidgetsExtension */;
 			targetProxy = BDA670012F24C12200EDBBCA /* PBXContainerItemProxy */;
+		};
+		E1A100001234567800000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BD73D1512F1A35C000069ADD /* JustOne */;
+			targetProxy = E1A100001234567800000007 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -399,7 +467,7 @@
 				DEVELOPMENT_TEAM = P3X5CXXARL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-					INFOPLIST_FILE = JustOne/Info.plist;
+				INFOPLIST_FILE = JustOne/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -433,7 +501,7 @@
 				DEVELOPMENT_TEAM = P3X5CXXARL;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-					INFOPLIST_FILE = JustOne/Info.plist;
+				INFOPLIST_FILE = JustOne/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -518,6 +586,55 @@
 			};
 			name = Release;
 		};
+		E1A100001234567800000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P3X5CXXARL;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.langya.JustOneTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JustOne.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JustOne";
+			};
+			name = Debug;
+		};
+		E1A10000123456780000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P3X5CXXARL;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.langya.JustOneTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JustOne.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/JustOne";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -544,6 +661,15 @@
 			buildConfigurations = (
 				BDA670062F24C12200EDBBCA /* Debug */,
 				BDA670072F24C12200EDBBCA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E1A10000123456780000000B /* Build configuration list for PBXNativeTarget "JustOneTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1A100001234567800000009 /* Debug */,
+				E1A10000123456780000000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
