@@ -17,6 +17,7 @@ struct CategoryEditSheet: View {
     @State private var randomColorHex: UInt32
     @State private var usesRandomColor: Bool
     @State private var emojiInput: String
+    @State private var showsEmojiHint = false
     @FocusState private var isEmojiFieldFocused: Bool
     private enum Constants {
         static let nameLimit = 5
@@ -91,31 +92,40 @@ struct CategoryEditSheet: View {
 
     var body: some View {
         GeometryReader { _ in
-            VStack(spacing: JOSpacing.lg) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: JOSpacing.xl) {
-                        previewSection
+            ZStack {
+                VStack(spacing: JOSpacing.lg) {
+                    ScrollView {
                         VStack(alignment: .leading, spacing: JOSpacing.xl) {
-                            nameSection
-                            colorSection
-                            iconSection
+                            previewSection
+                            VStack(alignment: .leading, spacing: JOSpacing.xl) {
+                                nameSection
+                                colorSection
+                                iconSection
+                            }
+                            .padding(.top, 20)
                         }
-                        .padding(.top, 20)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, JOSpacing.xl)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, JOSpacing.xl)
-                }
-                .scrollIndicators(.hidden)
+                    .scrollIndicators(.hidden)
 
-                actionBar
-                    .padding(.top, 5)
-                    .padding(.bottom, Constants.actionBarBottomOffset)
+                    actionBar
+                        .padding(.top, 5)
+                        .padding(.bottom, Constants.actionBarBottomOffset)
+                }
+                .padding(.horizontal, JOSpacing.lg)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(JOColors.background.ignoresSafeArea())
+                .ignoresSafeArea(.container, edges: .bottom)
+                .ignoresSafeArea(.keyboard, edges: .bottom)
+
+                if showsEmojiHint {
+                    EmojiHintToast(text: "请切换到 Emoji 键盘")
+                        .transition(.opacity)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        .padding(.top, JOSpacing.xl)
+                }
             }
-            .padding(.horizontal, JOSpacing.lg)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .background(JOColors.background.ignoresSafeArea())
-            .ignoresSafeArea(.container, edges: .bottom)
-            .ignoresSafeArea(.keyboard, edges: .bottom)
         }
     }
 
@@ -247,6 +257,7 @@ struct CategoryEditSheet: View {
                             if icon == EmojiIconToken.placeholder {
                                 if existing?.isSystem != true {
                                     emojiInput = ""
+                                    showEmojiHint()
                                     isEmojiFieldFocused = true
                                 }
                             } else {
@@ -352,6 +363,18 @@ struct CategoryEditSheet: View {
                 emojiInput = ""
                 isEmojiFieldFocused = false
             }
+    }
+
+    private func showEmojiHint() {
+        guard !showsEmojiHint else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showsEmojiHint = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showsEmojiHint = false
+            }
+        }
     }
 }
 
@@ -471,5 +494,25 @@ private extension Character {
             scalar.isASCII && CharacterSet.alphanumerics.contains(scalar)
         }
         return isEmoji && !isPlainAlphaNumeric
+    }
+}
+
+private struct EmojiHintToast: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(JOTypography.caption)
+            .foregroundStyle(JOColors.textPrimary)
+            .padding(.horizontal, JOSpacing.lg)
+            .padding(.vertical, JOSpacing.sm)
+            .background(
+                Capsule()
+                    .fill(JOColors.surface.opacity(0.9))
+                    .overlay(
+                        Capsule()
+                            .stroke(JOColors.cardBorder.opacity(0.6), lineWidth: 1)
+                    )
+            )
     }
 }

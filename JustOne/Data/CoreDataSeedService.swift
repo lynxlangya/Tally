@@ -41,7 +41,6 @@ struct CoreDataSeedService: SeedService {
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000020")!, type: .expense, name: "交通", iconKey: "bus", colorHex: 0x3B82F6, isSystem: false, sortOrder: 18),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000021")!, type: .expense, name: "购物", iconKey: "cart.fill", colorHex: 0x13EC37, isSystem: false, sortOrder: 19),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000022")!, type: .expense, name: "日用", iconKey: "basket.fill", colorHex: 0x22C55E, isSystem: false, sortOrder: 20),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000023")!, type: .expense, name: "水果", iconKey: "watermelon", colorHex: 0x22C55E, isSystem: false, sortOrder: 21),
 
         // Income presets (10)
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000033")!, type: .income, name: "工资", iconKey: "creditcard.fill", colorHex: 0x3B82F6, isSystem: false, sortOrder: 1),
