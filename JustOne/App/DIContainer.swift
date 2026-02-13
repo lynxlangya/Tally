@@ -36,7 +36,11 @@ final class DIContainer {
         static func live(context: NSManagedObjectContext, repositories: Repositories) -> Services {
             Services(
                 export: StubExportService(),
-                importExport: StubImportExportService(),
+                importExport: DefaultImportExportService(
+                    billRepository: repositories.bill,
+                    categoryRepository: repositories.category,
+                    recurringRepository: repositories.recurring
+                ),
                 recurring: DefaultRecurringService(
                     recurringRepository: repositories.recurring,
                     billRepository: repositories.bill

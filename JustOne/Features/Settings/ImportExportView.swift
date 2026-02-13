@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ImportExportView: View {
     @Environment(\.dismiss) private var dismiss
@@ -16,8 +17,10 @@ struct ImportExportView: View {
             VStack(spacing: JOSpacing.lg) {
                 header
 
-                actionList
+                exportScopePicker
                     .padding(.top, JOSpacing.sm)
+
+                actionList
 
                 boundaryHint
 
@@ -35,6 +38,11 @@ struct ImportExportView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
+        }
+        .sheet(item: $viewModel.sharePayload, onDismiss: {
+            viewModel.clearSharePayload()
+        }) { payload in
+            ImportExportActivityView(activityItems: [payload.fileURL])
         }
     }
 
@@ -62,6 +70,7 @@ struct ImportExportView: View {
                         iconForeground: JOColors.profileRowTitle
                     )
                 }
+                .disabled(viewModel.isProcessing)
                 .buttonStyle(RowPressStyle())
 
                 if index < actionItems.count - 1 {
@@ -83,6 +92,47 @@ struct ImportExportView: View {
             x: JOShadows.card.x,
             y: JOShadows.card.y
         )
+    }
+
+    private var exportScopePicker: some View {
+        VStack(alignment: .leading, spacing: JOSpacing.sm) {
+            Text("导出范围")
+                .font(JOTypography.caption)
+                .foregroundStyle(JOColors.textSecondary)
+
+            HStack(spacing: JOSpacing.sm) {
+                ForEach(ExportScope.allCases) { scope in
+                    Button {
+                        guard !viewModel.isProcessing else { return }
+                        viewModel.selectedScope = scope
+                    } label: {
+                        Text(scope.title)
+                            .font(JOTypography.caption)
+                            .foregroundStyle(
+                                viewModel.selectedScope == scope
+                                    ? JOColors.accentForeground
+                                    : JOColors.textSecondary
+                            )
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, JOSpacing.sm)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(
+                                        viewModel.selectedScope == scope
+                                            ? JOColors.accent
+                                            : JOColors.surface
+                                    )
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(JOColors.cardBorder, lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(viewModel.isProcessing)
+                }
+            }
+        }
     }
 
     private var boundaryHint: some View {
@@ -151,6 +201,18 @@ private struct ImportExportToastView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .padding(.top, JOSpacing.xl + 12)
             .allowsHitTesting(false)
+    }
+}
+
+private struct ImportExportActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+        // no-op
     }
 }
 
