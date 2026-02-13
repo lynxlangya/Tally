@@ -39,7 +39,8 @@ final class DIContainer {
                 importExport: DefaultImportExportService(
                     billRepository: repositories.bill,
                     categoryRepository: repositories.category,
-                    recurringRepository: repositories.recurring
+                    recurringRepository: repositories.recurring,
+                    managedObjectContext: context
                 ),
                 recurring: DefaultRecurringService(
                     recurringRepository: repositories.recurring,

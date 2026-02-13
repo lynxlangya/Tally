@@ -37,6 +37,7 @@ struct ExportResult: Sendable {
 
 struct ImportPreview: Sendable {
     let pendingCount: Int
+    let conflictCount: Int
     let failedCount: Int
     let errorSummary: [String]
 }

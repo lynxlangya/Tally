@@ -1,10 +1,13 @@
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 struct ImportExportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: ImportExportViewModel
+    @State private var showsImportBackupFilePicker = false
+    @State private var showsImportCSVFilePicker = false
 
     init(importExportService: ImportExportService) {
         _viewModel = StateObject(wrappedValue: ImportExportViewModel(service: importExportService))
@@ -43,6 +46,83 @@ struct ImportExportView: View {
             viewModel.clearSharePayload()
         }) { payload in
             ImportExportActivityView(activityItems: [payload.fileURL])
+        }
+        .fileImporter(
+            isPresented: $showsImportBackupFilePicker,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                viewModel.prepareImportBackup(fileURL: url)
+            case .failure:
+                break
+            }
+        }
+        .fileImporter(
+            isPresented: $showsImportCSVFilePicker,
+            allowedContentTypes: [.commaSeparatedText, .plainText],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                viewModel.prepareImportCSV(fileURL: url)
+            case .failure:
+                break
+            }
+        }
+        .alert(item: $viewModel.importResultDialog) { dialog in
+            Alert(
+                title: Text(dialog.title),
+                message: Text(dialog.message),
+                dismissButton: .default(Text("知道了")) {
+                    viewModel.dismissImportResultDialog()
+                }
+            )
+        }
+        .confirmationDialog(
+            "导入预检",
+            isPresented: Binding(
+                get: { viewModel.backupImportPreview != nil },
+                set: { newValue in
+                    if !newValue {
+                        viewModel.dismissImportBackupPreview()
+                    }
+                }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("确认导入") {
+                viewModel.confirmImportBackup()
+            }
+            Button("取消", role: .cancel) {
+                viewModel.dismissImportBackupPreview()
+            }
+        } message: {
+            Text(viewModel.backupImportPreviewMessage)
+        }
+        .confirmationDialog(
+            "导入预检",
+            isPresented: Binding(
+                get: { viewModel.csvImportPreview != nil },
+                set: { newValue in
+                    if !newValue {
+                        viewModel.dismissImportCSVPreview()
+                    }
+                }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("确认导入") {
+                viewModel.confirmImportCSV()
+            }
+            Button("取消", role: .cancel) {
+                viewModel.dismissImportCSVPreview()
+            }
+        } message: {
+            Text(viewModel.csvImportPreviewMessage)
         }
     }
 
@@ -161,9 +241,9 @@ struct ImportExportView: View {
         case .exportBackup:
             viewModel.exportBackup()
         case .importBackup:
-            viewModel.importBackup()
+            showsImportBackupFilePicker = true
         case .importCSV:
-            viewModel.importCSV()
+            showsImportCSVFilePicker = true
         }
     }
 }
