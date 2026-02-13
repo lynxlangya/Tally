@@ -6,8 +6,7 @@ struct ImportExportView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: ImportExportViewModel
-    @State private var showsImportBackupFilePicker = false
-    @State private var showsImportCSVFilePicker = false
+    @State private var activeImporter: ImportFileKind?
 
     init(importExportService: ImportExportService) {
         _viewModel = StateObject(wrappedValue: ImportExportViewModel(service: importExportService))
@@ -48,27 +47,24 @@ struct ImportExportView: View {
             ImportExportActivityView(activityItems: [payload.fileURL])
         }
         .fileImporter(
-            isPresented: $showsImportBackupFilePicker,
-            allowedContentTypes: [.json],
+            isPresented: Binding(
+                get: { activeImporter != nil },
+                set: { _ in }
+            ),
+            allowedContentTypes: activeImporter?.allowedTypes ?? [.data],
             allowsMultipleSelection: false
         ) { result in
+            guard let importer = activeImporter else { return }
+            defer { activeImporter = nil }
             switch result {
             case .success(let urls):
                 guard let url = urls.first else { return }
-                viewModel.prepareImportBackup(fileURL: url)
-            case .failure:
-                break
-            }
-        }
-        .fileImporter(
-            isPresented: $showsImportCSVFilePicker,
-            allowedContentTypes: [.commaSeparatedText, .plainText],
-            allowsMultipleSelection: false
-        ) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                viewModel.prepareImportCSV(fileURL: url)
+                switch importer {
+                case .backup:
+                    viewModel.prepareImportBackup(fileURL: url)
+                case .csv:
+                    viewModel.prepareImportCSV(fileURL: url)
+                }
             case .failure:
                 break
             }
@@ -241,9 +237,9 @@ struct ImportExportView: View {
         case .exportBackup:
             viewModel.exportBackup()
         case .importBackup:
-            showsImportBackupFilePicker = true
+            activeImporter = .backup
         case .importCSV:
-            showsImportCSVFilePicker = true
+            activeImporter = .csv
         }
     }
 }
@@ -260,6 +256,20 @@ private enum ImportExportAction {
     case exportBackup
     case importBackup
     case importCSV
+}
+
+private enum ImportFileKind {
+    case backup
+    case csv
+
+    var allowedTypes: [UTType] {
+        switch self {
+        case .backup:
+            return [.json]
+        case .csv:
+            return [.commaSeparatedText, .plainText]
+        }
+    }
 }
 
 private struct ImportExportToastView: View {
