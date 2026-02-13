@@ -36,52 +36,11 @@ final class ImportExportViewModel: ObservableObject {
     }
 
     func prepareImportBackup(fileURL: URL) {
-        guard !isProcessing else { return }
-        isProcessing = true
-
-        Task { [weak self] in
-            guard let self else { return }
-            defer { isProcessing = false }
-
-            do {
-                let preview = try await service.previewImportBackup(from: fileURL)
-                backupImportPreview = BackupImportPreview(fileURL: fileURL, preview: preview)
-            } catch ServiceError.notImplemented {
-                showToast("导入备份功能开发中")
-            } catch {
-                showToast(error.localizedDescription)
-            }
-        }
+        prepareImport(fileURL: fileURL, kind: .backup)
     }
 
     func confirmImportBackup() {
-        guard let preview = backupImportPreview else { return }
-        backupImportPreview = nil
-
-        guard !isProcessing else { return }
-        isProcessing = true
-
-        let feedback = UIImpactFeedbackGenerator(style: .light)
-        feedback.impactOccurred()
-
-        Task { [weak self] in
-            guard let self else { return }
-            defer { isProcessing = false }
-
-            do {
-                let result = try await service.importBackup(from: preview.fileURL)
-                importResultDialog = ImportResultDialog(
-                    title: "导入结果",
-                    importedCount: result.importedCount,
-                    skippedCount: result.skippedCount,
-                    failedCount: result.failedCount
-                )
-            } catch ServiceError.notImplemented {
-                showToast("导入备份功能开发中")
-            } catch {
-                showToast(error.localizedDescription)
-            }
-        }
+        confirmImport(kind: .backup)
     }
 
     func dismissImportBackupPreview() {
@@ -89,52 +48,11 @@ final class ImportExportViewModel: ObservableObject {
     }
 
     func prepareImportCSV(fileURL: URL) {
-        guard !isProcessing else { return }
-        isProcessing = true
-
-        Task { [weak self] in
-            guard let self else { return }
-            defer { isProcessing = false }
-
-            do {
-                let preview = try await service.previewImportCSV(from: fileURL)
-                csvImportPreview = CSVImportPreview(fileURL: fileURL, preview: preview)
-            } catch ServiceError.notImplemented {
-                showToast("导入 CSV 功能开发中")
-            } catch {
-                showToast(error.localizedDescription)
-            }
-        }
+        prepareImport(fileURL: fileURL, kind: .csv)
     }
 
     func confirmImportCSV() {
-        guard let preview = csvImportPreview else { return }
-        csvImportPreview = nil
-
-        guard !isProcessing else { return }
-        isProcessing = true
-
-        let feedback = UIImpactFeedbackGenerator(style: .light)
-        feedback.impactOccurred()
-
-        Task { [weak self] in
-            guard let self else { return }
-            defer { isProcessing = false }
-
-            do {
-                let result = try await service.importCSV(from: preview.fileURL)
-                importResultDialog = ImportResultDialog(
-                    title: "导入结果",
-                    importedCount: result.importedCount,
-                    skippedCount: result.skippedCount,
-                    failedCount: result.failedCount
-                )
-            } catch ServiceError.notImplemented {
-                showToast("导入 CSV 功能开发中")
-            } catch {
-                showToast(error.localizedDescription)
-            }
-        }
+        confirmImport(kind: .csv)
     }
 
     func dismissImportCSVPreview() {
@@ -157,6 +75,91 @@ final class ImportExportViewModel: ObservableObject {
     var csvImportPreviewMessage: String {
         guard let preview = csvImportPreview?.preview else { return "" }
         return previewMessage(preview)
+    }
+
+    private func prepareImport(fileURL: URL, kind: ImportKind) {
+        guard !isProcessing else { return }
+        isProcessing = true
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { isProcessing = false }
+
+            do {
+                let preview = try await fetchPreview(fileURL: fileURL, kind: kind)
+                setImportPreview(fileURL: fileURL, preview: preview, for: kind)
+            } catch ServiceError.notImplemented {
+                showToast(kind.notImplementedToast)
+            } catch {
+                showToast(error.localizedDescription)
+            }
+        }
+    }
+
+    private func confirmImport(kind: ImportKind) {
+        guard let fileURL = clearImportPreviewAndGetFileURL(for: kind) else { return }
+        guard !isProcessing else { return }
+        isProcessing = true
+
+        let feedback = UIImpactFeedbackGenerator(style: .light)
+        feedback.impactOccurred()
+
+        Task { [weak self] in
+            guard let self else { return }
+            defer { isProcessing = false }
+
+            do {
+                let result = try await runImport(fileURL: fileURL, kind: kind)
+                importResultDialog = ImportResultDialog(
+                    title: "导入结果",
+                    importedCount: result.importedCount,
+                    skippedCount: result.skippedCount,
+                    failedCount: result.failedCount
+                )
+            } catch ServiceError.notImplemented {
+                showToast(kind.notImplementedToast)
+            } catch {
+                showToast(error.localizedDescription)
+            }
+        }
+    }
+
+    private func fetchPreview(fileURL: URL, kind: ImportKind) async throws -> ImportPreview {
+        switch kind {
+        case .backup:
+            return try await service.previewImportBackup(from: fileURL)
+        case .csv:
+            return try await service.previewImportCSV(from: fileURL)
+        }
+    }
+
+    private func runImport(fileURL: URL, kind: ImportKind) async throws -> ImportResult {
+        switch kind {
+        case .backup:
+            return try await service.importBackup(from: fileURL)
+        case .csv:
+            return try await service.importCSV(from: fileURL)
+        }
+    }
+
+    private func setImportPreview(fileURL: URL, preview: ImportPreview, for kind: ImportKind) {
+        switch kind {
+        case .backup:
+            backupImportPreview = BackupImportPreview(fileURL: fileURL, preview: preview)
+        case .csv:
+            csvImportPreview = CSVImportPreview(fileURL: fileURL, preview: preview)
+        }
+    }
+
+    private func clearImportPreviewAndGetFileURL(for kind: ImportKind) -> URL? {
+        switch kind {
+        case .backup:
+            defer { backupImportPreview = nil }
+            return backupImportPreview?.fileURL
+        case .csv:
+            defer { csvImportPreview = nil }
+            return csvImportPreview?.fileURL
+        }
     }
 
     private func previewMessage(_ preview: ImportPreview) -> String {
@@ -218,6 +221,20 @@ final class ImportExportViewModel: ObservableObject {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 self?.toastMessage = nil
+            }
+        }
+    }
+
+    private enum ImportKind {
+        case backup
+        case csv
+
+        var notImplementedToast: String {
+            switch self {
+            case .backup:
+                return "导入备份功能开发中"
+            case .csv:
+                return "导入 CSV 功能开发中"
             }
         }
     }

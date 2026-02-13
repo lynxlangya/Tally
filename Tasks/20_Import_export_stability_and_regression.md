@@ -48,3 +48,40 @@
 - ✅ 异常文件可被正确拦截并给出用户可理解提示。
 - ✅ 关键逻辑有测试覆盖，后续改动可回归验证。
 
+## 本次落地记录（2026-02-13）
+
+1. 稳定性抽离
+   - 已将 CSV 解析与校验逻辑从 `DefaultImportExportService` 抽离到独立组件：
+     - `JustOne/Services/ImportExport/CSVImportPipeline.swift`
+   - `DefaultImportExportService` 改为编排职责：
+     - 文件读取
+     - 调用 pipeline 预检
+     - 执行导入写库
+
+2. 回归测试补齐
+   - 新增测试文件：`JustOneTests/CSVImportPipelineTests.swift`
+   - 覆盖点：
+     - UTF-8 BOM 解析
+     - 列头不匹配拦截
+     - 行级校验（类型/金额）
+     - 重复判定（同金额+分类+occurredLocalDate）
+     - 服务层 CSV 预检 + 导入闭环
+     - 10k 行性能基线（`measure`）
+
+3. 本地执行结果
+   - `xcodebuild test` 结果：`TEST SUCCEEDED`
+   - 新增性能用例 `testValidatePerformanceForTenThousandRows` 在当前机器单次约 `6.818s`（Debug，模拟器）
+
+4. 已知限制（保留到后续任务）
+   - CSV 模板不包含 `occurredLocalDate` 与原始时区快照，跨时区二次导入无法做到 100% 分组还原（JSON 备份可完整还原）。
+   - 后续如需跨时区强一致，需扩展 CSV 模板字段（新增本地日键/时区列）。
+
+5. 本轮补充优化（2026-02-13 第二次）
+   - 修复导入环境边界：
+     - `importBackup` 在无 `managedObjectContext` 时明确失败，不再走弱一致回退路径（防止跨仓库写入策略不一致）。
+   - ViewModel 去重封装：
+     - `ImportExportViewModel` 将「备份/CSV」两套预检与确认导入流程合并为统一私有流程，减少重复分支与回归面。
+   - 时区稳定性细节：
+     - CSV 本地时间解析器从 `TimeZone.current` 调整为 `TimeZone.autoupdatingCurrent`，降低运行期系统时区切换后的偏差风险。
+   - 测试补充：
+     - 新增 `testImportBackupRequiresManagedObjectContext`，锁定导入环境保护行为。

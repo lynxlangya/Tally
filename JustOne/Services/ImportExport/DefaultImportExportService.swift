@@ -6,6 +6,7 @@ struct DefaultImportExportService: ImportExportService {
     private let categoryRepository: CategoryRepository
     private let recurringRepository: RecurringRepository
     private let managedObjectContext: NSManagedObjectContext?
+    private let csvImportPipeline: CSVImportPipeline
     private let fileManager: FileManager
     private let nowProvider: () -> Date
     private let calendar: Calendar
@@ -15,6 +16,7 @@ struct DefaultImportExportService: ImportExportService {
         categoryRepository: CategoryRepository,
         recurringRepository: RecurringRepository,
         managedObjectContext: NSManagedObjectContext? = nil,
+        csvImportPipeline: CSVImportPipeline = CSVImportPipeline(),
         fileManager: FileManager = .default,
         nowProvider: @escaping () -> Date = Date.init
     ) {
@@ -22,6 +24,7 @@ struct DefaultImportExportService: ImportExportService {
         self.categoryRepository = categoryRepository
         self.recurringRepository = recurringRepository
         self.managedObjectContext = managedObjectContext
+        self.csvImportPipeline = csvImportPipeline
         self.fileManager = fileManager
         self.nowProvider = nowProvider
         self.calendar = Calendar(identifier: .gregorian)
@@ -109,13 +112,10 @@ struct DefaultImportExportService: ImportExportService {
     func importBackup(from fileURL: URL) async throws -> ImportResult {
         let payload = try loadBackupPayload(from: fileURL)
         let validation = try validateBackupPayload(payload)
-        let writeResult: ImportWriteResult
-
-        if let managedObjectContext {
-            writeResult = try importValidatedBackup(validation, using: managedObjectContext)
-        } else {
-            writeResult = try importWithRepositories(validation)
+        guard let managedObjectContext else {
+            throw ImportExportError.importEnvironmentUnavailable
         }
+        let writeResult = try importValidatedBackup(validation, using: managedObjectContext)
 
         return ImportResult(
             importedCount: writeResult.importedCount,
@@ -175,22 +175,6 @@ private extension DefaultImportExportService {
 
     static let amountRegex = try? NSRegularExpression(pattern: #"^\d+(\.\d{1,2})?$"#)
     static let dayKeyRegex = try? NSRegularExpression(pattern: #"^\d{4}-\d{2}-\d{2}$"#)
-    static let csvExpectedHeader = ["时间", "类型", "分类", "金额", "备注"]
-
-    static let csvLocalDateTimeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = .current
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return formatter
-    }()
-
-    static let csvISO8601FractionalFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
 
     func loadBills(scope: ExportScope, now: Date) throws -> [BillRecord] {
         switch scope {
@@ -307,251 +291,18 @@ private extension DefaultImportExportService {
 
     func loadCSVPayload(from fileURL: URL) throws -> CSVImportPayload {
         let data = try readDataFromFileURL(fileURL)
-        guard var content = String(data: data, encoding: .utf8) else {
-            throw ImportExportError.invalidCSVFile
-        }
-        if content.hasPrefix("\u{FEFF}") {
-            content.removeFirst()
-        }
-
-        let parsedRows = try parseCSVRows(content)
-        guard let header = parsedRows.first else {
-            throw ImportExportError.invalidCSVFile
-        }
-
-        let normalizedHeader = header.columns.map(normalizedCSVHeaderCell)
-        guard normalizedHeader == Self.csvExpectedHeader else {
-            throw ImportExportError.invalidCSVHeader
-        }
-
-        return CSVImportPayload(
-            rows: parsedRows.dropFirst().map { row in
-                CSVImportRow(lineNumber: row.lineNumber, columns: row.columns)
-            }
-        )
+        return try csvImportPipeline.loadPayload(from: data)
     }
 
     func validateCSVPayload(_ payload: CSVImportPayload) throws -> CSVValidationResult {
         let categories = try loadAllCategories()
-        var categoryLookup: [String: UUID] = [:]
-        for category in categories {
-            categoryLookup[categoryLookupKey(type: category.type, name: category.name)] = category.id
-        }
-
         let existingBills = try billRepository.list()
-        var duplicateKeys = Set(
-            existingBills.map { bill in
-                csvDuplicateKey(
-                    amountCents: bill.amount.cents,
-                    categoryId: bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type),
-                    dayKey: bill.occurredLocalDate
-                )
-            }
+        return csvImportPipeline.validate(
+            payload: payload,
+            categories: categories,
+            existingBills: existingBills,
+            parseAmount: { parseCents(from: $0) }
         )
-
-        var bills: [ValidatedCSVBill] = []
-        var pendingCount = 0
-        var conflictCount = 0
-        var failedCount = 0
-        var errorSummary: [String] = []
-
-        for row in payload.rows {
-            guard row.columns.count == Self.csvExpectedHeader.count else {
-                markCSVFailure(
-                    lineNumber: row.lineNumber,
-                    reason: "列数不匹配",
-                    failedCount: &failedCount,
-                    errorSummary: &errorSummary
-                )
-                continue
-            }
-
-            let timeText = row.columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
-            let typeText = row.columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
-            let categoryText = row.columns[2].trimmingCharacters(in: .whitespacesAndNewlines)
-            let amountText = row.columns[3].trimmingCharacters(in: .whitespacesAndNewlines)
-            let noteText = row.columns[4].trimmingCharacters(in: .whitespacesAndNewlines)
-
-            guard let billType = parseCSVBillType(from: typeText) else {
-                markCSVFailure(
-                    lineNumber: row.lineNumber,
-                    reason: "类型非法",
-                    failedCount: &failedCount,
-                    errorSummary: &errorSummary
-                )
-                continue
-            }
-
-            guard let occurredAtLocal = parseCSVDate(from: timeText) else {
-                markCSVFailure(
-                    lineNumber: row.lineNumber,
-                    reason: "时间格式非法",
-                    failedCount: &failedCount,
-                    errorSummary: &errorSummary
-                )
-                continue
-            }
-
-            guard let amountCents = parseCents(from: amountText) else {
-                markCSVFailure(
-                    lineNumber: row.lineNumber,
-                    reason: "金额非法",
-                    failedCount: &failedCount,
-                    errorSummary: &errorSummary
-                )
-                continue
-            }
-
-            let dayKey = DayKeyFormatter.dayKey(for: occurredAtLocal)
-            let categoryId: UUID
-            if categoryText.isEmpty {
-                categoryId = SystemCategoryID.uncategorized(for: billType)
-            } else {
-                categoryId = categoryLookup[categoryLookupKey(type: billType, name: categoryText)]
-                    ?? SystemCategoryID.uncategorized(for: billType)
-            }
-
-            let duplicateKey = csvDuplicateKey(
-                amountCents: amountCents,
-                categoryId: categoryId,
-                dayKey: dayKey
-            )
-            if duplicateKeys.contains(duplicateKey) {
-                conflictCount += 1
-                continue
-            }
-            duplicateKeys.insert(duplicateKey)
-
-            pendingCount += 1
-            bills.append(
-                ValidatedCSVBill(
-                    type: billType,
-                    amountCents: amountCents,
-                    occurredAtLocal: occurredAtLocal,
-                    note: noteText.isEmpty ? nil : noteText,
-                    categoryId: categoryId
-                )
-            )
-        }
-
-        return CSVValidationResult(
-            bills: bills,
-            pendingCount: pendingCount,
-            conflictCount: conflictCount,
-            failedCount: failedCount,
-            errorSummary: errorSummary
-        )
-    }
-
-    func parseCSVRows(_ content: String) throws -> [ParsedCSVRow] {
-        var rows: [ParsedCSVRow] = []
-        var row: [String] = []
-        var field = ""
-        var inQuotes = false
-        var currentLine = 1
-        var rowStartLine = 1
-        var index = content.startIndex
-
-        func commitRow() {
-            row.append(field)
-            let isBlank = row.allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-            if !isBlank {
-                rows.append(ParsedCSVRow(lineNumber: rowStartLine, columns: row))
-            }
-            row.removeAll(keepingCapacity: true)
-            field.removeAll(keepingCapacity: true)
-        }
-
-        while index < content.endIndex {
-            let character = content[index]
-
-            if inQuotes {
-                if character == "\"" {
-                    let nextIndex = content.index(after: index)
-                    if nextIndex < content.endIndex, content[nextIndex] == "\"" {
-                        field.append("\"")
-                        index = nextIndex
-                    } else {
-                        inQuotes = false
-                    }
-                } else {
-                    field.append(character)
-                }
-            } else {
-                switch character {
-                case "\"":
-                    inQuotes = true
-                case ",":
-                    row.append(field)
-                    field.removeAll(keepingCapacity: true)
-                case "\n":
-                    commitRow()
-                    currentLine += 1
-                    rowStartLine = currentLine
-                case "\r":
-                    commitRow()
-                    let nextIndex = content.index(after: index)
-                    if nextIndex < content.endIndex, content[nextIndex] == "\n" {
-                        index = nextIndex
-                    }
-                    currentLine += 1
-                    rowStartLine = currentLine
-                default:
-                    field.append(character)
-                }
-            }
-
-            index = content.index(after: index)
-        }
-
-        if inQuotes {
-            throw ImportExportError.invalidCSVFile
-        }
-
-        if !row.isEmpty || !field.isEmpty {
-            commitRow()
-        }
-
-        return rows
-    }
-
-    func normalizedCSVHeaderCell(_ value: String) -> String {
-        value
-            .replacingOccurrences(of: "\u{FEFF}", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    func parseCSVBillType(from value: String) -> BillType? {
-        let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        switch normalized {
-        case "收入", "income":
-            return .income
-        case "支出", "expense":
-            return .expense
-        default:
-            return nil
-        }
-    }
-
-    func parseCSVDate(from value: String) -> Date? {
-        let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !normalized.isEmpty else { return nil }
-
-        if let date = Self.csvISO8601Formatter.date(from: normalized) {
-            return date
-        }
-        if let date = Self.csvISO8601FractionalFormatter.date(from: normalized) {
-            return date
-        }
-        return Self.csvLocalDateTimeFormatter.date(from: normalized)
-    }
-
-    func categoryLookupKey(type: BillType, name: String) -> String {
-        "\(type.rawValue)|\(name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
-    }
-
-    func csvDuplicateKey(amountCents: Int, categoryId: UUID, dayKey: String) -> String {
-        "\(amountCents)|\(categoryId.uuidString.lowercased())|\(dayKey)"
     }
 
     func validateBackupPayload(_ payload: BackupPayload) throws -> BackupValidationResult {
@@ -560,6 +311,9 @@ private extension DefaultImportExportService {
         let existingCategories = try loadAllCategories()
         let existingCategoriesByID = Dictionary(uniqueKeysWithValues: existingCategories.map { ($0.id, $0) })
         var availableCategoryIDs = Set(existingCategoriesByID.keys)
+        var seenCategoryIDs = Set<UUID>()
+        var seenBillIDs = Set<UUID>()
+        var seenRecurringIDs = Set<UUID>()
 
         var categories: [ValidatedCategory] = []
         var bills: [ValidatedBill] = []
@@ -570,6 +324,11 @@ private extension DefaultImportExportService {
         var errorCounter: [String: Int] = [:]
 
         for category in payload.categories {
+            if !seenCategoryIDs.insert(category.id).inserted {
+                conflictCount += 1
+                continue
+            }
+
             guard let type = BillType(rawValue: category.type) else {
                 markFailure("分类类型非法", failedCount: &failedCount, errorCounter: &errorCounter)
                 continue
@@ -601,6 +360,11 @@ private extension DefaultImportExportService {
         }
 
         for bill in payload.bills {
+            if !seenBillIDs.insert(bill.id).inserted {
+                conflictCount += 1
+                continue
+            }
+
             guard let type = BillType(rawValue: bill.type) else {
                 markFailure("账单类型非法", failedCount: &failedCount, errorCounter: &errorCounter)
                 continue
@@ -649,6 +413,11 @@ private extension DefaultImportExportService {
         }
 
         for recurringTask in payload.recurringTasks {
+            if !seenRecurringIDs.insert(recurringTask.id).inserted {
+                conflictCount += 1
+                continue
+            }
+
             guard let type = BillType(rawValue: recurringTask.type) else {
                 markFailure("定时记账类型非法", failedCount: &failedCount, errorCounter: &errorCounter)
                 continue
@@ -798,97 +567,6 @@ private extension DefaultImportExportService {
         }
     }
 
-    func importWithRepositories(_ validation: BackupValidationResult) throws -> ImportWriteResult {
-        var importedCount = 0
-        var skippedCount = 0
-
-        let existingCategories = try loadAllCategories()
-        var categoriesByID = Dictionary(uniqueKeysWithValues: existingCategories.map { ($0.id, $0) })
-
-        for category in validation.categories {
-            if let existing = categoriesByID[category.id] {
-                if existing.isSystem {
-                    skippedCount += 1
-                    continue
-                }
-                let updated = CategoryRecord(
-                    id: existing.id,
-                    type: category.type,
-                    name: category.name,
-                    iconKey: category.iconKey,
-                    colorHex: category.colorHex,
-                    isSystem: false,
-                    sortOrder: category.sortOrder
-                )
-                try categoryRepository.update(updated)
-                categoriesByID[existing.id] = updated
-                importedCount += 1
-            } else {
-                let record = CategoryRecord(
-                    id: category.id,
-                    type: category.type,
-                    name: category.name,
-                    iconKey: category.iconKey,
-                    colorHex: category.colorHex,
-                    isSystem: false,
-                    sortOrder: category.sortOrder
-                )
-                try categoryRepository.create(record)
-                categoriesByID[record.id] = record
-                importedCount += 1
-            }
-        }
-
-        let existingBillIDs = Set(try billRepository.list().map(\.id))
-        for bill in validation.bills {
-            if existingBillIDs.contains(bill.id) {
-                skippedCount += 1
-                continue
-            }
-            let draft = BillDraft(
-                type: bill.type,
-                amount: Money(cents: bill.amountCents),
-                occurredAtLocal: bill.occurredAtUTC,
-                note: bill.note,
-                categoryId: bill.categoryId,
-                isFromRecurring: bill.isFromRecurring
-            )
-            _ = try billRepository.create(draft)
-            importedCount += 1
-        }
-
-        let existingRecurring = try recurringRepository.list()
-        let recurringByID = Dictionary(uniqueKeysWithValues: existingRecurring.map { ($0.id, $0) })
-
-        for recurring in validation.recurring {
-            let record = RecurringTaskRecord(
-                id: recurring.id,
-                type: recurring.type,
-                amount: Money(cents: recurring.amountCents),
-                categoryId: recurring.categoryId,
-                note: recurring.note,
-                firstDate: recurring.firstDate,
-                repeatRule: recurring.repeatRule,
-                nextFireDate: recurring.nextFireDate,
-                hour: recurring.hour,
-                minute: recurring.minute,
-                lastRunAtUTC: recurring.lastRunAtUTC,
-                isEnabled: recurring.isEnabled,
-                createdAt: recurring.createdAt,
-                updatedAt: recurring.updatedAt
-            )
-
-            if recurringByID[record.id] != nil {
-                try recurringRepository.update(record)
-            } else {
-                try recurringRepository.create(record)
-            }
-            importedCount += 1
-        }
-
-        return ImportWriteResult(importedCount: importedCount, skippedCount: skippedCount)
-    }
-
     func fetchManagedObjectMap(entityName: String, context: NSManagedObjectContext) throws -> [UUID: NSManagedObject] {
         let request = NSFetchRequest<NSManagedObject>(entityName: entityName)
         let objects = try context.fetch(request)
@@ -997,18 +675,6 @@ private extension DefaultImportExportService {
     func markFailure(_ reason: String, failedCount: inout Int, errorCounter: inout [String: Int]) {
         failedCount += 1
         errorCounter[reason, default: 0] += 1
-    }
-
-    func markCSVFailure(
-        lineNumber: Int,
-        reason: String,
-        failedCount: inout Int,
-        errorSummary: inout [String]
-    ) {
-        failedCount += 1
-        if errorSummary.count < 3 {
-            errorSummary.append("第\(lineNumber)行：\(reason)")
-        }
     }
 }
 
@@ -1140,28 +806,6 @@ private struct BackupValidationResult {
     let errorSummary: [String]
 }
 
-private struct CSVImportPayload {
-    let rows: [CSVImportRow]
-}
-
-private struct CSVImportRow {
-    let lineNumber: Int
-    let columns: [String]
-}
-
-private struct ParsedCSVRow {
-    let lineNumber: Int
-    let columns: [String]
-}
-
-private struct CSVValidationResult {
-    let bills: [ValidatedCSVBill]
-    let pendingCount: Int
-    let conflictCount: Int
-    let failedCount: Int
-    let errorSummary: [String]
-}
-
 private struct ImportWriteResult {
     let importedCount: Int
     let skippedCount: Int
@@ -1211,31 +855,20 @@ private struct ValidatedRecurring {
     let isUpdate: Bool
 }
 
-private struct ValidatedCSVBill {
-    let type: BillType
-    let amountCents: Int
-    let occurredAtLocal: Date
-    let note: String?
-    let categoryId: UUID
-}
-
 private enum ImportExportError: LocalizedError {
     case invalidBackupFile
-    case invalidCSVFile
-    case invalidCSVHeader
     case unsupportedSchema(Int)
+    case importEnvironmentUnavailable
     case importFailed(reason: String)
 
     var errorDescription: String? {
         switch self {
         case .invalidBackupFile:
             return "备份文件格式不正确"
-        case .invalidCSVFile:
-            return "CSV 文件格式不正确"
-        case .invalidCSVHeader:
-            return "CSV 列头不匹配，请使用“时间、类型、分类、金额、备注”模板"
         case .unsupportedSchema(let version):
             return "备份版本不兼容（schemaVersion: \(version)）"
+        case .importEnvironmentUnavailable:
+            return "导入环境不可用，请重启应用后重试"
         case .importFailed(let reason):
             return "导入失败：\(reason)"
         }
