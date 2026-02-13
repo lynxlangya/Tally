@@ -28,6 +28,7 @@ final class DIContainer {
 
     struct Services {
         let export: ExportService
+        let importExport: ImportExportService
         let recurring: RecurringService
         let security: SecurityService
         let seed: SeedService
@@ -35,6 +36,7 @@ final class DIContainer {
         static func live(context: NSManagedObjectContext, repositories: Repositories) -> Services {
             Services(
                 export: StubExportService(),
+                importExport: StubImportExportService(),
                 recurring: DefaultRecurringService(
                     recurringRepository: repositories.recurring,
                     billRepository: repositories.bill
@@ -47,6 +49,7 @@ final class DIContainer {
         static func mock() -> Services {
             Services(
                 export: StubExportService(),
+                importExport: StubImportExportService(),
                 recurring: StubRecurringService(),
                 security: StubSecurityService(),
                 seed: StubSeedService()

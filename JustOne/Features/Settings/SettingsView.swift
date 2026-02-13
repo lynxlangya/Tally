@@ -57,6 +57,8 @@ struct SettingsView: View {
             LanguageSettingsView()
         case .theme:
             ThemeSettingsView()
+        case .importExport:
+            ImportExportView(importExportService: environment.container.services.importExport)
         case .recurring:
             RecurringBillsView(
                 recurringRepository: environment.container.repositories.recurring,
@@ -81,6 +83,7 @@ private struct SettingsItem: Identifiable {
 
 private enum SettingsDestination: String {
     case account
+    case importExport
     case export
     case lock
     case recurring
@@ -92,6 +95,8 @@ private enum SettingsDestination: String {
         switch self {
         case .account:
             return "账号设置"
+        case .importExport:
+            return "导入导出"
         case .export:
             return "导出数据"
         case .lock:
@@ -110,6 +115,7 @@ private enum SettingsDestination: String {
 
 private let settingItems: [SettingsItem] = [
     SettingsItem(title: "账号设置", subtitle: nil, systemImage: "person.fill", destination: .account),
+    SettingsItem(title: "导入导出", subtitle: nil, systemImage: "arrow.up.arrow.down.circle.fill", destination: .importExport),
     SettingsItem(title: "定时记账", subtitle: nil, systemImage: "clock.fill", destination: .recurring),
     SettingsItem(title: "桌面小组件", subtitle: nil, systemImage: "square.grid.2x2.fill", destination: .widget),
     SettingsItem(title: "主题设置", subtitle: nil, systemImage: "paintpalette.fill", destination: .theme),
