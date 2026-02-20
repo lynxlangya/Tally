@@ -17,3 +17,4 @@ struct ContentView: View {
     ContentView()
         .environment(\.appEnvironment, .preview)
 }
+ 
