@@ -82,9 +82,8 @@ final class HomeViewModel: ObservableObject {
 
     func deleteBill(id: UUID) {
         let now = nowProvider()
-        let trashUntil = Calendar.current.date(byAdding: .day, value: 7, to: now) ?? now
         do {
-            try billRepository.softDelete(id: id, deletedAt: now, trashUntil: trashUntil)
+            try billRepository.delete(id: id)
             WidgetSnapshotService.refresh(using: billRepository, now: now)
             NotificationCenter.default.post(name: .billDidChange, object: nil)
             load()
@@ -133,8 +132,7 @@ final class HomeViewModel: ObservableObject {
         let yesterdayKey = DayKeyFormatter.dayKey(for: Calendar.current.date(byAdding: .day, value: -1, to: now) ?? now)
 
         let grouped = Dictionary(grouping: bills) { $0.occurredLocalDate }
-        let groupsWithDate = grouped.compactMap { key, items -> (Group, Date)? in
-            guard let latestDate = items.map(\.occurredAtUTC).max() else { return nil }
+        let groupsWithDate = grouped.compactMap { key, items -> (Group, String)? in
             let sortedItems = items.sorted {
                 if $0.occurredAtUTC != $1.occurredAtUTC {
                     return $0.occurredAtUTC > $1.occurredAtUTC
@@ -170,7 +168,7 @@ final class HomeViewModel: ObservableObject {
                 totalSign: total >= 0 ? "+" : "-",
                 items: viewItems
             )
-            return (group, latestDate)
+            return (group, key)
         }
 
         return groupsWithDate

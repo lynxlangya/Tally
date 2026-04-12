@@ -1,11 +1,10 @@
 import Foundation
-import CoreData
 
 struct DefaultImportExportService: ImportExportService {
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
     private let recurringRepository: RecurringRepository
-    private let managedObjectContext: NSManagedObjectContext?
+    private let importWriteRepository: ImportWriteRepository?
     private let csvImportPipeline: CSVImportPipeline
     private let fileManager: FileManager
     private let nowProvider: () -> Date
@@ -15,7 +14,7 @@ struct DefaultImportExportService: ImportExportService {
         billRepository: BillRepository,
         categoryRepository: CategoryRepository,
         recurringRepository: RecurringRepository,
-        managedObjectContext: NSManagedObjectContext? = nil,
+        importWriteRepository: ImportWriteRepository? = nil,
         csvImportPipeline: CSVImportPipeline = CSVImportPipeline(),
         fileManager: FileManager = .default,
         nowProvider: @escaping () -> Date = Date.init
@@ -23,7 +22,7 @@ struct DefaultImportExportService: ImportExportService {
         self.billRepository = billRepository
         self.categoryRepository = categoryRepository
         self.recurringRepository = recurringRepository
-        self.managedObjectContext = managedObjectContext
+        self.importWriteRepository = importWriteRepository
         self.csvImportPipeline = csvImportPipeline
         self.fileManager = fileManager
         self.nowProvider = nowProvider
@@ -112,16 +111,26 @@ struct DefaultImportExportService: ImportExportService {
     func importBackup(from fileURL: URL) async throws -> ImportResult {
         let payload = try loadBackupPayload(from: fileURL)
         let validation = try validateBackupPayload(payload)
-        guard let managedObjectContext else {
+        guard let importWriteRepository else {
             throw ImportExportError.importEnvironmentUnavailable
         }
-        let writeResult = try importValidatedBackup(validation, using: managedObjectContext)
-
-        return ImportResult(
+        let writeResult: ImportWriteResult
+        do {
+            writeResult = try importWriteRepository.importBackup(
+                categories: validation.categories,
+                bills: validation.bills,
+                recurringTasks: validation.recurringTasks
+            )
+        } catch {
+            throw ImportExportError.importFailed(reason: error.localizedDescription)
+        }
+        let result = ImportResult(
             importedCount: writeResult.importedCount,
             skippedCount: writeResult.skippedCount + validation.conflictCount,
             failedCount: validation.failedCount
         )
+        refreshWidgetSnapshot()
+        return result
     }
 
     func importCSV(from fileURL: URL) async throws -> ImportResult {
@@ -148,11 +157,13 @@ struct DefaultImportExportService: ImportExportService {
             }
         }
 
-        return ImportResult(
+        let result = ImportResult(
             importedCount: importedCount,
             skippedCount: validation.conflictCount,
             failedCount: validation.failedCount + writeFailedCount
         )
+        refreshWidgetSnapshot()
+        return result
     }
 }
 
@@ -254,6 +265,10 @@ private extension DefaultImportExportService {
         return "\"\(escaped)\""
     }
 
+    func refreshWidgetSnapshot() {
+        WidgetSnapshotService.refresh(using: billRepository, now: nowProvider())
+    }
+
     func appVersionString() -> String {
         let bundle = Bundle.main
         let shortVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
@@ -307,7 +322,6 @@ private extension DefaultImportExportService {
 
     func validateBackupPayload(_ payload: BackupPayload) throws -> BackupValidationResult {
         let existingBillsByID = Set(try billRepository.list().map(\.id))
-        let existingRecurringByID = Set(try recurringRepository.list().map(\.id))
         let existingCategories = try loadAllCategories()
         let existingCategoriesByID = Dictionary(uniqueKeysWithValues: existingCategories.map { ($0.id, $0) })
         var availableCategoryIDs = Set(existingCategoriesByID.keys)
@@ -315,9 +329,9 @@ private extension DefaultImportExportService {
         var seenBillIDs = Set<UUID>()
         var seenRecurringIDs = Set<UUID>()
 
-        var categories: [ValidatedCategory] = []
-        var bills: [ValidatedBill] = []
-        var recurring: [ValidatedRecurring] = []
+        var categories: [BackupImportCategory] = []
+        var bills: [BackupImportBill] = []
+        var recurringTasks: [BackupImportRecurringTask] = []
         var pendingCount = 0
         var conflictCount = 0
         var failedCount = 0
@@ -348,7 +362,7 @@ private extension DefaultImportExportService {
 
             pendingCount += 1
             categories.append(
-                ValidatedCategory(
+                BackupImportCategory(
                     id: category.id,
                     type: type,
                     name: category.name,
@@ -393,7 +407,7 @@ private extension DefaultImportExportService {
 
             pendingCount += 1
             bills.append(
-                ValidatedBill(
+                BackupImportBill(
                     id: bill.id,
                     type: type,
                     amountCents: cents,
@@ -444,11 +458,10 @@ private extension DefaultImportExportService {
                 availableCategoryIDs: availableCategoryIDs
             )
 
-            let isUpdate = existingRecurringByID.contains(recurringTask.id)
             pendingCount += 1
 
-            recurring.append(
-                ValidatedRecurring(
+            recurringTasks.append(
+                BackupImportRecurringTask(
                     id: recurringTask.id,
                     type: type,
                     amountCents: cents,
@@ -462,8 +475,7 @@ private extension DefaultImportExportService {
                     lastRunAtUTC: recurringTask.lastRunAtUTC,
                     isEnabled: recurringTask.isEnabled,
                     createdAt: recurringTask.createdAt,
-                    updatedAt: recurringTask.updatedAt,
-                    isUpdate: isUpdate
+                    updatedAt: recurringTask.updatedAt
                 )
             )
         }
@@ -481,146 +493,12 @@ private extension DefaultImportExportService {
         return BackupValidationResult(
             categories: categories,
             bills: bills,
-            recurring: recurring,
+            recurringTasks: recurringTasks,
             pendingCount: pendingCount,
             conflictCount: conflictCount,
             failedCount: failedCount,
             errorSummary: errorSummary
         )
-    }
-
-    func importValidatedBackup(
-        _ validation: BackupValidationResult,
-        using parentContext: NSManagedObjectContext
-    ) throws -> ImportWriteResult {
-        let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-        childContext.parent = parentContext
-        childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-
-        return try childContext.performAndWaitThrowing {
-            do {
-                var importedCount = 0
-                var skippedCount = 0
-
-                var categoryObjects = try fetchManagedObjectMap(entityName: "Category", context: childContext)
-                for category in validation.categories {
-                    if let object = categoryObjects[category.id] {
-                        let isSystem = object.value(forKey: "isSystem") as? Bool ?? false
-                        if isSystem {
-                            skippedCount += 1
-                            continue
-                        }
-                        apply(category: category, to: object)
-                        importedCount += 1
-                    } else {
-                        let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: childContext)
-                        apply(category: category, to: object)
-                        categoryObjects[category.id] = object
-                        importedCount += 1
-                    }
-                }
-
-                let categoryIDs = Set(categoryObjects.keys)
-
-                let billObjects = try fetchManagedObjectMap(entityName: "Bill", context: childContext)
-                for bill in validation.bills {
-                    if billObjects[bill.id] != nil {
-                        skippedCount += 1
-                        continue
-                    }
-                    let object = NSEntityDescription.insertNewObject(forEntityName: "Bill", into: childContext)
-                    let resolvedCategoryID = categoryIDs.contains(bill.categoryId)
-                        ? bill.categoryId
-                        : SystemCategoryID.uncategorized(for: bill.type)
-                    apply(bill: bill, resolvedCategoryID: resolvedCategoryID, to: object)
-                    importedCount += 1
-                }
-
-                var recurringObjects = try fetchManagedObjectMap(entityName: "RecurringTask", context: childContext)
-                for recurring in validation.recurring {
-                    if let object = recurringObjects[recurring.id] {
-                        apply(recurring: recurring, to: object)
-                        importedCount += 1
-                    } else {
-                        let object = NSEntityDescription.insertNewObject(forEntityName: "RecurringTask", into: childContext)
-                        apply(recurring: recurring, to: object)
-                        recurringObjects[recurring.id] = object
-                        importedCount += 1
-                    }
-                }
-
-                if childContext.hasChanges {
-                    try childContext.save()
-                }
-
-                try parentContext.performAndWaitThrowing {
-                    if parentContext.hasChanges {
-                        try parentContext.save()
-                    }
-                }
-
-                return ImportWriteResult(importedCount: importedCount, skippedCount: skippedCount)
-            } catch {
-                childContext.rollback()
-                throw ImportExportError.importFailed(reason: error.localizedDescription)
-            }
-        }
-    }
-
-    func fetchManagedObjectMap(entityName: String, context: NSManagedObjectContext) throws -> [UUID: NSManagedObject] {
-        let request = NSFetchRequest<NSManagedObject>(entityName: entityName)
-        let objects = try context.fetch(request)
-        var result: [UUID: NSManagedObject] = [:]
-        for object in objects {
-            if let id = object.value(forKey: "id") as? UUID {
-                result[id] = object
-            }
-        }
-        return result
-    }
-
-    func apply(category: ValidatedCategory, to object: NSManagedObject) {
-        object.setValue(category.id, forKey: "id")
-        object.setValue(category.type.rawValue, forKey: "type")
-        object.setValue(category.name, forKey: "name")
-        object.setValue(category.iconKey, forKey: "iconKey")
-        object.setValue(category.colorHex.map { Int64($0) }, forKey: "colorHex")
-        object.setValue(false, forKey: "isSystem")
-        object.setValue(Int64(category.sortOrder), forKey: "sortOrder")
-    }
-
-    func apply(bill: ValidatedBill, resolvedCategoryID: UUID, to object: NSManagedObject) {
-        object.setValue(bill.id, forKey: "id")
-        object.setValue(bill.type.rawValue, forKey: "type")
-        object.setValue(Int64(bill.amountCents), forKey: "amount")
-        object.setValue(bill.occurredAtUTC, forKey: "occurredAtUTC")
-        object.setValue(bill.tzId, forKey: "tzId")
-        object.setValue(Int32(bill.tzOffset), forKey: "tzOffset")
-        object.setValue(bill.occurredLocalDate, forKey: "occurredLocalDate")
-        object.setValue(bill.note, forKey: "note")
-        object.setValue(resolvedCategoryID, forKey: "categoryId")
-        object.setValue(bill.isFromRecurring, forKey: "isFromRecurring")
-        object.setValue(bill.createdAt, forKey: "createdAt")
-        object.setValue(bill.updatedAt, forKey: "updatedAt")
-        object.setValue(bill.deletedAt, forKey: "deletedAt")
-        object.setValue(bill.trashUntil, forKey: "trashUntil")
-    }
-
-    func apply(recurring: ValidatedRecurring, to object: NSManagedObject) {
-        object.setValue(recurring.id, forKey: "id")
-        object.setValue(recurring.type.rawValue, forKey: "type")
-        object.setValue(Int64(recurring.amountCents), forKey: "amount")
-        object.setValue(recurring.categoryId, forKey: "categoryId")
-        object.setValue(recurring.note, forKey: "note")
-        object.setValue(recurring.firstDate, forKey: "firstDate")
-        object.setValue(recurring.repeatRule, forKey: "repeatRule")
-        object.setValue(recurring.nextFireDate, forKey: "nextFireDate")
-        object.setValue(Int16(recurring.hour), forKey: "hour")
-        object.setValue(Int16(recurring.minute), forKey: "minute")
-        object.setValue(recurring.lastRunAtUTC, forKey: "lastRunAtUTC")
-        object.setValue(recurring.isEnabled, forKey: "isEnabled")
-        object.setValue(recurring.createdAt, forKey: "createdAt")
-        object.setValue(recurring.updatedAt, forKey: "updatedAt")
     }
 
     func resolveCategoryID(rawCategoryID: UUID?, type: BillType, availableCategoryIDs: Set<UUID>) -> UUID {
@@ -797,62 +675,13 @@ private struct BackupRecurringTask: Codable {
 }
 
 private struct BackupValidationResult {
-    let categories: [ValidatedCategory]
-    let bills: [ValidatedBill]
-    let recurring: [ValidatedRecurring]
+    let categories: [BackupImportCategory]
+    let bills: [BackupImportBill]
+    let recurringTasks: [BackupImportRecurringTask]
     let pendingCount: Int
     let conflictCount: Int
     let failedCount: Int
     let errorSummary: [String]
-}
-
-private struct ImportWriteResult {
-    let importedCount: Int
-    let skippedCount: Int
-}
-
-private struct ValidatedCategory {
-    let id: UUID
-    let type: BillType
-    let name: String
-    let iconKey: String
-    let colorHex: Int?
-    let sortOrder: Int
-}
-
-private struct ValidatedBill {
-    let id: UUID
-    let type: BillType
-    let amountCents: Int
-    let occurredAtUTC: Date
-    let occurredLocalDate: String
-    let tzId: String
-    let tzOffset: Int
-    let note: String?
-    let categoryId: UUID
-    let isFromRecurring: Bool
-    let createdAt: Date
-    let updatedAt: Date
-    let deletedAt: Date?
-    let trashUntil: Date?
-}
-
-private struct ValidatedRecurring {
-    let id: UUID
-    let type: BillType
-    let amountCents: Int
-    let categoryId: UUID
-    let note: String?
-    let firstDate: Date
-    let repeatRule: String
-    let nextFireDate: Date
-    let hour: Int
-    let minute: Int
-    let lastRunAtUTC: Date?
-    let isEnabled: Bool
-    let createdAt: Date
-    let updatedAt: Date
-    let isUpdate: Bool
 }
 
 private enum ImportExportError: LocalizedError {

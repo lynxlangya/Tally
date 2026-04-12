@@ -125,6 +125,10 @@ final class InMemoryBillRepository: BillRepository {
         return Array(Set(years)).sorted()
     }
 
+    func delete(id: UUID) throws {
+        records.removeAll { $0.id == id }
+    }
+
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
         guard let index = records.firstIndex(where: { $0.id == id }) else { return }
         let original = records[index]

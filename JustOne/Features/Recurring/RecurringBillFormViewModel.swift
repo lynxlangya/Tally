@@ -15,11 +15,17 @@ final class RecurringBillFormViewModel: ObservableObject {
     let categoryRepository: CategoryRepository
 
     let noteLimit = 50
+    private let nowProvider: () -> Date
 
-    init(recurringRepository: RecurringRepository, categoryRepository: CategoryRepository) {
+    init(
+        recurringRepository: RecurringRepository,
+        categoryRepository: CategoryRepository,
+        nowProvider: @escaping () -> Date = Date.init
+    ) {
         self.recurringRepository = recurringRepository
         self.categoryRepository = categoryRepository
-        self.firstDate = Date()
+        self.nowProvider = nowProvider
+        self.firstDate = Self.defaultFirstDate(from: nowProvider())
     }
 
     var isValid: Bool {
@@ -27,7 +33,7 @@ final class RecurringBillFormViewModel: ObservableObject {
     }
 
     var firstDateText: String {
-        DayKeyFormatter.dayKey(for: firstDate)
+        Self.firstDateFormatter.string(from: normalizedFirstDate(firstDate))
     }
 
     var selectedCategoryColor: Color {
@@ -51,13 +57,18 @@ final class RecurringBillFormViewModel: ObservableObject {
             return false
         }
 
-        let now = Date()
+        let now = nowProvider()
+        let firstExecutionDate = normalizedFirstDate(firstDate)
+        guard firstExecutionDate > now else {
+            errorMessage = "首次执行时间必须晚于当前时间"
+            return false
+        }
         let nextFireDate = RecurringScheduler.computeNextFireDate(
-            firstDate: firstDate,
+            firstDate: firstExecutionDate,
             rule: repeatRule,
             now: now
         )
-        let components = Calendar.current.dateComponents([.hour, .minute], from: firstDate)
+        let components = Calendar.current.dateComponents([.hour, .minute], from: firstExecutionDate)
 
         let record = RecurringTaskRecord(
             id: UUID(),
@@ -65,7 +76,7 @@ final class RecurringBillFormViewModel: ObservableObject {
             amount: Money(cents: cents),
             categoryId: category.id,
             note: trimmedNote,
-            firstDate: firstDate,
+            firstDate: firstExecutionDate,
             repeatRule: repeatRule.rawValue,
             nextFireDate: nextFireDate,
             hour: components.hour ?? 0,
@@ -112,4 +123,31 @@ final class RecurringBillFormViewModel: ObservableObject {
             .intValue
         return max(0, cents)
     }
+
+    func normalizedFirstDate(_ date: Date) -> Date {
+        Self.normalizedFirstDate(date)
+    }
+
+    private static func normalizedFirstDate(_ date: Date) -> Date {
+        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+        return Calendar.current.date(from: components) ?? date
+    }
+
+    private static func defaultFirstDate(from now: Date) -> Date {
+        let normalizedNow = normalizedFirstDate(now)
+        let calendar = Calendar.current
+        let hourStart = calendar.date(
+            from: calendar.dateComponents([.year, .month, .day, .hour], from: normalizedNow)
+        ) ?? normalizedNow
+        return calendar.date(byAdding: .hour, value: 1, to: hourStart) ?? normalizedNow
+    }
+
+    private static let firstDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.timeZone = .autoupdatingCurrent
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return formatter
+    }()
 }

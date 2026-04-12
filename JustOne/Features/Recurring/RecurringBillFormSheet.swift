@@ -63,7 +63,7 @@ struct RecurringBillFormSheet: View {
                         }
                     }
 
-                    formRow(title: "首次记账日期", action: {
+                    formRow(title: "首次执行时间", action: {
                         showsDatePicker = true
                     }) {
                         HStack {
@@ -150,10 +150,15 @@ struct RecurringBillFormSheet: View {
             }
         }
         .sheet(isPresented: $showsDatePicker) {
-            DatePickerSheet(date: $viewModel.firstDate) {
+            DatePickerSheet(
+                date: Binding(
+                    get: { viewModel.firstDate },
+                    set: { viewModel.firstDate = viewModel.normalizedFirstDate($0) }
+                )
+            ) {
                 showsDatePicker = false
             }
-            .presentationDetents([.height(420)])
+            .presentationDetents([.height(520)])
             .presentationDragIndicator(.visible)
         }
     }
@@ -221,7 +226,7 @@ private struct DatePickerSheet: View {
     var body: some View {
         VStack(spacing: JOSpacing.lg) {
             DatePicker(
-                "首次记账日期",
+                "首次执行日期",
                 selection: $date,
                 displayedComponents: [.date]
             )
@@ -229,6 +234,25 @@ private struct DatePickerSheet: View {
             .tint(JOColors.accent)
             .environment(\.locale, Locale(identifier: "zh_CN"))
             .colorScheme(.dark)
+
+            VStack(alignment: .leading, spacing: JOSpacing.sm) {
+                Text("执行时间")
+                    .font(JOTypography.caption)
+                    .foregroundStyle(JOColors.textSecondary)
+
+                DatePicker(
+                    "执行时间",
+                    selection: $date,
+                    displayedComponents: [.hourAndMinute]
+                )
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .environment(\.locale, Locale(identifier: "zh_CN"))
+                .colorScheme(.dark)
+                .frame(maxWidth: .infinity)
+                .frame(height: 140)
+                .clipped()
+            }
 
             JOPrimaryButton("完成") {
                 dismiss()

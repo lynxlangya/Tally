@@ -110,6 +110,7 @@ final class ImportExportViewModel: ObservableObject {
 
             do {
                 let result = try await runImport(fileURL: fileURL, kind: kind)
+                NotificationCenter.default.post(name: .billDidChange, object: nil)
                 importResultDialog = ImportResultDialog(
                     title: "导入结果",
                     importedCount: result.importedCount,

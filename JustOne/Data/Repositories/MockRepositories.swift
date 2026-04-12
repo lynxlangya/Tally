@@ -83,6 +83,11 @@ final class MockBillRepository: BillRepository {
         return Array(Set(years)).sorted()
     }
 
+    func delete(id: UUID) throws {
+        guard storage[id] != nil else { throw RepositoryError.notFound }
+        storage.removeValue(forKey: id)
+    }
+
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
         guard let record = storage[id] else { throw RepositoryError.notFound }
         let updated = BillRecord(

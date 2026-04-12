@@ -6,13 +6,15 @@ final class DIContainer {
         let category: CategoryRepository
         let recurring: RecurringRepository
         let trash: TrashRepository
+        let importWrite: ImportWriteRepository?
 
         static func live(context: NSManagedObjectContext) -> Repositories {
             Repositories(
                 bill: CoreDataBillRepository(context: context),
                 category: CoreDataCategoryRepository(context: context),
                 recurring: CoreDataRecurringRepository(context: context),
-                trash: CoreDataTrashRepository(context: context)
+                trash: CoreDataTrashRepository(context: context),
+                importWrite: CoreDataImportWriteRepository(context: context)
             )
         }
 
@@ -21,7 +23,8 @@ final class DIContainer {
                 bill: bill,
                 category: NoopCategoryRepository(),
                 recurring: NoopRecurringRepository(),
-                trash: NoopTrashRepository()
+                trash: NoopTrashRepository(),
+                importWrite: nil
             )
         }
     }
@@ -40,7 +43,7 @@ final class DIContainer {
                     billRepository: repositories.bill,
                     categoryRepository: repositories.category,
                     recurringRepository: repositories.recurring,
-                    managedObjectContext: context
+                    importWriteRepository: repositories.importWrite
                 ),
                 recurring: DefaultRecurringService(
                     recurringRepository: repositories.recurring,

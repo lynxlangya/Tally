@@ -118,7 +118,9 @@ final class CSVImportPipelineTests: XCTestCase {
         }
     }
 
+    @MainActor
     func testDefaultImportExportServiceCSVPreviewAndImportFlow() async throws {
+        let now = parseLocalDate("2026-02-01 09:00:00")
         let categoryId = UUID()
         let categoryRepository = MockCategoryRepository(seed: [
             CategoryRecord(
@@ -132,10 +134,14 @@ final class CSVImportPipelineTests: XCTestCase {
             )
         ])
         let billRepository = MockBillRepository()
+        let originalSnapshot = WidgetDataStore.loadSnapshot()
+        WidgetDataStore.saveSnapshot(.placeholder)
+        defer { WidgetDataStore.saveSnapshot(originalSnapshot) }
         let service = DefaultImportExportService(
             billRepository: billRepository,
             categoryRepository: categoryRepository,
-            recurringRepository: NoopRecurringRepository()
+            recurringRepository: NoopRecurringRepository(),
+            nowProvider: { now }
         )
 
         let csv = """
@@ -157,8 +163,12 @@ final class CSVImportPipelineTests: XCTestCase {
         XCTAssertEqual(result.skippedCount, 0)
         XCTAssertEqual(result.failedCount, 1)
         XCTAssertEqual(try billRepository.list().count, 1)
+        let snapshot = WidgetDataStore.loadSnapshot()
+        XCTAssertEqual(snapshot.quickEntry.todayExpenseCents, 1_000)
+        XCTAssertEqual(snapshot.summary.monthExpenseCents, 1_000)
     }
 
+    @MainActor
     func testPreviewImportBackupCountsDuplicateBillIDAsConflict() async throws {
         let service = DefaultImportExportService(
             billRepository: MockBillRepository(),
@@ -221,7 +231,8 @@ final class CSVImportPipelineTests: XCTestCase {
         XCTAssertEqual(preview.failedCount, 0)
     }
 
-    func testImportBackupRequiresManagedObjectContext() async throws {
+    @MainActor
+    func testImportBackupRequiresImportWriteRepository() async throws {
         let service = DefaultImportExportService(
             billRepository: MockBillRepository(),
             categoryRepository: MockCategoryRepository(),
@@ -245,7 +256,7 @@ final class CSVImportPipelineTests: XCTestCase {
 
         do {
             _ = try await service.importBackup(from: fileURL)
-            XCTFail("expected importBackup to fail without managed object context")
+            XCTFail("expected importBackup to fail without import write repository")
         } catch {
             XCTAssertTrue(error.localizedDescription.contains("导入环境不可用"))
         }

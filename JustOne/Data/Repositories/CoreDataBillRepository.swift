@@ -168,6 +168,16 @@ final class CoreDataBillRepository: BillRepository {
         }
     }
 
+    func delete(id: UUID) throws {
+        try context.performAndWaitThrowing {
+            let object = try fetchBillObject(id: id)
+            context.delete(object)
+            if context.hasChanges {
+                try context.save()
+            }
+        }
+    }
+
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
         try context.performAndWaitThrowing {
             let object = try fetchBillObject(id: id)
