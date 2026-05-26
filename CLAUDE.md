@@ -2,43 +2,43 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-JustOne 是一个 iOS / iPadOS 单币种（CNY）记账 App，SwiftUI + Core Data + WidgetKit。Xcode 26.5、iOS deployment target 26.2、Swift 5.0。Bundle ID `com.langya.JustOne`，App Group `group.com.langya.JustOne`，URL Scheme `justone://`。中文沟通（review 文档、任务、注释均为中文）。
+Tally 是一个 iOS / iPadOS 单币种（CNY）记账 App，SwiftUI + Core Data + WidgetKit。Xcode 26.5、iOS deployment target 26.2、Swift 5.0。Bundle ID `com.langya.Tally`，App Group `group.com.langya.Tally`，URL Scheme `tally://`。中文沟通（review 文档、任务、注释均为中文）。
 
 ## 常用命令
 
-构建 / 运行（默认走 `JustOne` scheme + iPhone 17 模拟器；其他可用机型见 `xcrun simctl list devices available iPhone`）：
+构建 / 运行（默认走 `Tally` scheme + iPhone 17 模拟器；其他可用机型见 `xcrun simctl list devices available iPhone`）：
 
 ```bash
-xcodebuild -project JustOne.xcodeproj -scheme JustOne \
+xcodebuild -project Tally.xcodeproj -scheme Tally \
   -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
-跑全量测试（`JustOneTests` 是单元测试 target，host 在 `JustOne.app` 上；`JustOneTests.xcscheme` 是测试入口）：
+跑全量测试（`TallyTests` 是单元测试 target，host 在 `Tally.app` 上；`TallyTests.xcscheme` 是测试入口）：
 
 ```bash
-xcodebuild -project JustOne.xcodeproj -scheme JustOne \
+xcodebuild -project Tally.xcodeproj -scheme Tally \
   -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
-跑单个测试 / 单个类（`-only-testing:JustOneTests/<Class>/<method>`）：
+跑单个测试 / 单个类（`-only-testing:TallyTests/<Class>/<method>`）：
 
 ```bash
-xcodebuild -project JustOne.xcodeproj -scheme JustOne \
+xcodebuild -project Tally.xcodeproj -scheme Tally \
   -destination 'platform=iOS Simulator,name=iPhone 17' test \
-  -only-testing:JustOneTests/HomeViewModelTests/testDeleteBillRemovesItemFromGroupsAndRepository
+  -only-testing:TallyTests/HomeViewModelTests/testDeleteBillRemovesItemFromGroupsAndRepository
 ```
 
 没有 SwiftLint / SwiftFormat 配置，依赖纯 Xcode 工具链；不要引入额外脚手架。
 
 ## 架构（必读，强约束）
 
-完整规则在 [JustOne/Core/ArchitectureRules.md](JustOne/Core/ArchitectureRules.md)，依赖方向：**Features → Services → Repositories → Data**，Core 横切但不反向依赖任何层。
+完整规则在 [Tally/Core/ArchitectureRules.md](Tally/Core/ArchitectureRules.md)，依赖方向：**Features → Services → Repositories → Data**，Core 横切但不反向依赖任何层。
 
-- `JustOne/App/` — 入口。`JustOneApp` 启动时跑 `RecurringService.runCatchUp(maxDays: 60)` 补齐定时账单 + `WidgetSnapshotService.refresh` 刷新 widget。`AppEnvironment.live` / `.preview` 通过 EnvironmentValues 注入 `DIContainer`，`DIContainer` 集中创建 `Repositories`（CoreData 实现）与 `Services`（含 Stub 与真实实现）。Feature/VM 不能直接 `init` 任何 repo / service。
-- `JustOne/Features/` — SwiftUI View + `@MainActor` ObservableObject ViewModel，每个子目录是一块业务（Home / QuickEntry / BillsList / Categories / Recurring / Settings / Profile / Debug / AppShell）。**禁止** 在该层出现 `NSManagedObjectContext` / `NSFetchRequest` / `PersistenceController` / `import CoreData`，目前已干净，新增代码不要打破。
-- `JustOne/Services/` — 业务编排协议 + Stub + 真实实现（`DefaultRecurringService`、`DefaultImportExportService`、`StubExportService`、`StubSecurityService`、`CoreDataSeedService`）。`WidgetSnapshotService` 是个静态 enum，不走 DI。
-- `JustOne/Data/` — `PersistenceController`（懒加载 `JustOne.xcdatamodeld`，store URL 在 `NSPersistentContainer.defaultDirectoryURL()/JustOne.sqlite`，开 `FileProtectionType.complete`，自动迁移），`CoreDataBillRepository` 等 4 个真实仓库 + `CoreDataImportWriteRepository`（导入专用写入路径）+ `MockRepositories`（Preview / Debug / 测试用）+ `BillRecordMapper`。所有真实实现走 `context.performAndWaitThrowing { ... }`。
-- `JustOne/Core/` — 横切代码：`Domain/`（`BillType` `BillDraft` `BillRecord` `CategoryRecord` `RecurringTaskRecord` + `SystemCategories` 中的"未分类" ID），`Utilities/`，`Theme/`，`UIComponents/`（`JO*` 前缀的 SwiftUI 组件），`PreviewKit/PreviewGallery`，`DeepLink/DeepLinkRouter`，`Recurring/RecurringScheduler`+`RepeatRule`，`Services/ReminderNotificationManager`。
+- `Tally/App/` — 入口。`TallyApp` 启动时跑 `RecurringService.runCatchUp(maxDays: 60)` 补齐定时账单 + `WidgetSnapshotService.refresh` 刷新 widget。`AppEnvironment.live` / `.preview` 通过 EnvironmentValues 注入 `DIContainer`，`DIContainer` 集中创建 `Repositories`（CoreData 实现）与 `Services`（含 Stub 与真实实现）。Feature/VM 不能直接 `init` 任何 repo / service。
+- `Tally/Features/` — SwiftUI View + `@MainActor` ObservableObject ViewModel，每个子目录是一块业务（Home / QuickEntry / BillsList / Categories / Recurring / Settings / Profile / Debug / AppShell）。**禁止** 在该层出现 `NSManagedObjectContext` / `NSFetchRequest` / `PersistenceController` / `import CoreData`，目前已干净，新增代码不要打破。
+- `Tally/Services/` — 业务编排协议 + Stub + 真实实现（`DefaultRecurringService`、`DefaultImportExportService`、`StubExportService`、`StubSecurityService`、`CoreDataSeedService`）。`WidgetSnapshotService` 是个静态 enum，不走 DI。
+- `Tally/Data/` — `PersistenceController`（懒加载 `Tally.xcdatamodeld`，store URL 在 `NSPersistentContainer.defaultDirectoryURL()/Tally.sqlite`，开 `FileProtectionType.complete`，自动迁移），`CoreDataBillRepository` 等 4 个真实仓库 + `CoreDataImportWriteRepository`（导入专用写入路径）+ `MockRepositories`（Preview / Debug / 测试用）+ `BillRecordMapper`。所有真实实现走 `context.performAndWaitThrowing { ... }`。
+- `Tally/Core/` — 横切代码：`Domain/`（`BillType` `BillDraft` `BillRecord` `CategoryRecord` `RecurringTaskRecord` + `SystemCategories` 中的"未分类" ID），`Utilities/`，`Theme/`，`UIComponents/`（`JO*` 前缀的 SwiftUI 组件），`PreviewKit/PreviewGallery`，`DeepLink/DeepLinkRouter`，`Recurring/RecurringScheduler`+`RepeatRule`，`Services/ReminderNotificationManager`。
 
 完整组件依赖图在 [Architecture.mmd](Architecture.mmd)（mermaid 源）和 `Architecture.png`。
 
@@ -50,16 +50,16 @@ xcodebuild -project JustOne.xcodeproj -scheme JustOne \
 - **"未分类"系统分类**：UUID 写死在 `SystemCategories`，`isSystem=true`，删除自定义分类时 `CategoryRepository.delete(id:migrateTo:)` 把账单迁过去；不要让它被 UI 删掉。
 - **删除策略（本轮发布锁定）**：UI 走永久删除——`BillRepository.delete(id:)` / `TrashRepository.deleteForever(id:)`。`softDelete` / `restore` / `purgeExpired` 协议方法保留但本轮不接 UI，不要新增回收站入口（来源：[Tasks/21_Release_risk_cleanup.md](Tasks/21_Release_risk_cleanup.md)）。
 - **数据刷新通信**：写操作（新建 / 编辑 / 删除 / 导入 / 定时补齐）完成后发 `NotificationCenter.default.post(name: .billDidChange, object: nil)`（见 `Core/Utilities/AppEvents.swift`），Home / BillsList / Widget 监听这个通知再各自 reload。Widget 走 `WidgetSnapshotService.refresh(using:)` 写共享 App Group + `WidgetCenter.reloadTimelines`。
-- **Deep Link**：scheme `justone://`，已知路由 `quickEntry` / `home` / `statistics`（`DeepLinkRouter`）。
+- **Deep Link**：scheme `tally://`，已知路由 `quickEntry` / `home` / `statistics`（`DeepLinkRouter`）。
 - **定时账单**：`DefaultRecurringService.runCatchUp(maxDays:)` 在启动 / 回到前台时跑，按 `RepeatRule`（daily / weeklyMonday / weeklySunday / monthlyFirst / monthlyLast）从 `nextFireDate` 推进到 `now`，写 `BillDraft(isFromRecurring: true)`，落库前用 `detectDuplicate` 防同标的同金额同时间双写。
 
 ## Widget
 
-`JustOneWidgets` 是 WidgetKit extension，包含 `QuickEntryWidget`（点击通过 `justone://quickEntry` 拉起记账）与 `SummaryTrendWidget`（月度收支 + 7 日 sparkline）。数据由 App 进程通过 [Shared/WidgetSupport/WidgetDataStore.swift](Shared/WidgetSupport/WidgetDataStore.swift) 写入 App Group UserDefaults，Widget 进程读。两者通过 `WidgetKind.quickEntry` / `WidgetKind.summaryTrend` 字符串绑定。
+`TallyWidgets` 是 WidgetKit extension，包含 `QuickEntryWidget`（点击通过 `tally://quickEntry` 拉起记账）与 `SummaryTrendWidget`（月度收支 + 7 日 sparkline）。数据由 App 进程通过 [Shared/WidgetSupport/WidgetDataStore.swift](Shared/WidgetSupport/WidgetDataStore.swift) 写入 App Group UserDefaults，Widget 进程读。两者通过 `WidgetKind.quickEntry` / `WidgetKind.summaryTrend` 字符串绑定。
 
 ## 测试
 
-XCTest + `@testable import JustOne`。`InMemoryBillRepository` / `InMemoryRecurringRepository` 等测试替身在 `JustOneTests/TestDoubles.swift`，**真实 CoreData 走 `PersistenceController(inMemory: true)`**（见 `CoreDataImportWriteRepositoryTests`）。`@MainActor` ViewModel 测试用 `await MainActor.run { ... }` 包一层。`HomeViewModel` / `BillsListViewModel` 等都接受 `nowProvider: () -> Date` 注入用于固化时间。
+XCTest + `@testable import Tally`。`InMemoryBillRepository` / `InMemoryRecurringRepository` 等测试替身在 `TallyTests/TestDoubles.swift`，**真实 CoreData 走 `PersistenceController(inMemory: true)`**（见 `CoreDataImportWriteRepositoryTests`）。`@MainActor` ViewModel 测试用 `await MainActor.run { ... }` 包一层。`HomeViewModel` / `BillsListViewModel` 等都接受 `nowProvider: () -> Date` 注入用于固化时间。
 
 ## 任务与 Review 流程（项目惯例）
 

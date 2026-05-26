@@ -30,13 +30,13 @@ struct WidgetSnapshot: Codable, Equatable {
 }
 
 enum WidgetKind {
-    static let quickEntry = "JustOneQuickEntryWidget"
-    static let summaryTrend = "JustOneSummaryTrendWidget"
+    static let quickEntry = "TallyQuickEntryWidget"
+    static let summaryTrend = "TallySummaryTrendWidget"
 }
 
 enum WidgetDataStore {
-    static let appGroupId = "group.com.langya.JustOne"
-    private static let snapshotKey = "justone.widget.snapshot"
+    static let appGroupId = "group.com.langya.Tally"
+    private static let snapshotKey = "tally.widget.snapshot"
 
     static func loadSnapshot() -> WidgetSnapshot {
         guard let data = sharedDefaults()?.data(forKey: snapshotKey),

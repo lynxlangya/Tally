@@ -1,15 +1,15 @@
-# JustOne App Store 提交前置条件清单（2026-02-07）
+# Tally App Store 提交前置条件清单（2026-02-07）
 
 ## A. 账号与证书（必须）
 - [ ] Apple Developer Program 处于有效状态。
-- [ ] App Store Connect 已创建 App 记录（Bundle ID: `com.langya.JustOne`）。
+- [ ] App Store Connect 已创建 App 记录（Bundle ID: `com.langya.Tally`）。
 - [ ] Distribution 证书可用（建议使用 Automatic Signing + Xcode Managed Profiles）。
 - [ ] App Target 与 Widget Target 的签名和 Team 一致。
-- [ ] App Group `group.com.langya.JustOne` 在 Apple Developer 后台已启用并绑定到两个 Target 的 App ID。
+- [ ] App Group `group.com.langya.Tally` 在 Apple Developer 后台已启用并绑定到两个 Target 的 App ID。
 
 ## B. 工程与合规（必须）
 - [x] Release 构建可通过（本地已验证）。
-- [x] 深链 URL Scheme 已配置（`justone`）。
+- [x] 深链 URL Scheme 已配置（`tally`）。
 - [x] 隐私清单文件已添加：`Shared/PrivacyInfo.xcprivacy`。
 - [ ] 在 Archive（真机签名）模式下执行 `Validate App` 并通过。
 - [ ] Export Compliance（加密合规）在 App Store Connect 回答完成。
@@ -29,7 +29,7 @@
 - [ ] 联系信息、版权信息、审核备注填写完整。
 
 ## E. 发布前质量门禁（强烈建议）
-- [ ] 执行单测：`JustOneTests` 全量通过。
+- [ ] 执行单测：`TallyTests` 全量通过。
 - [ ] 真机回归：新增账单、编辑账单、分类编辑、定时记账补跑、Widget 跳转。
 - [ ] 离线/重启场景验证（CoreData 数据一致性）。
 - [ ] 跨时区编辑回归验证（日期口径不漂移）。

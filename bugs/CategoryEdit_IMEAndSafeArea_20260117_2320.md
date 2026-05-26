@@ -20,5 +20,5 @@
 
 ## 涉及文件
 
-- JustOne/Core/UIComponents/JOLimitedTextField.swift
-- JustOne/Features/Categories/CategoryEditSheet.swift
+- Tally/Core/UIComponents/JOLimitedTextField.swift
+- Tally/Features/Categories/CategoryEditSheet.swift

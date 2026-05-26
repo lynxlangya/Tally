@@ -19,7 +19,7 @@
      - `appVersion`
      - `timezone`
    - 文件名规范：
-     - `JustOne_Backup_YYYYMMDD-HHmmss.json`
+     - `Tally_Backup_YYYYMMDD-HHmmss.json`
 
 2. 导出 CSV（账单）
    - 字段顺序固定为：

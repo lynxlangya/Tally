@@ -1,4 +1,4 @@
-# JustOne（记账 App）开发任务路线图（小步迭代/边验收边交付）
+# Tally（记账 App）开发任务路线图（小步迭代/边验收边交付）
 
 > 原则：每一步都可编译/可运行/可演示；每个任务都有明确验收标准；任务小、细、可切片。
 
@@ -14,10 +14,10 @@
 
 - 步骤（现状）
   1. 已建立目录分层：`App/`、`Features/`、`Services/`、`Data/`、`Core/`、`Resources/`。
-  2. 架构规则文档：`JustOne/Core/ArchitectureRules.md`。
-  3. 依赖注入集中在 `JustOne/App/DIContainer.swift` + `JustOne/App/AppEnvironment.swift`。
+  2. 架构规则文档：`Tally/Core/ArchitectureRules.md`。
+  3. 依赖注入集中在 `Tally/App/DIContainer.swift` + `Tally/App/AppEnvironment.swift`。
 - 验收标准（已覆盖）
-  - ✅ Feature/VM 未直接使用 CoreData API（`JustOne/Features/` 内无 CoreData 引用）。
+  - ✅ Feature/VM 未直接使用 CoreData API（`Tally/Features/` 内无 CoreData 引用）。
   - ✅ Repo/Service 实现由 DIContainer 统一创建并注入。
   - ✅ 架构规则文档可定位与阅读。
 
@@ -26,9 +26,9 @@
 ### 0.2 Domain 约束与关键枚举（统一口径）
 
 - 步骤（现状）
-  1. 枚举定义：`BillType`/`ExportFormat`/`ThemeMode`（`JustOne/Core/Domain/Enums.swift`）。
-  2. 金额与格式：`Money` + `MoneyFormatter`（`JustOne/Core/Utilities/Money.swift`）。
-  3. 日期口径：`DayKeyFormatter`（`JustOne/Core/Utilities/DayKeyFormatter.swift`）。
+  1. 枚举定义：`BillType`/`ExportFormat`/`ThemeMode`（`Tally/Core/Domain/Enums.swift`）。
+  2. 金额与格式：`Money` + `MoneyFormatter`（`Tally/Core/Utilities/Money.swift`）。
+  3. 日期口径：`DayKeyFormatter`（`Tally/Core/Utilities/DayKeyFormatter.swift`）。
 - 验收标准（已覆盖）
   - ✅ UI 金额显示走 `JOAmountText` -> `MoneyFormatter`。
   - ✅ 分组口径统一使用 occurredLocalDate（`HomeViewModel`、`BillsListViewModel`）。
@@ -39,20 +39,20 @@
 ### 0.3 CoreData 实体与字段（模型已固化）
 
 - 步骤（现状）
-  1. 模型使用 `.xcdatamodeld`：`JustOne/JustOne.xcdatamodeld/JustOne.xcdatamodel/contents`。
+  1. 模型使用 `.xcdatamodeld`：`Tally/Tally.xcdatamodeld/Tally.xcdatamodel/contents`。
   2. Bill/Category/RecurringTask 字段已落地，Category 额外包含 `colorHex`。
   3. `CoreDataSeedService` 负责预置分类与系统“未分类”。
 - 验收标准（已覆盖）
   - ✅ Bill 字段包含 id/type/amount/occurredAtUTC/tzId/tzOffset/occurredLocalDate/createdAt/updatedAt/deletedAt/trashUntil。
   - ✅ Category/RecurringTask 字段齐全并可持久化。
-  - ✅ “未分类”系统分类存在且 isSystem=true（`JustOne/Data/CoreDataSeedService.swift`）。
+  - ✅ “未分类”系统分类存在且 isSystem=true（`Tally/Data/CoreDataSeedService.swift`）。
 
 ---
 
 ### 0.4 时区策略基线（已落地）
 
 - 步骤（现状）
-  1. `TimePolicy.snapshot` 生成 occurredAtUTC/tzId/tzOffset/occurredLocalDate（`JustOne/Core/Utilities/TimePolicy.swift`）。
+  1. `TimePolicy.snapshot` 生成 occurredAtUTC/tzId/tzOffset/occurredLocalDate（`Tally/Core/Utilities/TimePolicy.swift`）。
   2. 新增/编辑账单写入时区快照（`CoreDataBillRepository.swift`、`QuickEntryViewModel.swift`）。
   3. 列表分组/筛选基于 occurredLocalDate（`HomeViewModel.swift`、`BillsListViewModel.swift`）。
 - 验收标准（已覆盖）
@@ -65,9 +65,9 @@
 ### 0.5 Repository 协议 + 最小实现（已落地）
 
 - 步骤（现状）
-  1. 协议定义：`JustOne/Data/Repositories/RepositoryProtocols.swift`。
+  1. 协议定义：`Tally/Data/Repositories/RepositoryProtocols.swift`。
   2. CoreData 实现：`CoreDataBillRepository`/`CoreDataCategoryRepository`/`CoreDataRecurringRepository`/`CoreDataTrashRepository`。
-  3. Preview/测试可用 Mock：`JustOne/Data/Repositories/MockRepositories.swift`。
+  3. Preview/测试可用 Mock：`Tally/Data/Repositories/MockRepositories.swift`。
 - 验收标准（已覆盖）
   - ✅ ViewModel 仅依赖协议（`HomeViewModel`、`QuickEntryViewModel`、`CategoriesViewModel`）。
   - ✅ Preview 可注入 inMemory CoreData（`PersistenceController.preview`）。
@@ -78,7 +78,7 @@
 ### 0.6 Services 骨架（已存在 Stub）
 
 - 步骤（现状）
-  1. 协议定义：`ExportService`/`RecurringService`/`SecurityService`（`JustOne/Services/`）。
+  1. 协议定义：`ExportService`/`RecurringService`/`SecurityService`（`Tally/Services/`）。
   2. Stub 实现已接入 DIContainer。
 - 验收标准（已覆盖）
   - ✅ Feature 仅依赖协议，当前 Stub 不阻断编译。
@@ -89,7 +89,7 @@
 ### 0.7 Debug 验证页（已存在）
 
 - 步骤（现状）
-  1. DebugView 提供 seed/随机账单/刷新操作（`JustOne/Features/Debug/`）。
+  1. DebugView 提供 seed/随机账单/刷新操作（`Tally/Features/Debug/`）。
   2. 仅 Debug 构建通过 Profile 入口打开。
 - 验收标准（已覆盖）
   - ✅ Debug 下可验证 seed -> create -> fetch 数据闭环。
@@ -102,9 +102,9 @@
 ### 1.0 Design System 基线（Tokens + 组件库 + Preview）
 
 - 步骤（现状）
-  1. Tokens 已落在 `JustOne/Core/Theme/`（Colors/Typography/Radii/Spacing/Shadows）。
-  2. 组件库已落在 `JustOne/Core/UIComponents/`（JOCard/JOPrimaryButton/JOIconButton/JOSegmentedControl/JOAmountText/JOListRow/JOChip/JOFloatingAddButton/JOSettingRow/JOBackButton 等）。
-  3. 组件预览页 `JustOne/Core/PreviewKit/PreviewGallery.swift` 已存在。
+  1. Tokens 已落在 `Tally/Core/Theme/`（Colors/Typography/Radii/Spacing/Shadows）。
+  2. 组件库已落在 `Tally/Core/UIComponents/`（JOCard/JOPrimaryButton/JOIconButton/JOSegmentedControl/JOAmountText/JOListRow/JOChip/JOFloatingAddButton/JOSettingRow/JOBackButton 等）。
+  3. 组件预览页 `Tally/Core/PreviewKit/PreviewGallery.swift` 已存在。
 - 验收标准（已覆盖）
   - ✅ Home/Profile/BillsList 等页面引用 tokens/组件。
   - ✅ PreviewGallery 可预览核心组件状态。
@@ -163,7 +163,7 @@
 - 验收标准（已覆盖）
   - ✅ App 启动可加载 CoreData store。
   - ✅ Preview 可注入 inMemory store。
-  - ✅ 保护策略可定位（`JustOne/Data/PersistenceController.swift`）。
+  - ✅ 保护策略可定位（`Tally/Data/PersistenceController.swift`）。
 
 ### 2.2 定义数据模型（Bill/Category/RecurringTask）
 
@@ -340,7 +340,7 @@
 
 - 步骤
   1. Profile -> Settings -> RecurringTasks 入口
-  2. 列表展示任务：类型/分类/金额/时间/启用状态（对照 `demos/justone_profile_&_settings_6`）
+  2. 列表展示任务：类型/分类/金额/时间/启用状态（对照 `demos/tally_profile_&_settings_6`）
   3. 新建/编辑任务页：选择类型/分类/金额/时间/备注/启用
 - 验收标准
   - ✅ 任务 CRUD 可用并持久化
@@ -386,7 +386,7 @@
 
 - 步骤
   1. Settings 添加导出入口
-  2. 导出页面 UI 对照 `demos/justone_profile_&_settings_8`（CSV/PDF 切换、日期范围）
+  2. 导出页面 UI 对照 `demos/tally_profile_&_settings_8`（CSV/PDF 切换、日期范围）
   3. 调用 ExportService 并弹出分享面板
 - 验收标准
   - ✅ 可从 Settings 一键导出 CSV（本月）
@@ -403,7 +403,7 @@
   1. SecurityService：
      - isLockEnabled
      - authenticate()（LocalAuthentication）
-  2. 解锁设置页 UI 对照 `demos/justone_profile_&_settings_5`
+  2. 解锁设置页 UI 对照 `demos/tally_profile_&_settings_5`
   3. Settings 添加开关：启用解锁（占位）
   4. App 进入前台/启动时若启用则弹解锁（可先简单实现）
 - 验收标准
@@ -422,7 +422,7 @@
 
 ---
 
-## 10. 统计分析（对照 `demos/justone_statistics_analysis`）
+## 10. 统计分析（对照 `demos/tally_statistics_analysis`）
 
 ### 10.1 统计聚合接口
 
@@ -437,7 +437,7 @@
 
 - 步骤
   1. 实现统计页面：月份选择、支/收切换、折线图/排行列表
-  2. UI 对照 `demos/justone_statistics_analysis`，图表可先用 SwiftUI Shape 占位
+  2. UI 对照 `demos/tally_statistics_analysis`，图表可先用 SwiftUI Shape 占位
 - 验收标准
   - ✅ 统计页结构与 demo 对齐（趋势图 + 排行列表）
   - ✅ 统计数据来自 StatisticsService
@@ -446,7 +446,7 @@
 
 ## 11. 设置扩展页面（可选/非 MVP）
 
-### 11.1 账号设置页（对照 `demos/justone_profile_&_settings_3`）
+### 11.1 账号设置页（对照 `demos/tally_profile_&_settings_3`）
 
 - 步骤
   1. 账号页 UI：头像/账号信息/同步/修改密码（占位）
@@ -454,7 +454,7 @@
 - 验收标准
   - ✅ UI 结构与 demo 对齐
 
-### 11.2 主题设置页（对照 `demos/justone_profile_&_settings_9`）
+### 11.2 主题设置页（对照 `demos/tally_profile_&_settings_9`）
 
 - 步骤
   1. 主题模式（浅色/深色/跟随系统）
@@ -463,7 +463,7 @@
   - ✅ UI 结构与 demo 对齐
   - ✅ 主题设置可持久化（UserDefaults）
 
-### 11.3 语言设置页（对照 `demos/justone_profile_&_settings_11`）
+### 11.3 语言设置页（对照 `demos/tally_profile_&_settings_11`）
 
 - 步骤
   1. 语言列表 UI（跟随系统/简中/英文等）
@@ -471,7 +471,7 @@
 - 验收标准
   - ✅ UI 结构与 demo 对齐
 
-### 11.4 小组件预览页（对照 `demos/justone_profile_&_settings_2`）
+### 11.4 小组件预览页（对照 `demos/tally_profile_&_settings_2`）
 
 - 步骤
   1. 小组件预览 UI 与说明文案

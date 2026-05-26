@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tally 主题设置界面</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec37",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102213",
+                        "surface-dark": "#162b1a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased selection:bg-primary selection:text-background-dark text-gray-900 dark:text-white">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+<div class="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-gray-200/50 dark:border-white/5">
+<div class="flex items-center justify-between px-4 pb-4 pt-12 md:pt-8">
+<button class="flex items-center justify-center p-2 -ml-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors group">
+<span class="material-symbols-outlined text-[26px] text-gray-900 dark:text-white group-hover:text-primary transition-colors">chevron_left</span>
+</button>
+<h1 class="text-lg font-semibold tracking-wide text-gray-900 dark:text-white">主题设置</h1>
+<div class="w-10"></div>
+</div>
+</div>
+<div class="flex-1 px-5 max-w-md mx-auto w-full flex flex-col pt-6 gap-8">
+<section>
+<h2 class="px-1 text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-semibold mb-4">外观模式</h2>
+<div class="grid grid-cols-3 gap-3">
+<button class="group relative flex flex-col items-center gap-3">
+<div class="w-full aspect-[4/5] rounded-2xl bg-[#e5e7eb] border-2 border-transparent group-hover:border-gray-300 transition-all overflow-hidden relative shadow-sm">
+<div class="absolute inset-x-3 top-3 h-1.5 rounded-full bg-white opacity-60"></div>
+<div class="absolute inset-x-3 top-6 bottom-0 bg-white rounded-t-xl shadow-sm p-2">
+<div class="w-6 h-6 rounded-full bg-gray-100 mb-2"></div>
+<div class="h-1.5 w-12 bg-gray-100 rounded-full mb-1.5"></div>
+<div class="h-1.5 w-8 bg-gray-100 rounded-full"></div>
+</div>
+</div>
+<span class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">浅色模式</span>
+</button>
+<button class="group relative flex flex-col items-center gap-3">
+<div class="w-full aspect-[4/5] rounded-2xl bg-[#0c1a0e] border-2 border-primary transition-all overflow-hidden relative shadow-lg shadow-black/20">
+<div class="absolute inset-x-3 top-3 h-1.5 rounded-full bg-[#162b1a] opacity-60"></div>
+<div class="absolute inset-x-3 top-6 bottom-0 bg-[#162b1a] rounded-t-xl shadow-inner border-t border-white/5 p-2">
+<div class="w-6 h-6 rounded-full bg-white/5 mb-2 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+<div class="h-1.5 w-12 bg-white/10 rounded-full mb-1.5"></div>
+<div class="h-1.5 w-8 bg-white/10 rounded-full"></div>
+</div>
+<div class="absolute bottom-2 right-2 bg-primary text-background-dark rounded-full p-0.5 shadow-lg">
+<span class="material-symbols-outlined text-[14px] font-bold">check_small</span>
+</div>
+</div>
+<span class="text-xs sm:text-sm font-medium text-primary">深色模式</span>
+</button>
+<button class="group relative flex flex-col items-center gap-3">
+<div class="w-full aspect-[4/5] rounded-2xl bg-gradient-to-br from-[#e5e7eb] from-50% to-[#0c1a0e] to-50% border-2 border-transparent group-hover:border-gray-500/30 transition-all overflow-hidden relative shadow-sm">
+<div class="absolute inset-x-3 top-3 h-1.5 rounded-full bg-white/40 backdrop-blur-[2px]"></div>
+<div class="absolute inset-x-3 top-6 bottom-0 bg-white/90 dark:bg-[#162b1a]/90 rounded-t-xl shadow-sm p-2 flex flex-col items-center justify-center backdrop-blur-sm">
+<span class="material-symbols-outlined text-2xl text-gray-500 dark:text-gray-400">settings_brightness</span>
+</div>
+</div>
+<span class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors whitespace-nowrap">跟随系统</span>
+</button>
+</div>
+</section>
+<section>
+<h2 class="px-1 text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400 font-semibold mb-4">强调色</h2>
+<div class="bg-white dark:bg-surface-dark rounded-3xl p-6 shadow-sm ring-1 ring-black/5 dark:ring-white/5">
+<div class="grid grid-cols-4 sm:grid-cols-5 gap-y-6 gap-x-4 justify-items-center">
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border-[3px] border-gray-200 dark:border-white/20 group-hover:border-primary/50 transition-colors"></div>
+<div class="w-8 h-8 rounded-full bg-[#13ec37] shadow-sm ring-2 ring-offset-2 ring-offset-white dark:ring-offset-surface-dark ring-[#13ec37]"></div>
+</button>
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-[#fb923c] group-hover:scale-110 transition-transform shadow-sm"></div>
+</button>
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-[#60a5fa] group-hover:scale-110 transition-transform shadow-sm"></div>
+</button>
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-[#a855f7] group-hover:scale-110 transition-transform shadow-sm"></div>
+</button>
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-[#ec4899] group-hover:scale-110 transition-transform shadow-sm"></div>
+</button>
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-[#eab308] group-hover:scale-110 transition-transform shadow-sm"></div>
+</button>
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-[#14b8a6] group-hover:scale-110 transition-transform shadow-sm"></div>
+</button>
+<button class="group relative w-12 h-12 flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-[#ef4444] group-hover:scale-110 transition-transform shadow-sm"></div>
+</button>
+</div>
+</div>
+<p class="mt-3 px-2 text-[13px] text-gray-400 dark:text-white/40 leading-relaxed">
+                    强调色将应用于按钮、图标高亮以及部分图表元素。
+                </p>
+</section>
+</div>
+<div class="mt-auto mb-10 px-6 flex flex-col items-center gap-6">
+</div>
+</div>
+</body></html>

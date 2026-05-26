@@ -20,4 +20,4 @@
 - 若需减少日志，可在 Xcode Scheme 中设置 `OS_ACTIVITY_MODE=disable`（仅影响日志显示）。
 
 ## 涉及文件
-- JustOne/Features/QuickEntry/QuickEntryView.swift
+- Tally/Features/QuickEntry/QuickEntryView.swift

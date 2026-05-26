@@ -52,14 +52,14 @@
 
 1. 稳定性抽离
    - 已将 CSV 解析与校验逻辑从 `DefaultImportExportService` 抽离到独立组件：
-     - `JustOne/Services/ImportExport/CSVImportPipeline.swift`
+     - `Tally/Services/ImportExport/CSVImportPipeline.swift`
    - `DefaultImportExportService` 改为编排职责：
      - 文件读取
      - 调用 pipeline 预检
      - 执行导入写库
 
 2. 回归测试补齐
-   - 新增测试文件：`JustOneTests/CSVImportPipelineTests.swift`
+   - 新增测试文件：`TallyTests/CSVImportPipelineTests.swift`
    - 覆盖点：
      - UTF-8 BOM 解析
      - 列头不匹配拦截

@@ -1,13 +1,13 @@
-# JustOne 项目深度 Review（2026-01-26）
+# Tally 项目深度 Review（2026-01-26）
 
 ## 发现问题（按严重程度）
 
 ### P1 — 性能/可扩展风险：多处“全量读取 + 主线程计算”
 - **现象**：多个 ViewModel 在主线程读取全部账单并做多轮过滤/聚合，数据量增长后会明显拖慢 UI，违背“高效”目标。  
-  - `JustOne/Features/Home/HomeViewModel.swift`：`load()` 每次 `billRepository.list()` → in-memory 过滤当月、分组、再排序。  
-  - `JustOne/Features/BillsList/BillsListViewModel.swift`：`load()` 拉全量后构建趋势/排行/分组，多轮遍历。  
-  - `JustOne/Features/QuickEntry/QuickEntryViewModel.swift`：`loadAvailableYears()` 每次全量扫描以取年份。  
-  - `JustOne/Services/WidgetSnapshotService.swift`：`buildSparkline` 对每一天再遍历账单（近似 O(N * days)）。
+  - `Tally/Features/Home/HomeViewModel.swift`：`load()` 每次 `billRepository.list()` → in-memory 过滤当月、分组、再排序。  
+  - `Tally/Features/BillsList/BillsListViewModel.swift`：`load()` 拉全量后构建趋势/排行/分组，多轮遍历。  
+  - `Tally/Features/QuickEntry/QuickEntryViewModel.swift`：`loadAvailableYears()` 每次全量扫描以取年份。  
+  - `Tally/Services/WidgetSnapshotService.swift`：`buildSparkline` 对每一天再遍历账单（近似 O(N * days)）。
 - **风险**：账单数增长后首页/明细/快捷记账都可能出现卡顿，Widget 刷新也会变慢。  
 - **建议**：  
   1) Repository 增加 **按月/按日范围查询**（直接在 CoreData 层做 predicate + sort），减少上层过滤；  
@@ -16,28 +16,28 @@
 
 ### P2 — 共享数据结构重复，存在“漂移”风险
 - **现象**：`WidgetDataStore` 在 App 与 Widget 两个 target 下各有一份实现。  
-  - `JustOne/Core/WidgetSupport/WidgetDataStore.swift`  
-  - `JustOneWidgets/WidgetDataStore.swift`
+  - `Tally/Core/WidgetSupport/WidgetDataStore.swift`  
+  - `TallyWidgets/WidgetDataStore.swift`
 - **风险**：后续改动容易出现逻辑不一致，导致 Widget 与 App 数据结构不匹配。  
 - **建议**：将该文件移动到 `Shared/` 并勾选两个 target；或通过 Swift Package/共享文件夹统一维护。
 
 ### P2 — Formatter 热路径频繁创建
 - **现象**：`DayKeyFormatter` / `MoneyFormatter` 内部每次调用都会创建 Formatter。  
-  - `JustOne/Core/Utilities/DayKeyFormatter.swift`  
-  - `JustOne/Core/Utilities/Money.swift`
+  - `Tally/Core/Utilities/DayKeyFormatter.swift`  
+  - `Tally/Core/Utilities/Money.swift`
 - **风险**：列表/趋势等高频路径会增加开销。  
 - **建议**：用 `static let` 缓存 DateFormatter / NumberFormatter（与现有 `BillsListViewModel` 静态 formatter 方式一致）。
 
 ### P2 — 主题系统存在“双入口、未贯通”
 - **现象**：`ThemeManager` 维护 theme settings，但实际渲染依赖 `JOTheme.mode` 静态值；两者未联动。  
-  - `JustOne/Core/Theme/ThemeManager.swift`  
-  - `JustOne/Core/Theme/Colors.swift`
+  - `Tally/Core/Theme/ThemeManager.swift`  
+  - `Tally/Core/Theme/Colors.swift`
 - **风险**：未来若开放换肤/模式切换，会出现 UI 不更新或状态分裂。  
 - **建议**：将 `ThemeManager.settings` 驱动到 `JOTheme.mode`，并通过 Environment/ObservableObject 统一更新。
 
 ### P3 — 预置分类更新策略不完整
 - **现象**：`CoreDataSeedService` 只在空库时导入全部默认分类；已有数据时仅补系统分类。  
-  - `JustOne/Data/CoreDataSeedService.swift`
+  - `Tally/Data/CoreDataSeedService.swift`
 - **风险**：当你调整“默认 20/10 类”或图标后，已有用户不会自动补齐新预置。  
 - **建议**：新增“缺失默认分类补齐”策略（仅插入未存在的 preset，保留用户自定义）。
 

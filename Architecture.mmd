@@ -1,7 +1,7 @@
 flowchart TB
   %% App 层
   subgraph AppLayer["App 层 入口 与 依赖注入"]
-    App_JustOneApp["JustOneApp<br/>应用入口"]
+    App_TallyApp["TallyApp<br/>应用入口"]
     App_ContentView["ContentView"]
     App_AppRoot["AppRootView"]
     App_TabScaffold["JOTabScaffold<br/>TabView 自定义 TabBar 与 FAB"]
@@ -9,8 +9,8 @@ flowchart TB
     App_DI["DIContainer<br/>仓库与服务实例"]
   end
 
-  App_JustOneApp --> App_ContentView --> App_AppRoot --> App_TabScaffold
-  App_JustOneApp --> App_AppEnv --> App_DI
+  App_TallyApp --> App_ContentView --> App_AppRoot --> App_TabScaffold
+  App_TallyApp --> App_AppEnv --> App_DI
 
   %% Features 层
   subgraph FeaturesLayer["Features 层 页面 与 ViewModel"]
@@ -102,7 +102,7 @@ flowchart TB
   %% Data 层
   subgraph DataLayer["Data 层 CoreData 与 Repository 实现"]
     D_Persistence["PersistenceController<br/>NSPersistentContainer"]
-    D_Model["JustOne xcdatamodeld<br/>实体 Bill Category RecurringTask"]
+    D_Model["Tally xcdatamodeld<br/>实体 Bill Category RecurringTask"]
     D_BillRepo["CoreDataBillRepository"]
     D_CategoryRepo["CoreDataCategoryRepository"]
     D_RecurringRepo["CoreDataRecurringRepository"]

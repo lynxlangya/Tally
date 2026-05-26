@@ -25,4 +25,4 @@
 
 ## 涉及文件
 
-- JustOne/Features/Categories/CategoryEditSheet.swift
+- Tally/Features/Categories/CategoryEditSheet.swift

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tally 类别管理界面 (深色)</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec37",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102213",
+                        "surface-dark": "#162b1a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased selection:bg-primary selection:text-background-dark">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden">
+<div class="flex items-center px-6 pt-8 pb-4 justify-between sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<button class="text-gray-900 dark:text-white hover:text-primary dark:hover:text-primary transition-colors flex size-10 shrink-0 items-center justify-center rounded-full active:bg-gray-200 dark:active:bg-surface-dark">
+<span class="material-symbols-outlined text-[28px]">arrow_back</span>
+</button>
+<div class="text-sm font-medium text-gray-400 dark:text-white/40 uppercase tracking-widest">类别管理</div>
+<div class="size-10"></div>
+</div>
+<div class="px-6 mb-8 mt-2">
+<div class="flex bg-gray-200 dark:bg-surface-dark rounded-full p-1 relative">
+<div class="w-1/2 flex justify-center items-center py-2 rounded-full bg-white dark:bg-[#25412a] shadow-sm transition-all cursor-pointer">
+<span class="text-gray-900 dark:text-white font-semibold text-sm">支出</span>
+</div>
+<div class="w-1/2 flex justify-center items-center py-2 rounded-full transition-all cursor-pointer hover:bg-black/5 dark:hover:bg-white/5">
+<span class="text-gray-500 dark:text-gray-400 font-medium text-sm">收入</span>
+</div>
+</div>
+</div>
+<div class="flex-1 px-6 pb-24">
+<div class="grid grid-cols-4 gap-x-4 gap-y-8">
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">restaurant</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">餐饮</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">shopping_bag</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">购物</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">directions_bus</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">交通</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">home</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">居住</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">sports_esports</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">娱乐</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">medication</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">医疗</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">school</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">教育</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">flight</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">旅行</span>
+</div>
+<div class="flex flex-col items-center gap-2 group relative">
+<div class="relative flex items-center justify-center size-14 rounded-full bg-gray-200 dark:bg-surface-dark text-gray-700 dark:text-white/90 group-hover:bg-primary group-hover:text-background-dark transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">card_giftcard</span>
+<button class="absolute -top-1 -right-1 flex items-center justify-center size-5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm ring-2 ring-background-light dark:ring-background-dark">
+<span class="material-symbols-outlined text-[14px] font-bold">remove</span>
+</button>
+</div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300 text-center truncate w-full">人情</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="flex items-center justify-center size-14 rounded-full border-2 border-dashed border-gray-400 dark:border-white/20 text-gray-400 dark:text-white/40 group-hover:border-primary group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</div>
+<span class="text-xs font-medium text-gray-400 dark:text-white/40 text-center group-hover:text-primary transition-colors">添加类别</span>
+</div>
+</div>
+</div>
+</div>
+
+</body></html>

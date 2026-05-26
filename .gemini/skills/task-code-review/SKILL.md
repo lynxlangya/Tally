@@ -1,6 +1,6 @@
 ---
 name: task-code-review
-description: JustOne 项目任务级代码评审。输入任务编号后，自动对照 loadmap.md/架构规则，基于未提交(staged/unstaged)改动做 Review：先架构对齐再细节问题，输出中文评审到 review/<任务编号>_review.md。
+description: Tally 项目任务级代码评审。输入任务编号后，自动对照 loadmap.md/架构规则，基于未提交(staged/unstaged)改动做 Review：先架构对齐再细节问题，输出中文评审到 review/<任务编号>_review.md。
 ---
 # 任务 <任务编号> 代码评审
 

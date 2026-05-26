@@ -7,27 +7,27 @@
 
 ## 2. 任务验收对照（16-20）
 - Task 16（架构与入口）：✅  
-  证据：`JustOne/Features/Settings/ImportExportView.swift`、`JustOne/Services/ImportExport/ImportExportService.swift`、`JustOne/App/DIContainer.swift`
+  证据：`Tally/Features/Settings/ImportExportView.swift`、`Tally/Services/ImportExport/ImportExportService.swift`、`Tally/App/DIContainer.swift`
 - Task 17（导出 CSV/JSON）：✅  
-  证据：`JustOne/Services/ImportExport/DefaultImportExportService.swift`
+  证据：`Tally/Services/ImportExport/DefaultImportExportService.swift`
 - Task 18（导入 JSON 预检+执行）：✅  
-  证据：`JustOne/Services/ImportExport/DefaultImportExportService.swift`
+  证据：`Tally/Services/ImportExport/DefaultImportExportService.swift`
 - Task 19（导入 CSV）：✅  
-  证据：`JustOne/Services/ImportExport/CSVImportPipeline.swift`
+  证据：`Tally/Services/ImportExport/CSVImportPipeline.swift`
 - Task 20（稳定性与回归）：✅（本轮继续增强）  
-  证据：`JustOneTests/CSVImportPipelineTests.swift`、`Tasks/20_Import_export_stability_and_regression.md`
+  证据：`TallyTests/CSVImportPipelineTests.swift`、`Tasks/20_Import_export_stability_and_regression.md`
 
 ## 3. 本轮已执行的抽离与封装
-- 已抽离 CSV 解析与校验组件：`JustOne/Services/ImportExport/CSVImportPipeline.swift`
-- 已封装 ViewModel 导入流程：`JustOne/Features/Settings/ImportExportViewModel.swift:38-163`
-- 已收紧导入环境边界：`JustOne/Services/ImportExport/DefaultImportExportService.swift:112-119`
-- 已补充关键回归测试：`JustOneTests/CSVImportPipelineTests.swift:224-252`
-- 已补充时区稳定细节：`JustOne/Services/ImportExport/CSVImportPipeline.swift:57-64`
+- 已抽离 CSV 解析与校验组件：`Tally/Services/ImportExport/CSVImportPipeline.swift`
+- 已封装 ViewModel 导入流程：`Tally/Features/Settings/ImportExportViewModel.swift:38-163`
+- 已收紧导入环境边界：`Tally/Services/ImportExport/DefaultImportExportService.swift:112-119`
+- 已补充关键回归测试：`TallyTests/CSVImportPipelineTests.swift:224-252`
+- 已补充时区稳定细节：`Tally/Services/ImportExport/CSVImportPipeline.swift:57-64`
 
 ## 4. 关键问题清单（按严重度）
 
 ### [P1][Rigidity/Opacity] ImportExport 服务仍是“巨石文件”
-- 位置：`JustOne/Services/ImportExport/DefaultImportExportService.swift:4-876`
+- 位置：`Tally/Services/ImportExport/DefaultImportExportService.swift:4-876`
 - 影响：
   - 导出、CSV 导入、JSON 导入校验、CoreData 写入都在单文件，变更耦合高。
   - 任何新增规则都会扩大回归面，review 成本高。
@@ -36,21 +36,21 @@
   - 第二步：`DefaultImportExportService` 仅保留编排与错误映射。
 
 ### [P2][Duplication] ImportExportView 仍有双份对话框绑定逻辑
-- 位置：`JustOne/Features/Settings/ImportExportView.swift:85-126`
+- 位置：`Tally/Features/Settings/ImportExportView.swift:85-126`
 - 影响：
   - 备份/CSV 的 `confirmationDialog` 模板重复，未来新增导入类型会继续复制。
 - 最小修复建议：
   - 提取一个私有 `importPreviewDialog(...)` 视图修饰封装，参数化 `isPresented/message/confirm/cancel`。
 
 ### [P2][Fragility] 备份导入写库缺少“错误类型分层”测试
-- 位置：`JustOne/Services/ImportExport/DefaultImportExportService.swift:492-567`
+- 位置：`Tally/Services/ImportExport/DefaultImportExportService.swift:492-567`
 - 影响：
   - 当前测试覆盖了 CSV 和部分 JSON 预检，但“写库失败后回滚”没有自动化验证，后续容易回归。
 - 最小修复建议：
   - 增加集成测试：构造写库中途失败，断言 parentContext 无脏提交。
 
 ### [P3][Data Clump] 预检统计与结果展示文案分散
-- 位置：`JustOne/Features/Settings/ImportExportViewModel.swift:165-178`、`JustOne/Features/Settings/ImportExportViewModel.swift:261-274`
+- 位置：`Tally/Features/Settings/ImportExportViewModel.swift:165-178`、`Tally/Features/Settings/ImportExportViewModel.swift:261-274`
 - 影响：
   - 同一统计字段在“预检文案”和“结果弹窗”各自拼接，后续本地化会重复改动。
 - 最小修复建议：
@@ -75,7 +75,7 @@
 3. 抽取 ImportPreview 对话框公共封装，减少视图层重复绑定代码。
 
 ## 8. 本轮验证记录
-- 命令：`xcodebuild -project JustOne.xcodeproj -scheme JustOne -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -only-testing:JustOneTests/CSVImportPipelineTests test`
+- 命令：`xcodebuild -project Tally.xcodeproj -scheme Tally -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -only-testing:TallyTests/CSVImportPipelineTests test`
 - 结果：`TEST SUCCEEDED`
 - 覆盖重点：
   - CSV BOM/列头/行级校验/重复判定/10k 性能
