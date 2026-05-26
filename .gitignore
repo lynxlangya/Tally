@@ -5,3 +5,7 @@ xcuserdata/
 
 # Xcode workspace user settings
 *.xcworkspace/xcuserdata/
+
+# macOS
+.DS_Store
+**/.DS_Store
