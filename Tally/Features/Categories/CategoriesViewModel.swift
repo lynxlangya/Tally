@@ -23,9 +23,8 @@ final class CategoriesViewModel: ObservableObject {
         selectedType = type
         do {
             let fetched = try repository.list(type: type)
-            let visible = fetched.filter { !$0.isSystem }
-            categories = visible
-            userCategoryCount = visible.count
+            categories = fetched
+            userCategoryCount = fetched.filter { !$0.isSystem }.count
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)
@@ -43,7 +42,7 @@ final class CategoriesViewModel: ObservableObject {
             return
         }
 
-        let sortOrder = (categories.map { $0.sortOrder }.max() ?? -1) + 1
+        let sortOrder = (categories.filter { !$0.isSystem }.map { $0.sortOrder }.max() ?? 0) + 1
         let record = CategoryRecord(
             id: UUID(),
             type: selectedType,
@@ -72,6 +71,10 @@ final class CategoriesViewModel: ObservableObject {
             errorMessage = "未找到分类"
             return
         }
+        guard !existing.isSystem else {
+            errorMessage = "系统分类不可编辑"
+            return
+        }
 
         let updated = CategoryRecord(
             id: existing.id,
@@ -92,6 +95,10 @@ final class CategoriesViewModel: ObservableObject {
     }
 
     func deleteCategory(_ category: CategoryRecord) {
+        guard !category.isSystem else {
+            errorMessage = "系统分类不可删除"
+            return
+        }
         do {
             let destination = SystemCategoryID.uncategorized(for: category.type)
             try repository.delete(id: category.id, migrateTo: destination)
@@ -103,6 +110,7 @@ final class CategoriesViewModel: ObservableObject {
     }
 
     func moveCategory(from source: CategoryRecord, to destination: CategoryRecord) {
+        guard !source.isSystem, !destination.isSystem else { return }
         guard let fromIndex = categories.firstIndex(where: { $0.id == source.id }),
               let toIndex = categories.firstIndex(where: { $0.id == destination.id }),
               fromIndex != toIndex else {
@@ -118,7 +126,8 @@ final class CategoriesViewModel: ObservableObject {
 
     func persistOrder() {
         guard !categories.isEmpty else { return }
-        let reordered = categories.enumerated().map { index, record in
+        let visibleUserCategories = categories.filter { !$0.isSystem }
+        let reorderedUserCategories = visibleUserCategories.enumerated().map { index, record in
             CategoryRecord(
                 id: record.id,
                 type: record.type,
@@ -131,8 +140,8 @@ final class CategoriesViewModel: ObservableObject {
         }
 
         do {
-            try reordered.forEach { try repository.update($0) }
-            categories = reordered
+            try reorderedUserCategories.forEach { try repository.update($0) }
+            load(type: selectedType)
             errorMessage = nil
         } catch {
             errorMessage = String(describing: error)

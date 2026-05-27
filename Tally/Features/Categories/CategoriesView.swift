@@ -1,28 +1,16 @@
 import SwiftUI
-import UIKit
-import UniformTypeIdentifiers
 
 struct CategoriesView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: CategoriesViewModel
-    @State private var selectedIndex = 0
+    @State private var selectedType: BillType = .expense
     @State private var sheetState: CategorySheet?
     @State private var showsLimitAlert = false
     @State private var pendingDelete: CategoryRecord?
-    @State private var isReordering = false
-    @State private var draggingCategory: CategoryRecord?
-
-    private enum Constants {
-        static let headerTitleSize: CGFloat = 18
-    }
 
     init(repository: CategoryRepository) {
         _viewModel = StateObject(wrappedValue: CategoriesViewModel(repository: repository))
-    }
-
-    private var selectedType: BillType {
-        selectedIndex == 0 ? .expense : .income
     }
 
     private enum CategorySheet: Identifiable {
@@ -58,49 +46,70 @@ struct CategoriesView: View {
     }
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
-            header
-            JOSegmentedControl(items: ["支出", "收入"], selectedIndex: $selectedIndex)
-                .allowsHitTesting(!isReordering)
-                .opacity(isReordering ? 0.5 : 1)
+        ZStack {
+            Color.tallyBg.ignoresSafeArea()
 
-            ScrollView {
-                LazyVGrid(columns: gridColumns, spacing: JOSpacing.xl) {
-                    ForEach(viewModel.categories) { category in
-                        categoryCell(for: category)
-                    }
+            VStack(spacing: 0) {
+                TallyNavHeader(
+                    title: "分类",
+                    onBack: { dismiss() },
+                    trailing: AnyView(addButton)
+                )
 
-                    AddCategoryItem(isDisabled: viewModel.isAtLimit || isReordering) {
-                        if viewModel.isAtLimit {
-                            showsLimitAlert = true
-                        } else if !isReordering {
-                            sheetState = .add(selectedType)
+                Segmented(
+                    value: $selectedType,
+                    options: [(BillType.expense, "支出"), (BillType.income, "收入")],
+                    size: .md
+                )
+                .padding(.horizontal, TallySpacing.s6)
+                .padding(.vertical, TallySpacing.s5)
+
+                ScrollView {
+                    LazyVGrid(columns: gridColumns, spacing: 18) {
+                        ForEach(viewModel.categories) { category in
+                            Button {
+                                sheetState = .edit(category)
+                            } label: {
+                                CategoryGridItem(category: category)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        AddCategoryItem(isDisabled: viewModel.isAtLimit) {
+                            openNewCategory()
                         }
                     }
+                    .padding(.horizontal, TallySpacing.s4)
+                    .padding(.top, TallySpacing.s2)
+                    .padding(.bottom, 120)
                 }
-                .padding(.top, JOSpacing.lg)
+                .scrollIndicators(.hidden)
             }
-            .scrollDisabled(isReordering)
 
             if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .font(JOTypography.caption)
-                    .foregroundStyle(Color.red.opacity(0.8))
+                VStack {
+                    Spacer()
+                    Text(errorMessage)
+                        .font(TallyType.body(12, weight: .medium))
+                        .foregroundStyle(Color.red.opacity(0.86))
+                        .padding(.horizontal, TallySpacing.s4)
+                        .padding(.vertical, TallySpacing.s2)
+                        .background(Color.tallySurface)
+                        .clipShape(Capsule(style: .continuous))
+                        .padding(.bottom, TallySpacing.s7)
+                }
+                .transition(.opacity)
             }
         }
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.top, JOSpacing.lg)
-        .background(JOColors.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
             viewModel.load(type: selectedType)
         }
-        .onChange(of: selectedIndex, initial: false) { _, newValue in
-            isReordering = false
-            viewModel.load(type: newValue == 0 ? .expense : .income)
+        .onChange(of: selectedType, initial: false) { _, newValue in
+            viewModel.load(type: newValue)
         }
-        .sheet(item: $sheetState) { state in
+        .tallySheet(item: $sheetState, heightFraction: 0.86) { state in
             CategoryEditSheet(
                 type: state.type,
                 existing: state.record,
@@ -137,38 +146,23 @@ struct CategoriesView: View {
         }
     }
 
-    private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: JOSpacing.lg), count: 4)
+    private var addButton: some View {
+        Button {
+            openNewCategory()
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.tallyInkDim)
+                .frame(width: 36, height: 36)
+                .background(Color.tallySurface2)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("新分类")
     }
 
-    private var header: some View {
-        HStack {
-            JOBackButton {
-                dismiss()
-            }
-
-            Spacer()
-
-            Text("类别管理")
-                .font(.system(size: Constants.headerTitleSize, weight: .semibold))
-                .foregroundStyle(JOColors.textSecondary)
-                .tracking(2)
-
-            Spacer()
-
-            if isReordering {
-                Button("完成") {
-                    exitReorderingMode()
-                }
-                .font(JOTypography.body)
-                .foregroundStyle(JOColors.accent)
-                .frame(width: 36, height: 36)
-            } else {
-                JOIconButton(systemName: "arrow.up.arrow.down", size: 36) {
-                    enterReorderingMode()
-                }
-            }
-        }
+    private var gridColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
     }
 
     private var deleteAlertBinding: Binding<Bool> {
@@ -182,135 +176,12 @@ struct CategoriesView: View {
         )
     }
 
-    @ViewBuilder
-    private func categoryCell(for category: CategoryRecord) -> some View {
-        let content = CategoryGridItem(
-            category: category,
-            color: categoryDisplayColor(for: category)
-        )
-        .modifier(WiggleEffect(isActive: isReordering))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            guard !isReordering else { return }
-            sheetState = .edit(category)
-        }
-
-        if isReordering {
-            content
-                .onDrag {
-                    draggingCategory = category
-                    return NSItemProvider(object: category.id.uuidString as NSString)
-                } preview: {
-                    dragPreview(for: category)
-                }
-                .onDrop(
-                    of: [.text],
-                    delegate: CategoryDropDelegate(
-                        target: category,
-                        isReordering: isReordering,
-                        dragging: $draggingCategory,
-                        onMove: { source, destination in
-                            withAnimation(.easeInOut(duration: 0.15)) {
-                                viewModel.moveCategory(from: source, to: destination)
-                            }
-                        },
-                        onCommit: {
-                            viewModel.persistOrder()
-                        }
-                    )
-                )
+    private func openNewCategory() {
+        if viewModel.isAtLimit {
+            showsLimitAlert = true
         } else {
-            content
+            sheetState = .add(selectedType)
         }
-    }
-
-    private func categoryDisplayColor(for category: CategoryRecord) -> Color {
-        let hex = category.colorHex.map { UInt32($0) }
-            ?? CategoryColorPalette.defaultHex(for: category.id)
-        return Color(hex: hex)
-    }
-
-    private func dragPreview(for category: CategoryRecord) -> some View {
-        CategoryGridItem(
-            category: category,
-            color: categoryDisplayColor(for: category)
-        )
-        .background(Color.clear)
-        .compositingGroup()
-    }
-
-    private func enterReorderingMode() {
-        guard !isReordering else { return }
-        let generator = UIImpactFeedbackGenerator(style: .light)
-        generator.impactOccurred()
-        withAnimation(.easeInOut(duration: 0.2)) {
-            isReordering = true
-        }
-    }
-
-    private func exitReorderingMode() {
-        guard isReordering else { return }
-        isReordering = false
-        viewModel.persistOrder()
-    }
-}
-
-private struct WiggleEffect: ViewModifier {
-    let isActive: Bool
-    @State private var phase = false
-
-    func body(content: Content) -> some View {
-        content
-            .rotationEffect(.degrees(isActive ? (phase ? 1.5 : -1.5) : 0))
-            .scaleEffect(isActive ? 0.99 : 1)
-            .onAppear {
-                if isActive {
-                    start()
-                }
-            }
-            .onChange(of: isActive) { _, newValue in
-                if newValue {
-                    start()
-                } else {
-                    stop()
-                }
-            }
-    }
-
-    private func start() {
-        phase = false
-        withAnimation(.easeInOut(duration: 0.14).repeatForever(autoreverses: true)) {
-            phase = true
-        }
-    }
-
-    private func stop() {
-        withTransaction(Transaction(animation: .none)) {
-            phase = false
-        }
-    }
-}
-
-private struct CategoryDropDelegate: DropDelegate {
-    let target: CategoryRecord
-    let isReordering: Bool
-    @Binding var dragging: CategoryRecord?
-    let onMove: (CategoryRecord, CategoryRecord) -> Void
-    let onCommit: () -> Void
-
-    func dropEntered(info: DropInfo) {
-        guard isReordering, let dragging, dragging.id != target.id else { return }
-        onMove(dragging, target)
-    }
-
-    func performDrop(info: DropInfo) -> Bool {
-        dragging = nil
-        onCommit()
-        return true
-    }
-
-    func dropUpdated(info: DropInfo) -> DropProposal? {
-        DropProposal(operation: .move)
     }
 }
 
@@ -321,7 +192,7 @@ private struct CategoryDropDelegate: DropDelegate {
             type: .expense,
             name: "未分类",
             iconKey: "questionmark",
-            colorHex: 0x13EC37,
+            colorHex: 0x6B6964,
             isSystem: true,
             sortOrder: 0
         ),
@@ -330,7 +201,7 @@ private struct CategoryDropDelegate: DropDelegate {
             type: .expense,
             name: "餐饮",
             iconKey: "fork.knife",
-            colorHex: 0xF97316,
+            colorHex: 0xB8553E,
             isSystem: false,
             sortOrder: 1
         ),
@@ -339,14 +210,13 @@ private struct CategoryDropDelegate: DropDelegate {
             type: .expense,
             name: "购物",
             iconKey: "cart.fill",
-            colorHex: 0x3B82F6,
+            colorHex: 0x4D7148,
             isSystem: false,
             sortOrder: 2
         )
     ]
-    let repository = MockCategoryRepository(seed: seed)
     NavigationStack {
-        CategoriesView(repository: repository)
+        CategoriesView(repository: MockCategoryRepository(seed: seed))
     }
     .environment(\.appEnvironment, .preview)
 }
