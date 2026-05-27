@@ -81,7 +81,7 @@ final class BillsListViewModelTests: XCTestCase {
         }
 
         XCTAssertEqual(result.0, 13)
-        XCTAssertEqual(result.1, 0)
+        XCTAssertEqual(result.1, 2_000)
         XCTAssertEqual(result.2, 12)
         XCTAssertEqual(result.3, "2026 · Q1")
         XCTAssertEqual(result.4, "2026 · 全年")

@@ -31,7 +31,7 @@ final class ImportExportViewModelTests: XCTestCase {
             service: service,
             billRepository: MockBillRepository(),
             logDefaults: defaults,
-            nowProvider: { fixedDate(year: 2026, month: 5, day: 27, hour: 9, minute: 30) }
+            nowProvider: { [self] in fixedDate(year: 2026, month: 5, day: 27, hour: 9, minute: 30) }
         )
 
         viewModel.exportCSV()
@@ -56,7 +56,7 @@ final class ImportExportViewModelTests: XCTestCase {
             service: service,
             billRepository: MockBillRepository(),
             logDefaults: defaults,
-            nowProvider: { fixedDate(year: 2026, month: 5, day: 27, hour: 9, minute: 30) }
+            nowProvider: { [self] in fixedDate(year: 2026, month: 5, day: 27, hour: 9, minute: 30) }
         )
         let fileURL = URL(fileURLWithPath: "/tmp/tally-import-success.csv")
         var notificationCount = 0
@@ -159,7 +159,9 @@ private extension ImportExportViewModelTests {
     }
 
     func temporaryFileURL(name: String, contents: String) -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString)-\(name)")
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent(name)
         try? Data(contents.utf8).write(to: url, options: .atomic)
         return url
     }

@@ -16,14 +16,14 @@ xcodebuild -project Tally.xcodeproj -scheme Tally \
 跑全量测试（`TallyTests` 是单元测试 target，host 在 `Tally.app` 上；`TallyTests.xcscheme` 是测试入口）：
 
 ```bash
-xcodebuild -project Tally.xcodeproj -scheme Tally \
+xcodebuild -project Tally.xcodeproj -scheme TallyTests \
   -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
 跑单个测试 / 单个类（`-only-testing:TallyTests/<Class>/<method>`）：
 
 ```bash
-xcodebuild -project Tally.xcodeproj -scheme Tally \
+xcodebuild -project Tally.xcodeproj -scheme TallyTests \
   -destination 'platform=iOS Simulator,name=iPhone 17' test \
   -only-testing:TallyTests/HomeViewModelTests/testDeleteBillRemovesItemFromGroupsAndRepository
 ```
@@ -38,7 +38,7 @@ xcodebuild -project Tally.xcodeproj -scheme Tally \
 - `Tally/Features/` — SwiftUI View + `@MainActor` ObservableObject ViewModel，每个子目录是一块业务（Home / QuickEntry / BillsList / Categories / Recurring / Settings / Profile / Debug / AppShell）。**禁止** 在该层出现 `NSManagedObjectContext` / `NSFetchRequest` / `PersistenceController` / `import CoreData`，目前已干净，新增代码不要打破。
 - `Tally/Services/` — 业务编排协议 + Stub + 真实实现（`DefaultRecurringService`、`DefaultImportExportService`、`StubExportService`、`StubSecurityService`、`CoreDataSeedService`）。`WidgetSnapshotService` 是个静态 enum，不走 DI。
 - `Tally/Data/` — `PersistenceController`（懒加载 `Tally.xcdatamodeld`，store URL 在 `NSPersistentContainer.defaultDirectoryURL()/Tally.sqlite`，开 `FileProtectionType.complete`，自动迁移），`CoreDataBillRepository` 等 4 个真实仓库 + `CoreDataImportWriteRepository`（导入专用写入路径）+ `MockRepositories`（Preview / Debug / 测试用）+ `BillRecordMapper`。所有真实实现走 `context.performAndWaitThrowing { ... }`。
-- `Tally/Core/` — 横切代码：`Domain/`（`BillType` `BillDraft` `BillRecord` `CategoryRecord` `RecurringTaskRecord` + `SystemCategories` 中的"未分类" ID），`Utilities/`，`Theme/`，`UIComponents/`（`JO*` 前缀的 SwiftUI 组件），`PreviewKit/PreviewGallery`，`DeepLink/DeepLinkRouter`，`Recurring/RecurringScheduler`+`RepeatRule`，`Services/ReminderNotificationManager`。
+- `Tally/Core/` — 横切代码：`Domain/`（`BillType` `BillDraft` `BillRecord` `CategoryRecord` `RecurringTaskRecord` + `SystemCategories` 中的"未分类" ID），`Utilities/`，`Theme/`（Tally token + Legacy 兼容主题），`UIComponents/`（`Tally/` 组件与 `Legacy*` 兼容组件），`DeepLink/DeepLinkRouter`，`Recurring/RecurringScheduler`+`RepeatRule`，`Services/ReminderNotificationManager`。
 
 完整组件依赖图在 [Architecture.mmd](Architecture.mmd)（mermaid 源）和 `Architecture.png`。
 

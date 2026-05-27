@@ -349,9 +349,9 @@ final class BillsListViewModel: ObservableObject {
                     .reduce(0) { $0 + $1.value }
             }
             axisLabels = [
-                shortDateText(weekStarts.first ?? start),
-                shortDateText(weekStarts[min(6, weekStarts.count - 1)]),
-                shortDateText(weekStarts.last ?? start)
+                shortDateText(for: weekStarts.first ?? start),
+                shortDateText(for: weekStarts[min(6, weekStarts.count - 1)]),
+                shortDateText(for: weekStarts.last ?? start)
             ]
             pointLabels = weekStarts.map(shortDateText)
         case .year:
@@ -372,9 +372,9 @@ final class BillsListViewModel: ObservableObject {
                 return dayTotals[dayKey, default: 0]
             }
             axisLabels = [
-                shortDateText(dates.first ?? start),
-                shortDateText(dates[min(14, dates.count - 1)]),
-                shortDateText(dates.last ?? start)
+                shortDateText(for: dates.first ?? start),
+                shortDateText(for: dates[min(14, dates.count - 1)]),
+                shortDateText(for: dates.last ?? start)
             ]
             pointLabels = dates.map(shortDateText)
         }
@@ -396,10 +396,22 @@ final class BillsListViewModel: ObservableObject {
         }
 
         let sorted = totals.filter { $0.value.amount > 0 }.sorted { lhs, rhs in
-            if rankSort == .most {
-                return lhs.value.amount > rhs.value.amount
+            if lhs.value.amount != rhs.value.amount {
+                return rankSort == .most
+                    ? lhs.value.amount > rhs.value.amount
+                    : lhs.value.amount < rhs.value.amount
             }
-            return lhs.value.amount < rhs.value.amount
+            if lhs.value.count != rhs.value.count {
+                return rankSort == .most
+                    ? lhs.value.count > rhs.value.count
+                    : lhs.value.count < rhs.value.count
+            }
+            let lhsName = categoriesById[lhs.key]?.name ?? ""
+            let rhsName = categoriesById[rhs.key]?.name ?? ""
+            if lhsName != rhsName {
+                return lhsName.localizedStandardCompare(rhsName) == .orderedAscending
+            }
+            return lhs.key.uuidString < rhs.key.uuidString
         }
 
         return sorted.prefix(6).map { (id, value) in

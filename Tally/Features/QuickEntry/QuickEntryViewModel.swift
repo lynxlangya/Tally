@@ -342,6 +342,7 @@ final class QuickEntryViewModel: ObservableObject {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.groupingSeparator = ","
+        formatter.usesGroupingSeparator = true
         formatter.maximumFractionDigits = 0
         formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter
