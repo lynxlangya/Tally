@@ -1,11 +1,9 @@
 import SwiftUI
-import Foundation
 
 struct BillsListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: BillsListViewModel
-    @State private var activeTrendIndex: Int?
     @State private var selectedCategory: CategorySheetTarget?
     @State private var editingBill: BillRecord?
     @State private var showsTimePicker = false
@@ -29,58 +27,56 @@ struct BillsListView: View {
     }
 
     var body: some View {
-        GeometryReader { _ in
-            ZStack(alignment: .bottom) {
-                JOColors.background.ignoresSafeArea()
+        ZStack {
+            Color.tallyBg.ignoresSafeArea()
 
-                VStack(alignment: .leading, spacing: JOSpacing.xl) {
-                    BillsListHeader(
-                        timeTitle: viewModel.timeTitle,
-                        onBack: { dismiss() },
-                        onTimeTap: { showsTimePicker = true },
-                        selection: $viewModel.selectedType
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    header
+                    rangeBar
+                        .padding(.top, TallySpacing.s5)
+
+                    StatsSummaryCard(summary: viewModel.summary)
+                        .padding(.top, TallySpacing.s3)
+
+                    StatsTrendCard(
+                        valuesCents: viewModel.trend30Cents,
+                        normalized: viewModel.trendPoints,
+                        peak: viewModel.trendPeak,
+                        axisLabels: viewModel.axisLabels
                     )
+                    .padding(.top, TallySpacing.s3)
 
-                    BillsListSummaryView(
-                        title: viewModel.summaryTitle,
-                        totalCents: viewModel.summaryTotalCents,
-                        change: viewModel.summaryChange,
-                        type: viewModel.selectedType
+                    StatsCategoryRanking(
+                        items: viewModel.categoryRanking,
+                        totalCount: viewModel.categoryRankingTotalCount,
+                        onSelect: { item in selectedCategory = CategorySheetTarget(id: item.id) }
                     )
+                    .padding(.top, TallySpacing.s7)
 
-                    BillsListTrendSection(
-                        points: viewModel.trendPoints,
-                        highlightIndex: viewModel.trendHighlightIndex,
-                        valuesCents: viewModel.trendValuesCents,
-                        axisLabels: viewModel.axisLabels,
-                        activeIndex: $activeTrendIndex
-                    )
-
-                    BillsListRankingView(
-                        title: viewModel.rankTitle,
-                        items: viewModel.rankingItems,
-                        onToggleSort: { viewModel.toggleRankSort() },
-                        onSelectItem: { item in
-                            selectedCategory = CategorySheetTarget(id: item.id)
+                    StatsBillsList(
+                        groupedRows: viewModel.groupedRows,
+                        dayKeys: viewModel.dayKeys,
+                        onSelect: { item in
+                            if let record = viewModel.billRecord(for: item.id) {
+                                editingBill = record
+                            }
                         }
                     )
+                    .padding(.top, TallySpacing.s7)
 
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
-                            .font(JOTypography.caption)
-                            .foregroundStyle(Color.red.opacity(0.8))
+                            .font(TallyType.body(12, weight: .medium))
+                            .foregroundStyle(Color.red.opacity(0.82))
+                            .padding(.horizontal, BillsListLayout.horizontalPadding)
+                            .padding(.top, TallySpacing.s4)
                     }
                 }
-                .padding(.horizontal, JOSpacing.lg)
-                .padding(.top, JOSpacing.lg)
+                .padding(.top, TallySpacing.s1)
                 .padding(.bottom, BillsListLayout.contentBottomPadding)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-
-                TimeRangeBar(selection: $viewModel.timeRange)
-                    .padding(.horizontal, JOSpacing.xl)
-                    .padding(.bottom, BillsListLayout.footerBottomOffset)
-                    .ignoresSafeArea(edges: .bottom)
             }
+            .scrollIndicators(.hidden)
         }
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
@@ -105,10 +101,10 @@ struct BillsListView: View {
                     }
                 }
             )
-                .presentationDetents([.fraction(BillsListLayout.detailSheetHeightRatio)])
-                .presentationDragIndicator(.hidden)
-                .joPresentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
-                .joPresentationBackground(JOColors.surface.opacity(0.7))
+            .presentationDetents([.fraction(BillsListLayout.detailSheetHeightRatio)])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
+            .presentationBackground(Color.tallySurface)
         }
         .sheet(item: $editingBill, onDismiss: {
             editingBill = nil
@@ -120,17 +116,66 @@ struct BillsListView: View {
             )
         }
         .sheet(isPresented: $showsTimePicker) {
-            JODatePickerSheet(
-                mode: datePickerMode(for: viewModel.timeRange),
-                years: viewModel.availableYears,
-                selection: $viewModel.anchorDate,
-                title: "选择时间"
-            )
-            .presentationDetents([.height(BillsListLayout.timePickerSheetHeight)])
-            .presentationDragIndicator(.hidden)
-            .joPresentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
-            .joPresentationBackground(.clear)
+            StatsDatePickerSheet(selection: $viewModel.anchorDate)
+                .presentationDetents([.height(BillsListLayout.timePickerSheetHeight)])
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
+                .presentationBackground(Color.tallySurface)
         }
+    }
+
+    private var header: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: TallySpacing.s1) {
+                Eyebrow("账本")
+                Text(viewModel.timeTitle)
+                    .font(TallyType.display(28, weight: .semibold))
+                    .foregroundStyle(Color.tallyInk)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+
+            Spacer()
+
+            Button {
+            } label: {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16, weight: .regular))
+                    .foregroundStyle(Color.tallyInkDim)
+                    .frame(width: 36, height: 36)
+                    .background(Color.tallySurface2)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("搜索")
+        }
+        .padding(.horizontal, BillsListLayout.horizontalPadding)
+    }
+
+    private var rangeBar: some View {
+        HStack(spacing: TallySpacing.s3) {
+            Segmented(
+                value: $viewModel.timeRange,
+                options: BillsListViewModel.TimeRange.allCases.map { ($0, $0.title) },
+                size: .sm
+            )
+
+            if viewModel.timeRange == .custom {
+                Button {
+                    showsTimePicker = true
+                } label: {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.tallyAccent)
+                        .frame(width: 34, height: 34)
+                        .background(Color.tallyAccentTint)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("选择自定时间")
+            }
+        }
+        .padding(.horizontal, BillsListLayout.horizontalPadding)
     }
 }
 
@@ -138,102 +183,352 @@ private struct CategorySheetTarget: Identifiable {
     let id: UUID
 }
 
-private extension BillsListView {
-    func datePickerMode(for range: BillsListViewModel.TimeRange) -> JODatePickerSheet.Mode {
-        switch range {
-        case .week:
-            return .yearWeek
-        case .month:
-            return .yearMonth
-        case .year:
-            return .year
+private struct StatsSummaryCard: View {
+    let summary: BillsListViewModel.Summary
+
+    var body: some View {
+        VStack(spacing: TallySpacing.s4) {
+            HStack(spacing: TallySpacing.s4) {
+                summaryCell(title: "支出", cents: summary.expenseCents, sign: .expense, alignment: .leading)
+                summaryCell(title: "收入", cents: summary.incomeCents, sign: .income, alignment: .trailing)
+            }
+
+            Rectangle()
+                .fill(Color.tallyLine)
+                .frame(height: 0.5)
+
+            HStack {
+                Text("结余")
+                    .font(TallyType.body(12, weight: .medium))
+                    .foregroundStyle(Color.tallyInkDim)
+
+                Spacer()
+
+                TallyAmountText(
+                    cents: abs(summary.balanceCents),
+                    sign: summary.balanceCents >= 0 ? .income : .expense,
+                    size: 22,
+                    weight: .semibold,
+                    color: summary.balanceCents >= 0 ? .tallyAccent : .tallyInk
+                )
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
+            }
+        }
+        .padding(20)
+        .background(Color.tallySurface)
+        .clipShape(RoundedRectangle(cornerRadius: BillsListLayout.summaryCornerRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: BillsListLayout.summaryCornerRadius, style: .continuous)
+                .stroke(Color.tallyLine, lineWidth: 0.5)
+        )
+        .padding(.horizontal, BillsListLayout.horizontalPadding)
+    }
+
+    private func summaryCell(
+        title: String,
+        cents: Int,
+        sign: TallyAmountText.Sign,
+        alignment: HorizontalAlignment
+    ) -> some View {
+        VStack(alignment: alignment, spacing: TallySpacing.s1) {
+            Eyebrow(title)
+            TallyAmountText(cents: cents, sign: sign, size: 24, weight: .medium, color: .tallyInk)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity, alignment: alignment == .leading ? .leading : .trailing)
+    }
+}
+
+private struct StatsTrendCard: View {
+    let valuesCents: [Int]
+    let normalized: [Double]
+    let peak: BillsListViewModel.TrendPeak?
+    let axisLabels: [String]
+
+    var body: some View {
+        VStack(spacing: TallySpacing.s3) {
+            HStack(alignment: .firstTextBaseline) {
+                Eyebrow("30 日支出")
+                Spacer()
+                Text(peakText)
+                    .font(TallyType.num(11, weight: .medium))
+                    .foregroundStyle(Color.tallyInkFaint)
+                    .lineLimit(1)
+            }
+
+            GeometryReader { proxy in
+                Sparkline(
+                    data: normalized,
+                    color: .tallyAccent,
+                    fill: true,
+                    dot: true,
+                    dotIndex: peak?.index,
+                    baseline: true,
+                    width: max(proxy.size.width, 1),
+                    height: BillsListLayout.trendHeight
+                )
+            }
+            .frame(height: BillsListLayout.trendHeight)
+
+            HStack {
+                ForEach(Array(axisLabels.enumerated()), id: \.offset) { index, label in
+                    Text(label)
+                        .font(TallyType.body(10, weight: .medium))
+                        .foregroundStyle(Color.tallyInkFaint)
+                        .frame(
+                            maxWidth: .infinity,
+                            alignment: index == 0 ? .leading : (index == axisLabels.count - 1 ? .trailing : .center)
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color.tallySurface)
+        .clipShape(RoundedRectangle(cornerRadius: BillsListLayout.summaryCornerRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: BillsListLayout.summaryCornerRadius, style: .continuous)
+                .stroke(Color.tallyLine, lineWidth: 0.5)
+        )
+        .padding(.horizontal, BillsListLayout.horizontalPadding)
+    }
+
+    private var peakText: String {
+        guard let peak else { return "峰值 - ¥0" }
+        let yuan = peak.amountCents / 100
+        return "峰值 \(peak.label) ¥\(yuan)"
+    }
+}
+
+private struct StatsCategoryRanking: View {
+    let items: [BillsListViewModel.RankingItem]
+    let totalCount: Int
+    let onSelect: (BillsListViewModel.RankingItem) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s4) {
+            HStack(alignment: .firstTextBaseline) {
+                Eyebrow("分类排名")
+                Spacer()
+                Text("共 \(totalCount) 项 · 看全部")
+                    .font(TallyType.body(11, weight: .medium))
+                    .foregroundStyle(Color.tallyInkFaint)
+            }
+            .padding(.horizontal, BillsListLayout.horizontalPadding)
+
+            if items.isEmpty {
+                Text("暂无分类记录")
+                    .font(TallyType.body(13, weight: .medium))
+                    .foregroundStyle(Color.tallyInkFaint)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, BillsListLayout.horizontalPadding)
+            } else {
+                VStack(spacing: BillsListLayout.rankingSpacing) {
+                    ForEach(items) { item in
+                        Button {
+                            onSelect(item)
+                        } label: {
+                            RankingRow(item: item)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, BillsListLayout.horizontalPadding)
+            }
         }
     }
 }
 
-private extension View {
-    @ViewBuilder
-    func joPresentationBackground(_ color: Color) -> some View {
-        if #available(iOS 16.4, *) {
-            presentationBackground(color)
-        } else {
-            self
+private struct RankingRow: View {
+    let item: BillsListViewModel.RankingItem
+
+    var body: some View {
+        HStack(alignment: .center, spacing: TallySpacing.s3) {
+            CategoryTile(iconName: item.iconName, color: itemColor, size: 28, radius: TallyRadii.sm)
+
+            VStack(spacing: 5) {
+                HStack {
+                    Text(item.title)
+                        .font(TallyType.body(13, weight: .medium))
+                        .foregroundStyle(Color.tallyInk)
+                        .lineLimit(1)
+
+                    Text("· \(item.count)")
+                        .font(TallyType.body(11, weight: .regular))
+                        .foregroundStyle(Color.tallyInkFaint)
+
+                    Spacer()
+
+                    Text("¥\(item.amountCents / 100)")
+                        .font(TallyType.num(13, weight: .semibold))
+                        .foregroundStyle(Color.tallyInk)
+                }
+
+                GeometryReader { proxy in
+                    let width = max(proxy.size.width * CGFloat(item.percent), 3)
+                    ZStack(alignment: .leading) {
+                        Capsule(style: .continuous)
+                            .fill(Color.tallySurface2)
+                        Capsule(style: .continuous)
+                            .fill(itemColor)
+                            .frame(width: width)
+                            .animation(.tallyEmph, value: item.percent)
+                    }
+                }
+                .frame(height: BillsListLayout.rankBarHeight)
+            }
         }
     }
 
-    @ViewBuilder
-    func joPresentationCornerRadius(_ radius: CGFloat) -> some View {
-        if #available(iOS 16.4, *) {
-            presentationCornerRadius(radius)
-        } else {
-            self
+    private var itemColor: Color {
+        if let hex = item.iconColorHex {
+            return Color(hex: hex)
+        }
+        return .catAsh
+    }
+}
+
+private struct StatsBillsList: View {
+    let groupedRows: [String: [BillsListViewModel.RowItem]]
+    let dayKeys: [String]
+    let onSelect: (BillsListViewModel.RowItem) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s3) {
+            Eyebrow("明细")
+                .padding(.horizontal, BillsListLayout.horizontalPadding)
+
+            if dayKeys.isEmpty {
+                Text("暂无明细")
+                    .font(TallyType.body(13, weight: .medium))
+                    .foregroundStyle(Color.tallyInkFaint)
+                    .padding(.horizontal, BillsListLayout.horizontalPadding)
+                    .padding(.top, TallySpacing.s3)
+            } else {
+                VStack(spacing: TallySpacing.s5) {
+                    ForEach(dayKeys, id: \.self) { dayKey in
+                        let rows = groupedRows[dayKey] ?? []
+                        VStack(alignment: .leading, spacing: TallySpacing.s2) {
+                            Text(dayKey)
+                                .font(TallyType.num(11, weight: .semibold))
+                                .foregroundStyle(Color.tallyInkFaint)
+                                .padding(.horizontal, BillsListLayout.horizontalPadding)
+
+                            VStack(spacing: 0) {
+                                ForEach(rows) { item in
+                                    Button {
+                                        onSelect(item)
+                                    } label: {
+                                        DenseBillRow(item: item)
+                                    }
+                                    .buttonStyle(DenseBillRowButtonStyle())
+                                }
+                            }
+                            .background(Color.tallySurface)
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-#Preview {
-    let today = Date()
-    let dayKey = DayKeyFormatter.dayKey(for: today)
-    let sampleBills: [BillRecord] = [
-        BillRecord(
-            id: UUID(),
-            type: .expense,
-            amount: Money(cents: 124050),
-            occurredAtUTC: today,
-            tzId: TimeZone.current.identifier,
-            tzOffset: TimeZone.current.secondsFromGMT(),
-            occurredLocalDate: dayKey,
-            note: "房租",
-            categoryId: SystemCategoryID.uncategorizedExpense,
-            isFromRecurring: false,
-            createdAt: today,
-            updatedAt: today,
-            deletedAt: nil,
-            trashUntil: nil
-        ),
-        BillRecord(
-            id: UUID(),
-            type: .expense,
-            amount: Money(cents: 31012),
-            occurredAtUTC: today,
-            tzId: TimeZone.current.identifier,
-            tzOffset: TimeZone.current.secondsFromGMT(),
-            occurredLocalDate: dayKey,
-            note: "餐饮",
-            categoryId: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
-            isFromRecurring: false,
-            createdAt: today,
-            updatedAt: today,
-            deletedAt: nil,
-            trashUntil: nil
-        )
-    ]
+private struct DenseBillRow: View {
+    let item: BillsListViewModel.RowItem
 
-    let categories: [CategoryRecord] = [
-        CategoryRecord(
-            id: SystemCategoryID.uncategorizedExpense,
-            type: .expense,
-            name: "未分类",
-            iconKey: "questionmark",
-            colorHex: 0x13EC37,
-            isSystem: true,
-            sortOrder: 0
-        ),
-        CategoryRecord(
-            id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!,
-            type: .expense,
-            name: "餐饮",
-            iconKey: "fork.knife",
-            colorHex: 0xF97316,
-            isSystem: false,
-            sortOrder: 1
-        )
-    ]
+    var body: some View {
+        HStack(spacing: TallySpacing.s3) {
+            CategoryTile(iconName: item.iconName, color: iconColor, size: 32, radius: TallyRadii.sm)
 
-    let billRepo = MockBillRepository(seed: sampleBills)
-    let categoryRepo = MockCategoryRepository(seed: categories)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(TallyType.body(14, weight: .medium))
+                    .foregroundStyle(Color.tallyInk)
+                    .lineLimit(1)
 
+                Text(item.subtitle)
+                    .font(TallyType.body(11, weight: .regular))
+                    .foregroundStyle(Color.tallyInkFaint)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            TallyAmountText(
+                cents: item.amountCents,
+                sign: item.isIncome ? .income : .expense,
+                size: 15,
+                weight: .semibold,
+                color: item.isIncome ? .tallyAccent : .tallyInk
+            )
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+        }
+        .padding(.horizontal, BillsListLayout.horizontalPadding)
+        .padding(.vertical, TallySpacing.s3)
+        .contentShape(Rectangle())
+    }
+
+    private var iconColor: Color {
+        if let hex = item.iconColorHex {
+            return Color(hex: hex)
+        }
+        return .catAsh
+    }
+}
+
+private struct DenseBillRowButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(configuration.isPressed ? Color.tallySurface2 : Color.clear)
+            .animation(.tallyFast, value: configuration.isPressed)
+    }
+}
+
+private struct StatsDatePickerSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selection: Date
+
+    var body: some View {
+        VStack(spacing: TallySpacing.s4) {
+            HStack {
+                Text("选择时间")
+                    .font(TallyType.body(17, weight: .semibold))
+                    .foregroundStyle(Color.tallyInk)
+
+                Spacer()
+
+                Button("完成") {
+                    dismiss()
+                }
+                .font(TallyType.body(14, weight: .semibold))
+                .foregroundStyle(Color.tallyAccent)
+                .buttonStyle(.plain)
+            }
+
+            DatePicker("选择时间", selection: $selection, displayedComponents: [.date])
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .tint(Color.tallyAccent)
+                .environment(\.locale, Locale(identifier: "zh_CN"))
+                .frame(maxWidth: .infinity)
+                .frame(height: 180)
+                .clipped()
+        }
+        .padding(.horizontal, TallySpacing.s5)
+        .padding(.bottom, TallySpacing.s5)
+        .background(Color.tallySurface.ignoresSafeArea())
+    }
+}
+
+#Preview("BillsList") {
+    let sample = BillsListViewModel.makeMockData(anchor: BillsListViewModel.mockAnchorDate)
     NavigationStack {
-        BillsListView(repository: billRepo, categoryRepository: categoryRepo)
+        BillsListView(
+            repository: MockBillRepository(seed: sample.bills),
+            categoryRepository: MockCategoryRepository(seed: sample.categories)
+        )
     }
+    .preferredColorScheme(.dark)
 }
