@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct CategoryTile: View {
     enum Fill {
@@ -28,8 +27,7 @@ struct CategoryTile: View {
     }
 
     var body: some View {
-        Image(systemName: resolvedSystemName)
-            .font(.system(size: round(size * 0.5), weight: .semibold))
+        TallyIcon(name: iconName, size: round(size * 0.5))
             .foregroundStyle(filled == .solid ? Color.tallyAccentInk : color)
             .frame(width: size, height: size)
             .background(filled == .solid ? color : color.opacity(0.22))
@@ -43,10 +41,6 @@ struct CategoryTile: View {
                 }
             }
             .accessibilityHidden(true)
-    }
-
-    private var resolvedSystemName: String {
-        UIImage(systemName: iconName) == nil ? "questionmark" : iconName
     }
 }
 
