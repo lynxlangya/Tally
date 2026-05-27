@@ -81,16 +81,122 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(groupIds, ["2026-04-13", "2026-04-12"])
     }
 
+    func testDailyAverageUsesElapsedDaysInCurrentMonth() async throws {
+        let now = fixedDate(year: 2026, month: 4, day: 10, hour: 9, minute: 0)
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> Int in
+            let bills = [
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 1_000,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 1, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-01"
+                ),
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 2_000,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 8, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-08"
+                )
+            ]
+            let viewModel = makeViewModel(bills: bills, categoryId: categoryId, now: now)
+            viewModel.load()
+            return viewModel.dailyAverageCents
+        }
+
+        XCTAssertEqual(result, 300)
+    }
+
+    func testTrend7CentsIncludesOnlyExpensesEndingToday() async throws {
+        let now = fixedDate(year: 2026, month: 4, day: 10, hour: 9, minute: 0)
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> [Int] in
+            let bills = [
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 100,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 4, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-04"
+                ),
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 300,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 10, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-10"
+                ),
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    type: .income,
+                    amountCents: 900,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 10, hour: 10, minute: 0),
+                    occurredLocalDate: "2026-04-10"
+                ),
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 500,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 3, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-03"
+                )
+            ]
+            let viewModel = makeViewModel(bills: bills, categoryId: categoryId, now: now)
+            viewModel.load()
+            return viewModel.trend7Cents
+        }
+
+        XCTAssertEqual(result, [100, 0, 0, 0, 0, 0, 300])
+    }
+
+    func testTrend7LabelsUseChineseWeekdayNames() async throws {
+        let now = fixedDate(year: 2026, month: 4, day: 10, hour: 9, minute: 0)
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> ([String], String) in
+            let viewModel = makeViewModel(bills: [], categoryId: categoryId, now: now)
+            viewModel.load()
+            return (viewModel.trend7Labels, viewModel.currentWeekdayText)
+        }
+
+        XCTAssertEqual(result.0, ["周六", "周日", "周一", "周二", "周三", "周四", "周五"])
+        XCTAssertEqual(result.1, "周五")
+    }
+
+    func testItemTitlePrefersNoteAndSubtitleUsesCategoryAndTime() async throws {
+        let now = fixedDate(year: 2026, month: 4, day: 10, hour: 9, minute: 0)
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> (String, String?) in
+            let bill = makeBill(
+                id: UUID(),
+                categoryId: categoryId,
+                occurredAtUTC: now,
+                occurredLocalDate: "2026-04-10"
+            )
+            let viewModel = makeViewModel(bills: [bill], categoryId: categoryId, now: now)
+            viewModel.load()
+            let item = viewModel.groups.first?.items.first
+            return (item?.title ?? "", item?.subtitle)
+        }
+
+        XCTAssertEqual(result.0, "测试")
+        XCTAssertTrue(result.1?.hasPrefix("午餐 · ") == true)
+    }
+
     private func makeBill(
         id: UUID,
         categoryId: UUID,
+        type: BillType = .expense,
+        amountCents: Int = 1234,
         occurredAtUTC: Date,
         occurredLocalDate: String
     ) -> BillRecord {
         BillRecord(
             id: id,
-            type: .expense,
-            amount: Money(cents: 1234),
+            type: type,
+            amount: Money(cents: amountCents),
             occurredAtUTC: occurredAtUTC,
             tzId: "Asia/Shanghai",
             tzOffset: 28_800,
@@ -102,6 +208,31 @@ final class HomeViewModelTests: XCTestCase {
             updatedAt: occurredAtUTC,
             deletedAt: nil,
             trashUntil: nil
+        )
+    }
+
+    @MainActor
+    private func makeViewModel(
+        bills: [BillRecord],
+        categoryId: UUID,
+        now: Date
+    ) -> HomeViewModel {
+        let categoryRepository = MockCategoryRepository(seed: [
+            CategoryRecord(
+                id: categoryId,
+                type: .expense,
+                name: "午餐",
+                iconKey: "fork.knife",
+                colorHex: nil,
+                isSystem: false,
+                sortOrder: 0
+            )
+        ])
+        let repository = MockBillRepository(seed: bills)
+        return HomeViewModel(
+            repository: repository,
+            categoryRepository: categoryRepository,
+            nowProvider: { now }
         )
     }
 
