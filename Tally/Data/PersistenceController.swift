@@ -64,7 +64,9 @@ struct PersistenceController {
             let viewContext = container.viewContext
             viewContext.perform {
                 do {
-                    try CoreDataSeedService(context: viewContext).seedIfNeeded()
+                    let seedService = CoreDataSeedService(context: viewContext)
+                    try seedService.seedIfNeeded()
+                    try seedService.migrateLegacyCategoryColors()
                 } catch {
                     assertionFailure("SeedService failed: \\(error)")
                 }
