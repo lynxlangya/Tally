@@ -121,7 +121,7 @@ final class RecurringBillFormViewModel: ObservableObject {
         }
         let cents = amountValue
         guard cents > 0 else {
-            errorMessage = "请输入金额"
+            errorMessage = "金额需大于 0"
             return false
         }
 

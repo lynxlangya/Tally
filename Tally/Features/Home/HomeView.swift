@@ -450,10 +450,10 @@ private struct HomeEmptyState: View {
             Image(systemName: "tray")
                 .font(.system(size: 26, weight: .medium))
                 .foregroundStyle(Color.tallyInkFaint)
-            Text("暂无账单")
+            Text("一根刻痕，一笔账。")
                 .font(TallyType.display(17, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
-            Text("点击 + 记一笔")
+            Text("记一笔")
                 .font(TallyType.body(13, weight: .regular))
                 .foregroundStyle(Color.tallyInkFaint)
         }

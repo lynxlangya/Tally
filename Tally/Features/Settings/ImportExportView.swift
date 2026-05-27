@@ -197,7 +197,7 @@ struct ImportExportView: View {
 
             VStack(spacing: 0) {
                 if recentLogs.isEmpty {
-                    Text("暂无导入导出记录")
+                    Text("还没有导入导出记录。")
                         .font(TallyType.body(12, weight: .medium))
                         .foregroundStyle(Color.tallyInkFaint)
                         .frame(maxWidth: .infinity, alignment: .leading)

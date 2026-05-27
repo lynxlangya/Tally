@@ -69,7 +69,7 @@ struct ProfileView: View {
         }
         .alert("通知权限未开启", isPresented: $showReminderSettingsPrompt) {
             Button("取消", role: .cancel) { }
-            Button("去设置") {
+            Button("打开设置") {
                 openAppSettings()
             }
         } message: {

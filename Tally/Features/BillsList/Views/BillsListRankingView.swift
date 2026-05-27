@@ -29,8 +29,8 @@ struct BillsListRankingView: View {
             ScrollView {
                 if items.isEmpty {
                     JOEmptyStateView(
-                        title: "暂无排行",
-                        subtitle: "先记一笔再看看",
+                        title: "没有排行。",
+                        subtitle: "记一笔再看",
                         systemImage: "chart.bar"
                     )
                     .frame(maxWidth: .infinity, alignment: .center)

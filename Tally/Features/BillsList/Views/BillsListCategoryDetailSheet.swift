@@ -27,7 +27,7 @@ struct BillsListCategoryDetailSheet: View {
 
                 ScrollView {
                     if detail.items.isEmpty {
-                        Text("暂无记录")
+                        Text("没有记录。")
                             .font(JOTypography.caption)
                             .foregroundStyle(JOColors.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
