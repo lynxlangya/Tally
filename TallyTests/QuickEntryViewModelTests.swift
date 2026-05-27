@@ -121,6 +121,25 @@ final class QuickEntryViewModelTests: XCTestCase {
         XCTAssertEqual(result.2, .income)
     }
 
+    func testChangingBillTypeDoesNotAutoselectWhenNoMatchingCategoryExists() async throws {
+        let expenseCategory = makeCategory(type: .expense, name: "午餐")
+
+        let result = await MainActor.run { () -> (CategoryRecord?, [CategoryRecord], Bool) in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: [expenseCategory])
+            )
+            viewModel.load()
+            viewModel.selectCategory(expenseCategory)
+            viewModel.handleKey(.add)
+            return (viewModel.selectedCategory, viewModel.categories, viewModel.canSave)
+        }
+
+        XCTAssertNil(result.0)
+        XCTAssertTrue(result.1.isEmpty)
+        XCTAssertFalse(result.2)
+    }
+
     @MainActor
     private func makeViewModel() -> QuickEntryViewModel {
         QuickEntryViewModel(

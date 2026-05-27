@@ -7,6 +7,8 @@ private extension Color {
 struct CategoryPickerSheet: View {
     let categories: [CategoryRecord]
     let selectedCategory: CategoryRecord?
+    let selectedType: BillType?
+    let onSelectType: ((BillType) -> Void)?
     let onSelect: (CategoryRecord) -> Void
     let onAddCategory: () -> Void
 
@@ -17,9 +19,26 @@ struct CategoryPickerSheet: View {
         count: QuickEntryLayout.categoryGridColumns
     )
 
+    init(
+        categories: [CategoryRecord],
+        selectedCategory: CategoryRecord?,
+        selectedType: BillType? = nil,
+        onSelectType: ((BillType) -> Void)? = nil,
+        onSelect: @escaping (CategoryRecord) -> Void,
+        onAddCategory: @escaping () -> Void
+    ) {
+        self.categories = categories
+        self.selectedCategory = selectedCategory
+        self.selectedType = selectedType
+        self.onSelectType = onSelectType
+        self.onSelect = onSelect
+        self.onAddCategory = onAddCategory
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             header
+            typeToggleIfNeeded
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: QuickEntryLayout.categoryGridSpacingY) {
@@ -61,6 +80,18 @@ struct CategoryPickerSheet: View {
         .padding(.horizontal, TallySpacing.s5)
         .padding(.top, TallySpacing.s2)
         .padding(.bottom, TallySpacing.s3)
+    }
+
+    @ViewBuilder
+    private var typeToggleIfNeeded: some View {
+        if let selectedType, let onSelectType {
+            CategoryPickerTypeToggle(
+                selectedType: selectedType,
+                onSelect: onSelectType
+            )
+            .padding(.horizontal, TallySpacing.s5)
+            .padding(.bottom, TallySpacing.s4)
+        }
     }
 
     private func categoryButton(_ category: CategoryRecord) -> some View {
@@ -124,5 +155,54 @@ struct CategoryPickerSheet: View {
     private func categoryColor(for category: CategoryRecord) -> Color {
         let hex = category.colorHex.map { UInt32($0) } ?? CategoryColorPalette.defaultHex(for: category.id)
         return Color(hex: hex)
+    }
+}
+
+private struct CategoryPickerTypeToggle: View {
+    let selectedType: BillType
+    let onSelect: (BillType) -> Void
+
+    var body: some View {
+        HStack(spacing: 2) {
+            toggleButton(type: .expense, title: "支出")
+            toggleButton(type: .income, title: "收入")
+        }
+        .padding(3)
+        .background(Color.tallySurface2)
+        .clipShape(Capsule(style: .continuous))
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    private func toggleButton(type: BillType, title: String) -> some View {
+        let active = selectedType == type
+        return Button {
+            withAnimation(.tallyBase) {
+                onSelect(type)
+            }
+        } label: {
+            Text(title)
+                .font(TallyType.body(13, weight: .semibold))
+                .tracking(0.65)
+                .foregroundStyle(active ? Color.tallyInk : Color.tallyInkFaint)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 7)
+                .background(active ? Color.tallySurface : Color.clear)
+                .clipShape(Capsule(style: .continuous))
+                .if(active) { view in
+                    view.tallyShadow(.shadow1)
+                }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
     }
 }

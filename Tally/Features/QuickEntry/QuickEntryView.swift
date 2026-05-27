@@ -46,6 +46,8 @@ struct QuickEntryView: View {
                 CategoryPickerSheet(
                     categories: viewModel.categories,
                     selectedCategory: viewModel.selectedCategory,
+                    selectedType: nil,
+                    onSelectType: nil,
                     onSelect: handleCategorySelection,
                     onAddCategory: {}
                 )
@@ -108,6 +110,8 @@ struct QuickEntryView: View {
         CategoryPickerSheet(
             categories: viewModel.categories,
             selectedCategory: viewModel.selectedCategory,
+            selectedType: viewModel.selectedType,
+            onSelectType: { viewModel.selectedType = $0 },
             onSelect: handleCategorySelection,
             onAddCategory: {}
         )
