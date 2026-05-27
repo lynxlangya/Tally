@@ -35,15 +35,13 @@ final class ProfileViewModel: ObservableObject {
         billRepository: BillRepository,
         categoryRepository: CategoryRepository,
         recurringRepository: RecurringRepository,
-        calendar: Calendar = Calendar(identifier: .gregorian),
+        calendar: Calendar? = nil,
         nowProvider: @escaping () -> Date = Date.init
     ) {
         self.billRepository = billRepository
         self.categoryRepository = categoryRepository
         self.recurringRepository = recurringRepository
-        var calendar = calendar
-        calendar.timeZone = .current
-        self.calendar = calendar
+        self.calendar = calendar ?? Self.defaultCalendar()
         self.nowProvider = nowProvider
     }
 
@@ -113,6 +111,12 @@ final class ProfileViewModel: ObservableObject {
         let dates = (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: monday) }
         let dayKeys = dates.map { DayKeyFormatter.dayKey(for: $0, timeZone: calendar.timeZone) }
         return (dates, dayKeys, todayStart)
+    }
+
+    private static func defaultCalendar() -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        return calendar
     }
 
     private static let weekdayLabels = ["一", "二", "三", "四", "五", "六", "日"]

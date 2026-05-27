@@ -384,8 +384,7 @@ private struct ProfileSettingsRow: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(Color.tallyInkFaint)
         }
-        .padding(.horizontal, TallySpacing.s4)
-        .padding(.vertical, 14)
+        .padding(14)
         .contentShape(Rectangle())
         .overlay(alignment: .bottom) {
             if !isLast {

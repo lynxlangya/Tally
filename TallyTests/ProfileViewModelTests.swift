@@ -29,6 +29,7 @@ final class ProfileViewModelTests: XCTestCase {
                 billRepository: billRepository,
                 categoryRepository: categoryRepository,
                 recurringRepository: recurringRepository,
+                calendar: fixedCalendar(),
                 nowProvider: { now }
             )
 
@@ -109,9 +110,14 @@ final class ProfileViewModelTests: XCTestCase {
         )
     }
 
-    private func fixedDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {
+    private func fixedCalendar() -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+        return calendar
+    }
+
+    private func fixedDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {
+        let calendar = fixedCalendar()
         let components = DateComponents(
             calendar: calendar,
             timeZone: calendar.timeZone,
