@@ -47,6 +47,7 @@ final class HomeViewModel: ObservableObject {
     private let categoryRepository: CategoryRepository
     private let nowProvider: () -> Date
     private var billById: [UUID: BillRecord] = [:]
+    private var loadedBills: [BillRecord] = []
 
     init(
         repository: BillRepository,
@@ -63,6 +64,7 @@ final class HomeViewModel: ObservableObject {
         do {
             let monthKey = currentMonthKey()
             let bills = try billRepository.list(monthKey: monthKey, type: nil)
+            loadedBills = bills
             billById = Dictionary(uniqueKeysWithValues: bills.map { ($0.id, $0) })
 
             let categoryMap = loadCategories()
@@ -70,10 +72,54 @@ final class HomeViewModel: ObservableObject {
             groups = buildGroups(from: bills, categoryMap: categoryMap)
             WidgetSnapshotService.refresh(using: billRepository, now: nowProvider())
         } catch {
+            loadedBills = []
             billById = [:]
             summary = Summary(monthTitle: monthTitle(for: nowProvider()), expenseCents: 0, incomeCents: 0)
             groups = []
         }
+    }
+
+    var dailyAverageCents: Int {
+        let elapsedDays = max(1, daysElapsedInMonth(for: nowProvider()))
+        return summary.expenseCents / elapsedDays
+    }
+
+    var trend7Cents: [Int] {
+        let calendar = Calendar.current
+        let now = nowProvider()
+        let today = calendar.startOfDay(for: now)
+        let dayKeys = (0..<7).compactMap { offset -> String? in
+            guard let date = calendar.date(byAdding: .day, value: offset - 6, to: today) else {
+                return nil
+            }
+            return DayKeyFormatter.dayKey(for: date)
+        }
+        let daySet = Set(dayKeys)
+        let expenseTotals = loadedBills
+            .filter { $0.type == .expense && daySet.contains($0.occurredLocalDate) }
+            .reduce(into: [String: Int]()) { result, bill in
+                result[bill.occurredLocalDate, default: 0] += bill.amount.cents
+            }
+        return dayKeys.map { expenseTotals[$0, default: 0] }
+    }
+
+    var trend7Labels: [String] {
+        let calendar = Calendar.current
+        let now = nowProvider()
+        let today = calendar.startOfDay(for: now)
+        return (0..<7).compactMap { offset -> String? in
+            guard let date = calendar.date(byAdding: .day, value: offset - 6, to: today) else {
+                return nil
+            }
+            let weekday = max(1, calendar.component(.weekday, from: date)) - 1
+            return chineseWeekdayText(at: weekday)
+        }
+    }
+
+    var currentWeekdayText: String {
+        let calendar = Calendar.current
+        let weekday = max(1, calendar.component(.weekday, from: nowProvider())) - 1
+        return chineseWeekdayText(at: weekday)
     }
 
     func bill(for id: UUID) -> BillRecord? {
@@ -143,13 +189,14 @@ final class HomeViewModel: ObservableObject {
                 let category = categoryDisplay(for: bill, categoryMap: categoryMap)
                 let timeText = BillTimeFormatter.timeText(for: bill)
                 let noteText = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                let subtitle = noteText.isEmpty ? timeText : "\(timeText) · \(noteText)"
+                let title = noteText.isEmpty ? category.name : noteText
+                let subtitle = "\(category.name) · \(timeText)"
 
                 return Item(
                     id: bill.id,
                     icon: category.icon,
                     iconColor: category.color,
-                    title: category.name,
+                    title: title,
                     subtitle: subtitle,
                     amountCents: bill.amount.cents,
                     isIncome: bill.type == .income
@@ -211,5 +258,18 @@ final class HomeViewModel: ObservableObject {
         let now = nowProvider()
         let dayKey = DayKeyFormatter.dayKey(for: now)
         return String(dayKey.prefix(7))
+    }
+
+    private func daysElapsedInMonth(for date: Date) -> Int {
+        let calendar = Calendar.current
+        let day = calendar.component(.day, from: date)
+        let daysInMonth = calendar.range(of: .day, in: .month, for: date)?.count ?? day
+        return min(max(day, 1), max(daysInMonth, 1))
+    }
+
+    private func chineseWeekdayText(at zeroBasedWeekday: Int) -> String {
+        let symbols = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+        guard symbols.indices.contains(zeroBasedWeekday) else { return "" }
+        return symbols[zeroBasedWeekday]
     }
 }
