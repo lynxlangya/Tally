@@ -71,8 +71,12 @@ struct JOTabScaffold: View {
 
     private var profileStack: some View {
         NavigationStack {
-            ProfileView()
-                .enableInteractivePop()
+            ProfileView(
+                billRepository: environment.container.repositories.bill,
+                categoryRepository: environment.container.repositories.category,
+                recurringRepository: environment.container.repositories.recurring
+            )
+            .enableInteractivePop()
         }
     }
 
