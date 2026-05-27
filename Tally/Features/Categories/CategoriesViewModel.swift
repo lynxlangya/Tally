@@ -135,7 +135,7 @@ final class CategoriesViewModel: ObservableObject {
                 iconKey: record.iconKey,
                 colorHex: record.colorHex,
                 isSystem: record.isSystem,
-                sortOrder: index
+                sortOrder: index + 1
             )
         }
 

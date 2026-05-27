@@ -50,6 +50,24 @@ final class CategoriesViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.errorMessage, "系统分类不可删除")
     }
 
+    func testPersistOrderKeepsUserCategoriesAfterSystemCategory() {
+        let system = makeCategory(
+            id: SystemCategoryID.uncategorizedExpense,
+            name: "未分类",
+            isSystem: true,
+            sortOrder: 0
+        )
+        let first = makeCategory(name: "餐饮", isSystem: false, sortOrder: 1)
+        let second = makeCategory(name: "购物", isSystem: false, sortOrder: 2)
+        let repository = RecordingCategoryRepository(seed: [system, first, second])
+        let viewModel = CategoriesViewModel(repository: repository)
+        viewModel.load(type: .expense)
+
+        viewModel.persistOrder()
+
+        XCTAssertEqual(repository.updatedRecords.map(\.sortOrder), [1, 2])
+    }
+
     private func makeCategory(
         id: UUID = UUID(),
         name: String,
@@ -71,6 +89,7 @@ final class CategoriesViewModelTests: XCTestCase {
 private final class RecordingCategoryRepository: CategoryRepository {
     private var storage: [UUID: CategoryRecord]
     private(set) var updatedId: UUID?
+    private(set) var updatedRecords: [CategoryRecord] = []
     private(set) var deletedId: UUID?
     private(set) var migrateToId: UUID?
 
@@ -90,6 +109,7 @@ private final class RecordingCategoryRepository: CategoryRepository {
 
     func update(_ record: CategoryRecord) throws {
         updatedId = record.id
+        updatedRecords.append(record)
         storage[record.id] = record
     }
 

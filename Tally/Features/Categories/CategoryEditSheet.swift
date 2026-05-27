@@ -9,14 +9,12 @@ struct CategoryEditSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var name: String
     @State private var selectedIcon: String
-    @State private var selectedColorIndex: Int
+    @State private var selectedColorHex: UInt32
 
     private enum Constants {
         static let nameLimit = 5
         static let previewSize: CGFloat = 72
         static let previewRadius: CGFloat = 22
-        static let swatchRadius: CGFloat = 14
-        static let iconRadius: CGFloat = 10
         static let gridSpacing: CGFloat = 8
     }
 
@@ -39,8 +37,7 @@ struct CategoryEditSheet: View {
         let fallbackHex = existing.map { CategoryColorPalette.defaultHex(for: $0.id) }
             ?? (CategoryColorPalette.hexValues.first ?? 0xB8553E)
         let storedHex = existing?.colorHex.flatMap { UInt32($0) } ?? fallbackHex
-        let index = CategoryColorPalette.hexValues.firstIndex(of: storedHex) ?? 0
-        _selectedColorIndex = State(initialValue: index)
+        _selectedColorHex = State(initialValue: storedHex)
     }
 
     var body: some View {
@@ -142,10 +139,10 @@ struct CategoryEditSheet: View {
                     let color = Color(hex: CategoryColorPalette.hexValues[index])
                     ColorSwatch(
                         color: color,
-                        isSelected: selectedColorIndex == index,
+                        isSelected: selectedColorHex == CategoryColorPalette.hexValues[index],
                         isEnabled: !isReadOnly
                     ) {
-                        selectedColorIndex = index
+                        selectedColorHex = CategoryColorPalette.hexValues[index]
                     }
                 }
             }
@@ -185,14 +182,6 @@ struct CategoryEditSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: TallyRadii.md, style: .continuous))
         }
         .buttonStyle(.plain)
-    }
-
-    private var selectedColorHex: UInt32 {
-        let palette = CategoryColorPalette.hexValues
-        guard palette.indices.contains(selectedColorIndex) else {
-            return palette.first ?? 0xB8553E
-        }
-        return palette[selectedColorIndex]
     }
 
     private var selectedColor: Color {
