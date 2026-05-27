@@ -31,6 +31,7 @@ struct TallyTabScaffold: View {
                 TallyTabBar(selection: $selectedTab) {
                     showsQuickEntry = true
                 }
+                .ignoresSafeArea(.container, edges: .bottom)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .zIndex(1)
             }
