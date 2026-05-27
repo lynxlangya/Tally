@@ -5,8 +5,7 @@ struct RecurringBillFormSheet: View {
 
     @StateObject private var viewModel: RecurringBillFormViewModel
     @State private var showsCategoryPicker = false
-    @State private var showsDatePicker = false
-    @FocusState private var isAmountFocused: Bool
+    @State private var showsAmountEditor = false
     @FocusState private var isNoteFocused: Bool
 
     private let onSaved: () -> Void
@@ -14,152 +13,119 @@ struct RecurringBillFormSheet: View {
     init(
         recurringRepository: RecurringRepository,
         categoryRepository: CategoryRepository,
-        billRepository: BillRepository,
+        billRepository _: BillRepository,
+        existingTask: RecurringTaskRecord? = nil,
         onSaved: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: RecurringBillFormViewModel(
             recurringRepository: recurringRepository,
-            categoryRepository: categoryRepository
+            categoryRepository: categoryRepository,
+            existingTask: existingTask
         ))
-        self.billRepository = billRepository
         self.onSaved = onSaved
     }
 
-    private let billRepository: BillRepository
-
     var body: some View {
-        JOSheetContainer(
-            cornerRadius: 28,
-            background: JOColors.surface.opacity(0.92),
-            borderOpacity: 0.08
-        ) {
-            VStack(spacing: JOSpacing.lg) {
-                header
+        VStack(spacing: 0) {
+            header
 
-                VStack(spacing: JOSpacing.md) {
-                    formRow(title: "类别", action: {
+            ScrollView {
+                VStack(spacing: 0) {
+                    FormActionRow(title: "分类") {
                         showsCategoryPicker = true
-                    }) {
-                        HStack(spacing: 8) {
+                    } content: {
+                        HStack(spacing: 10) {
                             if let selected = viewModel.selectedCategory {
-                                JOCategoryIconTile(
+                                CategoryTile(
                                     iconName: selected.iconKey,
-                                    title: selected.name,
-                                    iconColor: viewModel.selectedCategoryColor,
+                                    color: viewModel.selectedCategoryColor,
                                     size: 28,
-                                    iconSize: 14,
-                                    showsTitle: false
+                                    radius: TallyRadii.sm
                                 )
                                 Text(selected.name)
-                                    .foregroundStyle(JOColors.textPrimary)
+                                    .font(TallyType.body(15, weight: .medium))
+                                    .foregroundStyle(Color.tallyInk)
                             } else {
                                 Text("请选择")
-                                    .foregroundStyle(JOColors.textSecondary)
+                                    .font(TallyType.body(15, weight: .medium))
+                                    .foregroundStyle(Color.tallyInkFaint)
                             }
-                            Spacer()
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(JOColors.textSecondary)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Color.tallyInkFaint)
                         }
                     }
 
-                    formRow(title: "首次执行时间", action: {
-                        showsDatePicker = true
-                    }) {
-                        HStack {
-                            Text(viewModel.firstDateText)
-                                .foregroundStyle(JOColors.textPrimary)
-                            Spacer()
+                    FormActionRow(title: "金额") {
+                        showsAmountEditor = true
+                    } content: {
+                        HStack(spacing: 5) {
+                            TallyAmountText(
+                                cents: viewModel.amountCents,
+                                size: 17,
+                                weight: .semibold,
+                                color: viewModel.amountCents > 0 ? .tallyInk : .tallyInkFaint
+                            )
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(JOColors.textSecondary)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(Color.tallyInkFaint)
                         }
                     }
 
-                    formRow(title: "金额") {
-                        TextField("0.00", text: $viewModel.amountText)
-                            .keyboardType(.decimalPad)
-                            .focused($isAmountFocused)
-                            .foregroundStyle(JOColors.textPrimary)
-                            .multilineTextAlignment(.trailing)
-                            .onChange(of: viewModel.amountText) { _, newValue in
-                                viewModel.amountText = viewModel.sanitizedAmount(newValue)
-                            }
+                    ruleSection
+
+                    FormDisplayRow(title: "下次触发") {
+                        Text(viewModel.nextFireText)
+                            .font(TallyType.body(14, weight: .medium))
+                            .foregroundStyle(Color.tallyInk)
                     }
 
-                    formRow(title: "备注") {
-                        TextField("选填", text: $viewModel.note)
-                            .focused($isNoteFocused)
-                            .foregroundStyle(JOColors.textPrimary)
-                            .multilineTextAlignment(.trailing)
-                            .onChange(of: viewModel.note) { _, newValue in
-                                if newValue.count > viewModel.noteLimit {
-                                    viewModel.note = String(newValue.prefix(viewModel.noteLimit))
-                                }
-                            }
-                    }
-
-                    formRow(title: "重复") {
-                        Menu {
-                            ForEach(RepeatRule.allCases) { rule in
-                                Button(rule.title) {
-                                    viewModel.repeatRule = rule
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Text(viewModel.repeatRule.title)
-                                    .foregroundStyle(JOColors.textPrimary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(JOColors.textSecondary)
-                            }
-                        }
-                    }
+                    noteRow
                 }
-
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                        .font(JOTypography.caption)
-                        .foregroundStyle(Color.red.opacity(0.85))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-
-                JOPrimaryButton("保存", isEnabled: viewModel.isValid) {
-                    if viewModel.save() {
-                        dismiss()
-                        onSaved()
-                    }
-                }
+                .padding(.horizontal, TallySpacing.s6)
+                .padding(.top, TallySpacing.s5)
+                .padding(.bottom, TallySpacing.s7)
             }
-            .padding(.horizontal, JOSpacing.lg)
-            .padding(.vertical, JOSpacing.lg)
-            .frame(maxHeight: .infinity, alignment: .top)
+            .scrollIndicators(.hidden)
+
+            if let error = viewModel.errorMessage {
+                Text(error)
+                    .font(TallyType.body(12, weight: .medium))
+                    .foregroundStyle(Color.red.opacity(0.85))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, TallySpacing.s6)
+                    .padding(.bottom, TallySpacing.s3)
+            }
         }
-        .ignoresSafeArea(edges: .bottom)
-        .background(Color.black.opacity(0.35).ignoresSafeArea())
+        .background(Color.tallySurface.ignoresSafeArea())
+        .onAppear {
+            viewModel.loadCategories()
+        }
         .sheet(isPresented: $showsCategoryPicker) {
-            QuickEntryView(
-                repository: billRepository,
-                categoryRepository: viewModel.categoryRepository,
-                selectionOnly: true
-            ) { category in
-                viewModel.selectCategory(category)
-                showsCategoryPicker = false
-            }
+            CategoryPickerSheet(
+                categories: viewModel.categories,
+                selectedCategory: viewModel.selectedCategory,
+                selectedType: viewModel.selectedType,
+                onSelectType: { viewModel.selectType($0) },
+                onSelect: { category in
+                    viewModel.selectCategory(category)
+                    showsCategoryPicker = false
+                },
+                onAddCategory: {}
+            )
+            .presentationDetents([.fraction(QuickEntryLayout.categoryPickerDetent)])
+            .presentationCornerRadius(QuickEntryLayout.sheetCornerRadius)
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(Color.tallySurface)
         }
-        .sheet(isPresented: $showsDatePicker) {
-            DatePickerSheet(
-                date: Binding(
-                    get: { viewModel.firstDate },
-                    set: { viewModel.firstDate = viewModel.normalizedFirstDate($0) }
-                )
-            ) {
-                showsDatePicker = false
+        .sheet(isPresented: $showsAmountEditor) {
+            RecurringAmountEditorSheet(amountText: $viewModel.amountText) {
+                showsAmountEditor = false
             }
-            .presentationDetents([.height(520)])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.height(240)])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(TallyRadii.xl)
+            .presentationBackground(Color.tallySurface)
         }
     }
 
@@ -168,98 +134,223 @@ struct RecurringBillFormSheet: View {
             Button("取消") {
                 dismiss()
             }
-            .font(JOTypography.body)
-            .foregroundStyle(JOColors.textSecondary)
+            .font(TallyType.body(14, weight: .medium))
+            .foregroundStyle(Color.tallyInkDim)
 
             Spacer()
 
-            Text("新增定时记账")
-                .font(JOTypography.headline)
-                .foregroundStyle(JOColors.textPrimary)
+            Text(viewModel.isEditing ? "编辑定时" : "新建定时")
+                .font(TallyType.display(16, weight: .semibold))
+                .foregroundStyle(Color.tallyInk)
 
             Spacer()
 
-            Color.clear
-                .frame(width: 44, height: 44)
+            Button("保存") {
+                if viewModel.save() {
+                    dismiss()
+                    onSaved()
+                }
+            }
+            .font(TallyType.body(14, weight: .semibold))
+            .foregroundStyle(viewModel.isValid ? Color.tallyAccent : Color.tallyInkFaint)
+            .disabled(!viewModel.isValid)
+        }
+        .padding(.horizontal, TallySpacing.s5)
+        .padding(.top, TallySpacing.s3)
+        .padding(.bottom, TallySpacing.s2)
+    }
+
+    private var ruleSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("重复规则")
+                .font(TallyType.body(12, weight: .medium))
+                .foregroundStyle(Color.tallyInkDim)
+
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
+                ForEach(RuleOption.allCases) { option in
+                    let active = option.rule == viewModel.repeatRule
+                    Button {
+                        withAnimation(.tallyFast) {
+                            viewModel.selectRepeatRule(option.rule)
+                        }
+                    } label: {
+                        Text(option.title)
+                            .font(TallyType.body(13, weight: .medium))
+                            .foregroundStyle(active ? Color.tallyAccent : Color.tallyInkDim)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 12)
+                            .background(active ? Color.tallyAccentTint : Color.tallySurface2)
+                            .clipShape(RoundedRectangle(cornerRadius: TallyRadii.md, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: TallyRadii.md, style: .continuous)
+                                    .stroke(active ? Color.tallyAccent : Color.clear, lineWidth: 0.5)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.vertical, TallySpacing.s4)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.tallyLine)
+                .frame(height: 0.5)
         }
     }
 
-    private func formRow<Content: View>(
-        title: String,
-        action: (() -> Void)? = nil,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        let row = HStack(spacing: JOSpacing.md) {
-            Text(title)
-                .font(JOTypography.body)
-                .foregroundStyle(JOColors.textSecondary)
-            Spacer()
-            content()
-        }
-        .padding(.horizontal, JOSpacing.md)
-        .padding(.vertical, JOSpacing.sm)
-        .background(JOColors.profileRowBackground.opacity(0.9))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(JOColors.cardBorder, lineWidth: 1)
-        )
+    private var noteRow: some View {
+        HStack(alignment: .center, spacing: TallySpacing.s4) {
+            Text("备注")
+                .font(TallyType.body(13, weight: .medium))
+                .foregroundStyle(Color.tallyInkDim)
 
-        if let action {
-            return AnyView(
-                Button(action: action) {
-                    row
+            TextField("选填", text: $viewModel.note)
+                .focused($isNoteFocused)
+                .font(TallyType.body(14, weight: .regular))
+                .foregroundStyle(Color.tallyInk)
+                .multilineTextAlignment(.trailing)
+                .onChange(of: viewModel.note) { _, newValue in
+                    if newValue.count > viewModel.noteLimit {
+                        viewModel.note = String(newValue.prefix(viewModel.noteLimit))
+                    }
                 }
-                .buttonStyle(.plain)
-            )
         }
-
-        return AnyView(row)
+        .padding(.vertical, TallySpacing.s4)
     }
 }
 
-private struct DatePickerSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Binding var date: Date
-    let onDone: () -> Void
+private enum RuleOption: CaseIterable, Identifiable {
+    case daily
+    case weekly
+    case monthlyFirst
+    case monthlyLast
+
+    var id: RepeatRule { rule }
+
+    var title: String {
+        switch self {
+        case .daily: return "每日"
+        case .weekly: return "每周"
+        case .monthlyFirst: return "月初"
+        case .monthlyLast: return "月末"
+        }
+    }
+
+    var rule: RepeatRule {
+        switch self {
+        case .daily: return .daily
+        case .weekly: return .weeklyMonday
+        case .monthlyFirst: return .monthlyFirst
+        case .monthlyLast: return .monthlyLast
+        }
+    }
+}
+
+private struct FormActionRow<Content: View>: View {
+    let title: String
+    let action: () -> Void
+    let content: Content
+
+    init(title: String, action: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.action = action
+        self.content = content()
+    }
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
-            DatePicker(
-                "首次执行日期",
-                selection: $date,
-                displayedComponents: [.date]
-            )
-            .datePickerStyle(.graphical)
-            .tint(JOColors.accent)
-            .environment(\.locale, Locale(identifier: "zh_CN"))
-            .colorScheme(.dark)
+        Button(action: action) {
+            HStack(alignment: .center, spacing: TallySpacing.s4) {
+                Text(title)
+                    .font(TallyType.body(13, weight: .medium))
+                    .foregroundStyle(Color.tallyInkDim)
 
-            VStack(alignment: .leading, spacing: JOSpacing.sm) {
-                Text("执行时间")
-                    .font(JOTypography.caption)
-                    .foregroundStyle(JOColors.textSecondary)
+                Spacer(minLength: TallySpacing.s4)
 
-                DatePicker(
-                    "执行时间",
-                    selection: $date,
-                    displayedComponents: [.hourAndMinute]
-                )
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-                .environment(\.locale, Locale(identifier: "zh_CN"))
-                .colorScheme(.dark)
-                .frame(maxWidth: .infinity)
-                .frame(height: 140)
-                .clipped()
+                content
             }
-
-            JOPrimaryButton("完成") {
-                dismiss()
-                onDone()
+            .padding(.vertical, TallySpacing.s4)
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(Color.tallyLine)
+                    .frame(height: 0.5)
             }
         }
-        .padding(JOSpacing.lg)
-        .background(JOColors.background.ignoresSafeArea())
+        .buttonStyle(.plain)
+    }
+}
+
+private struct FormDisplayRow<Content: View>: View {
+    let title: String
+    let content: Content
+
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: TallySpacing.s4) {
+            Text(title)
+                .font(TallyType.body(13, weight: .medium))
+                .foregroundStyle(Color.tallyInkDim)
+
+            Spacer(minLength: TallySpacing.s4)
+
+            content
+        }
+        .padding(.vertical, TallySpacing.s4)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.tallyLine)
+                .frame(height: 0.5)
+        }
+    }
+}
+
+private struct RecurringAmountEditorSheet: View {
+    @Binding var amountText: String
+    let onDone: () -> Void
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        VStack(spacing: TallySpacing.s5) {
+            HStack {
+                Text("金额")
+                    .font(TallyType.display(16, weight: .semibold))
+                    .foregroundStyle(Color.tallyInk)
+                Spacer()
+                Button("完成", action: onDone)
+                    .font(TallyType.body(14, weight: .semibold))
+                    .foregroundStyle(Color.tallyAccent)
+            }
+
+            TextField("0.00", text: $amountText)
+                .keyboardType(.decimalPad)
+                .focused($focused)
+                .font(TallyType.num(32, weight: .semibold))
+                .foregroundStyle(Color.tallyInk)
+                .multilineTextAlignment(.trailing)
+                .padding(.horizontal, TallySpacing.s4)
+                .padding(.vertical, TallySpacing.s3)
+                .background(Color.tallySurface2)
+                .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
+                .onChange(of: amountText) { _, newValue in
+                    amountText = Self.sanitizedAmount(newValue)
+                }
+        }
+        .padding(TallySpacing.s6)
+        .background(Color.tallySurface.ignoresSafeArea())
+        .onAppear { focused = true }
+    }
+
+    private static func sanitizedAmount(_ input: String) -> String {
+        let filtered = input.filter { "0123456789.".contains($0) }
+        let parts = filtered.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count <= 2 else { return String(parts.prefix(2).joined(separator: ".")) }
+        if parts.count == 2 {
+            return String(parts[0]) + "." + String(parts[1].prefix(2))
+        }
+        return filtered
     }
 }
