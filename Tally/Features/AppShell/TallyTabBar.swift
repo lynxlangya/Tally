@@ -68,14 +68,7 @@ struct TallyTabBar: View {
         }
         .frame(height: 86)
         .background(
-            LinearGradient(
-                colors: [
-                    Color.tallyBg,
-                    Color.tallyBg.opacity(0.6)
-                ],
-                startPoint: .bottom,
-                endPoint: .top
-            )
+            Color.tallyBg
         )
     }
 
