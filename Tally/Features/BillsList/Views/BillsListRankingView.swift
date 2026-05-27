@@ -7,11 +7,11 @@ struct BillsListRankingView: View {
     let onSelectItem: (BillsListViewModel.RankingItem) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: JOSpacing.md) {
+        VStack(alignment: .leading, spacing: LegacySpacing.md) {
             HStack {
                 Text(title)
-                    .font(JOTypography.headline)
-                    .foregroundStyle(JOColors.textPrimary)
+                    .font(LegacyTypography.headline)
+                    .foregroundStyle(LegacyColors.textPrimary)
 
                 Spacer()
 
@@ -20,7 +20,7 @@ struct BillsListRankingView: View {
                 } label: {
                     Image(systemName: "line.3.horizontal.decrease")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(JOColors.textSecondary)
+                        .foregroundStyle(LegacyColors.textSecondary)
                         .frame(width: 32, height: 32)
                 }
                 .buttonStyle(.plain)
@@ -28,7 +28,7 @@ struct BillsListRankingView: View {
 
             ScrollView {
                 if items.isEmpty {
-                    JOEmptyStateView(
+                    LegacyEmptyStateView(
                         title: "没有排行。",
                         subtitle: "记一笔再看",
                         systemImage: "chart.bar"
@@ -60,26 +60,26 @@ private struct RankingRowView: View {
 
     var body: some View {
         let percentText = String(format: "%.0f%%", item.percent * 100)
-        let barColor = isPrimary ? JOColors.accent : JOColors.textSecondary.opacity(0.6)
-        let dotColor = isPrimary ? JOColors.accent : JOColors.textSecondary.opacity(0.5)
+        let barColor = isPrimary ? LegacyColors.accent : LegacyColors.textSecondary.opacity(0.6)
+        let dotColor = isPrimary ? LegacyColors.accent : LegacyColors.textSecondary.opacity(0.5)
 
-        VStack(spacing: JOSpacing.sm) {
+        VStack(spacing: LegacySpacing.sm) {
             HStack {
                 Circle()
                     .fill(dotColor)
                     .frame(width: 6, height: 6)
 
                 Text(item.title)
-                    .font(JOTypography.body)
-                    .foregroundStyle(JOColors.textPrimary)
+                    .font(LegacyTypography.body)
+                    .foregroundStyle(LegacyColors.textPrimary)
 
                 Text(percentText)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(isPrimary ? JOColors.accent : JOColors.textSecondary)
+                    .foregroundStyle(isPrimary ? LegacyColors.accent : LegacyColors.textSecondary)
 
                 Spacer()
 
-                JOAmountText(cents: item.amountCents, size: .small)
+                LegacyAmountText(cents: item.amountCents, size: .small)
             }
 
             GeometryReader { proxy in
@@ -88,11 +88,11 @@ private struct RankingRowView: View {
 
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(JOColors.surface)
+                        .fill(LegacyColors.surface)
                         .frame(height: BillsListLayout.rankBarHeight)
                         .overlay(
                             Capsule()
-                                .stroke(JOColors.cardBorder, lineWidth: 1)
+                                .stroke(LegacyColors.cardBorder, lineWidth: 1)
                         )
 
                     Capsule()

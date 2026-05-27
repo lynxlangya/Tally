@@ -6,20 +6,20 @@ struct WidgetPreviewView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: JOSpacing.lg) {
+            VStack(alignment: .leading, spacing: LegacySpacing.lg) {
                 header
 
-                VStack(alignment: .leading, spacing: JOSpacing.sm) {
+                VStack(alignment: .leading, spacing: LegacySpacing.sm) {
                     Text("小组件预览")
-                        .font(JOTypography.title)
-                        .foregroundStyle(JOColors.textPrimary)
+                        .font(LegacyTypography.title)
+                        .foregroundStyle(LegacyColors.textPrimary)
                     Text("在桌面长按空白处，点击左上角“+”号，搜索 记一笔 即可添加小组件。")
-                        .font(JOTypography.body)
-                        .foregroundStyle(JOColors.textSecondary)
+                        .font(LegacyTypography.body)
+                        .foregroundStyle(LegacyColors.textSecondary)
                 }
-                .padding(.bottom, JOSpacing.md)
+                .padding(.bottom, LegacySpacing.md)
 
-                VStack(alignment: .leading, spacing: JOSpacing.lg) {
+                VStack(alignment: .leading, spacing: LegacySpacing.lg) {
                     SectionLabel(text: "小组件 · 快速记账")
                     HStack {
                         Spacer()
@@ -32,9 +32,9 @@ struct WidgetPreviewView: View {
                         Spacer()
                     }
                 }
-                .padding(.vertical, JOSpacing.sm)
+                .padding(.vertical, LegacySpacing.sm)
 
-                VStack(alignment: .leading, spacing: JOSpacing.lg) {
+                VStack(alignment: .leading, spacing: LegacySpacing.lg) {
                     SectionLabel(text: "中号组件 · 概览与趋势")
                     ZStack {
                         GlowOrb()
@@ -44,19 +44,19 @@ struct WidgetPreviewView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
-                .padding(.vertical, JOSpacing.sm)
+                .padding(.vertical, LegacySpacing.sm)
 
-                VStack(alignment: .leading, spacing: JOSpacing.md) {
+                VStack(alignment: .leading, spacing: LegacySpacing.md) {
                     SectionLabel(text: "如何添加小组件？")
                     InstructionRow(text: "回到手机主屏幕，长按任意空白区域直到图标开始抖动。")
                     InstructionRow(text: "点击左上角的“+”按钮。")
                     InstructionRow(text: "在搜索框输入 记一笔 并选择喜欢的样式。")
                 }
-                .padding(.vertical, JOSpacing.sm)
+                .padding(.vertical, LegacySpacing.sm)
             }
-            .padding(.horizontal, JOSpacing.lg)
-            .padding(.top, JOSpacing.lg)
-            .padding(.bottom, JOSpacing.xl)
+            .padding(.horizontal, LegacySpacing.lg)
+            .padding(.top, LegacySpacing.lg)
+            .padding(.bottom, LegacySpacing.xl)
         }
         .background(WidgetPreviewBackground().ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
@@ -66,10 +66,10 @@ struct WidgetPreviewView: View {
     }
 
     private var header: some View {
-        JOHeaderBar(
+        LegacyHeaderBar(
             title: "桌面小组件",
-            titleFont: JOTypography.headline,
-            titleColor: JOColors.profileRowTitle
+            titleFont: LegacyTypography.headline,
+            titleColor: LegacyColors.profileRowTitle
         ) {
             dismiss()
         }
@@ -83,8 +83,8 @@ private struct SmallWidgetPreview: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            JOColors.surface.opacity(0.95),
-                            JOColors.surface.opacity(0.74)
+                            LegacyColors.surface.opacity(0.95),
+                            LegacyColors.surface.opacity(0.74)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -92,7 +92,7 @@ private struct SmallWidgetPreview: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(JOColors.cardBorder.opacity(0.25), lineWidth: 0.7)
+                        .stroke(LegacyColors.cardBorder.opacity(0.25), lineWidth: 0.7)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -110,32 +110,32 @@ private struct SmallWidgetPreview: View {
                         )
                         .blendMode(.overlay)
                 )
-                .shadow(color: JOColors.accent.opacity(0.1), radius: 10, x: 0, y: 6)
+                .shadow(color: LegacyColors.accent.opacity(0.1), radius: 10, x: 0, y: 6)
                 .rotation3DEffect(.degrees(4), axis: (x: 1, y: -0.2, z: 0))
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(JOColors.accent.opacity(0.2))
+                        .fill(LegacyColors.accent.opacity(0.2))
                         .frame(width: 20, height: 20)
                         .overlay(
                             Image(systemName: "square.and.pencil")
                                 .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(JOColors.accent)
+                                .foregroundStyle(LegacyColors.accent)
                         )
                     Text("今日支出")
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.textSecondary)
+                        .font(LegacyTypography.caption)
+                        .foregroundStyle(LegacyColors.textSecondary)
                 }
 
                 Text("¥88.5")
                     .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(JOColors.textPrimary)
+                    .foregroundStyle(LegacyColors.textPrimary)
 
                 Spacer().frame(height: 2)
 
                 Capsule()
-                    .fill(JOColors.accent)
+                    .fill(LegacyColors.accent)
                     .frame(width: 26, height: 4)
 
                 Spacer(minLength: 0)
@@ -143,12 +143,12 @@ private struct SmallWidgetPreview: View {
                 HStack {
                     Spacer()
                     Circle()
-                        .fill(JOColors.accent)
+                        .fill(LegacyColors.accent)
                         .frame(width: 28, height: 28)
                         .overlay(
                             Image(systemName: "plus")
                                 .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(JOColors.accentForeground)
+                                .foregroundStyle(LegacyColors.accentForeground)
                         )
                 }
             }
@@ -166,8 +166,8 @@ private struct MediumWidgetPreview: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            JOColors.surface.opacity(0.95),
-                            JOColors.surface.opacity(0.68)
+                            LegacyColors.surface.opacity(0.95),
+                            LegacyColors.surface.opacity(0.68)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -175,7 +175,7 @@ private struct MediumWidgetPreview: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(JOColors.cardBorder.opacity(0.25), lineWidth: 0.7)
+                        .stroke(LegacyColors.cardBorder.opacity(0.25), lineWidth: 0.7)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -193,36 +193,36 @@ private struct MediumWidgetPreview: View {
                         )
                         .blendMode(.overlay)
                 )
-                .shadow(color: JOColors.accent.opacity(0.1), radius: 12, x: 0, y: 7)
+                .shadow(color: LegacyColors.accent.opacity(0.1), radius: 12, x: 0, y: 7)
                 .rotation3DEffect(.degrees(3), axis: (x: 1, y: -0.15, z: 0))
 
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("本月支出")
-                            .font(JOTypography.caption)
-                            .foregroundStyle(JOColors.textSecondary)
+                            .font(LegacyTypography.caption)
+                            .foregroundStyle(LegacyColors.textSecondary)
                         Text("¥2,340.00")
                             .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(JOColors.textPrimary)
+                            .foregroundStyle(LegacyColors.textPrimary)
                     }
                     Spacer()
                     HStack(spacing: 8) {
                         Circle()
-                            .fill(JOColors.profileRowBackground)
+                            .fill(LegacyColors.profileRowBackground)
                             .frame(width: 26, height: 26)
                             .overlay(
                                 Image(systemName: "chart.line.uptrend.xyaxis")
                                     .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(JOColors.textSecondary)
+                                    .foregroundStyle(LegacyColors.textSecondary)
                             )
                         Circle()
-                            .fill(JOColors.accent)
+                            .fill(LegacyColors.accent)
                             .frame(width: 26, height: 26)
                             .overlay(
                                 Image(systemName: "plus")
                                     .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(JOColors.accentForeground)
+                                    .foregroundStyle(LegacyColors.accentForeground)
                             )
                     }
                 }
@@ -234,7 +234,7 @@ private struct MediumWidgetPreview: View {
                     ForEach([1, 5, 10, 15, 20, 25, 30], id: \.self) { day in
                         Text("\(day)")
                             .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(JOColors.textSecondary.opacity(0.7))
+                            .foregroundStyle(LegacyColors.textSecondary.opacity(0.7))
                         if day != 30 { Spacer(minLength: 0) }
                     }
                 }
@@ -272,8 +272,8 @@ private struct WidgetLinePreview: View {
             }
 
             linePath
-                .stroke(JOColors.accent, style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
-                .shadow(color: JOColors.accent.opacity(0.4), radius: 6, x: 0, y: 4)
+                .stroke(LegacyColors.accent, style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
+                .shadow(color: LegacyColors.accent.opacity(0.4), radius: 6, x: 0, y: 4)
 
             let fillPath = Path { path in
                 path.addPath(linePath)
@@ -286,8 +286,8 @@ private struct WidgetLinePreview: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            JOColors.accent.opacity(0.25),
-                            JOColors.accent.opacity(0.0)
+                            LegacyColors.accent.opacity(0.25),
+                            LegacyColors.accent.opacity(0.0)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -303,11 +303,11 @@ private struct SectionLabel: View {
     var body: some View {
         HStack(spacing: 8) {
             Capsule()
-                .fill(JOColors.accent.opacity(0.6))
+                .fill(LegacyColors.accent.opacity(0.6))
                 .frame(width: 14, height: 4)
             Text(text)
-                .font(JOTypography.caption)
-                .foregroundStyle(JOColors.textSecondary)
+                .font(LegacyTypography.caption)
+                .foregroundStyle(LegacyColors.textSecondary)
         }
     }
 }
@@ -316,10 +316,10 @@ private struct GlowOrb: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(JOColors.accent.opacity(0.25))
+                .fill(LegacyColors.accent.opacity(0.25))
                 .blur(radius: 28)
             Circle()
-                .fill(JOColors.accent.opacity(0.12))
+                .fill(LegacyColors.accent.opacity(0.12))
                 .blur(radius: 50)
         }
     }
@@ -328,10 +328,10 @@ private struct GlowOrb: View {
 private struct WidgetPreviewBackground: View {
     var body: some View {
         ZStack {
-            JOColors.background
+            LegacyColors.background
             RadialGradient(
                 colors: [
-                    JOColors.accent.opacity(0.12),
+                    LegacyColors.accent.opacity(0.12),
                     .clear
                 ],
                 center: .topTrailing,
@@ -340,7 +340,7 @@ private struct WidgetPreviewBackground: View {
             )
             RadialGradient(
                 colors: [
-                    JOColors.accent.opacity(0.08),
+                    LegacyColors.accent.opacity(0.08),
                     .clear
                 ],
                 center: .bottomLeading,
@@ -357,12 +357,12 @@ private struct InstructionRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Circle()
-                .fill(JOColors.textSecondary.opacity(0.5))
+                .fill(LegacyColors.textSecondary.opacity(0.5))
                 .frame(width: 6, height: 6)
                 .padding(.top, 6)
             Text(text)
-                .font(JOTypography.body)
-                .foregroundStyle(JOColors.textSecondary)
+                .font(LegacyTypography.body)
+                .foregroundStyle(LegacyColors.textSecondary)
         }
     }
 }

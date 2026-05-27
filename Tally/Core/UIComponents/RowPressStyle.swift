@@ -4,10 +4,10 @@ struct RowPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .overlay(
-                RoundedRectangle(cornerRadius: JORadius.profileRow, style: .continuous)
-                    .fill(JOColors.profileRowHighlight)
+                RoundedRectangle(cornerRadius: LegacyRadius.profileRow, style: .continuous)
+                    .fill(LegacyColors.profileRowHighlight)
                     .opacity(configuration.isPressed ? 1 : 0)
             )
-            .clipShape(RoundedRectangle(cornerRadius: JORadius.profileRow, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: LegacyRadius.profileRow, style: .continuous))
     }
 }

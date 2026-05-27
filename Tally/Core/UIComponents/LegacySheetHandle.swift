@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOSheetHandle: View {
+struct LegacySheetHandle: View {
     let width: CGFloat
     let height: CGFloat
     let opacity: Double

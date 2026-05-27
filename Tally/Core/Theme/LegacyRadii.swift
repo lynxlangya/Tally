@@ -1,6 +1,6 @@
 import CoreGraphics
 
-enum JORadius {
+enum LegacyRadius {
     static let card: CGFloat = 20
     static let row: CGFloat = 18
     static let icon: CGFloat = 12

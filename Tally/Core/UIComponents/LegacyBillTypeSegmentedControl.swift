@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOBillTypeSegmentedControl: View {
+struct LegacyBillTypeSegmentedControl: View {
     @Binding var selection: BillType
     let expenseTitle: String
     let incomeTitle: String
@@ -21,11 +21,11 @@ struct JOBillTypeSegmentedControl: View {
             toggleButton(title: incomeTitle, type: .income)
         }
         .padding(4)
-        .background(JOColors.surface)
+        .background(LegacyColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(JOColors.cardBorder, lineWidth: 1)
+                .stroke(LegacyColors.cardBorder, lineWidth: 1)
         )
     }
 
@@ -36,9 +36,9 @@ struct JOBillTypeSegmentedControl: View {
         } label: {
             Text(title)
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(isSelected ? JOColors.accentForeground : JOColors.textSecondary)
+                .foregroundStyle(isSelected ? LegacyColors.accentForeground : LegacyColors.textSecondary)
                 .frame(width: 36, height: 28)
-                .background(isSelected ? JOColors.accent : Color.clear)
+                .background(isSelected ? LegacyColors.accent : Color.clear)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .buttonStyle(.plain)

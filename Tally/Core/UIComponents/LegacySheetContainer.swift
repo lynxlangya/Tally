@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOSheetContainer<Content: View>: View {
+struct LegacySheetContainer<Content: View>: View {
     let cornerRadius: CGFloat
     let background: Color
     let borderOpacity: Double

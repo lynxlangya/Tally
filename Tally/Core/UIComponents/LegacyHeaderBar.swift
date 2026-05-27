@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOHeaderBar: View {
+struct LegacyHeaderBar: View {
     let title: String?
     let titleFont: Font
     let titleColor: Color
@@ -11,8 +11,8 @@ struct JOHeaderBar: View {
 
     init(
         title: String? = nil,
-        titleFont: Font = JOTypography.headline,
-        titleColor: Color = JOColors.textSecondary,
+        titleFont: Font = LegacyTypography.headline,
+        titleColor: Color = LegacyColors.textSecondary,
         titleTracking: CGFloat? = nil,
         trailingWidth: CGFloat = 36,
         showsTrailingPlaceholder: Bool = true,
@@ -29,7 +29,7 @@ struct JOHeaderBar: View {
 
     var body: some View {
         HStack {
-            JOBackButton {
+            LegacyBackButton {
                 onBack()
             }
 

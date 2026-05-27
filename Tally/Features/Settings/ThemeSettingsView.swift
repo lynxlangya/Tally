@@ -8,15 +8,15 @@ struct ThemeSettingsView: View {
 
     var body: some View {
         ZStack {
-            JOColors.background.ignoresSafeArea()
+            LegacyColors.background.ignoresSafeArea()
 
-            VStack(spacing: JOSpacing.lg) {
+            VStack(spacing: LegacySpacing.lg) {
                 header
 
-                VStack(alignment: .leading, spacing: JOSpacing.md) {
+                VStack(alignment: .leading, spacing: LegacySpacing.md) {
                     Text("外观模式")
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.textSecondary)
+                        .font(LegacyTypography.caption)
+                        .foregroundStyle(LegacyColors.textSecondary)
 
                     GeometryReader { proxy in
                         let spacing: CGFloat = 12
@@ -53,8 +53,8 @@ struct ThemeSettingsView: View {
 
                 Spacer()
             }
-            .padding(.horizontal, JOSpacing.lg)
-            .padding(.top, JOSpacing.lg)
+            .padding(.horizontal, LegacySpacing.lg)
+            .padding(.top, LegacySpacing.lg)
 
             if showsToast {
                 ToastView(text: "该功能即将上线")
@@ -69,10 +69,10 @@ struct ThemeSettingsView: View {
     }
 
     private var header: some View {
-        JOHeaderBar(
+        LegacyHeaderBar(
             title: "主题设置",
-            titleFont: JOTypography.headline,
-            titleColor: JOColors.profileRowTitle
+            titleFont: LegacyTypography.headline,
+            titleColor: LegacyColors.profileRowTitle
         ) {
             dismiss()
         }
@@ -107,7 +107,7 @@ private struct AppearanceOptionCard: View {
                         .fill(.ultraThinMaterial)
                         .overlay(
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .fill(JOColors.surface.opacity(0.6))
+                                .fill(LegacyColors.surface.opacity(0.6))
                         )
 
                     cardPreview
@@ -121,13 +121,13 @@ private struct AppearanceOptionCard: View {
                 .frame(width: size.width, height: size.height)
                 .overlay(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(isSelected ? JOColors.accent : Color.white.opacity(0.08), lineWidth: isSelected ? 2 : 1)
+                        .stroke(isSelected ? LegacyColors.accent : Color.white.opacity(0.08), lineWidth: isSelected ? 2 : 1)
                 )
-                .shadow(color: isSelected ? JOColors.accent.opacity(0.28) : .clear, radius: 8, x: 0, y: 0)
+                .shadow(color: isSelected ? LegacyColors.accent.opacity(0.28) : .clear, radius: 8, x: 0, y: 0)
 
                 Text(title)
-                    .font(JOTypography.caption)
-                    .foregroundStyle(isSelected ? JOColors.accent : JOColors.textSecondary)
+                    .font(LegacyTypography.caption)
+                    .foregroundStyle(isSelected ? LegacyColors.accent : LegacyColors.textSecondary)
             }
         }
         .buttonStyle(.plain)
@@ -152,17 +152,17 @@ private struct AppearanceOptionCard: View {
                 )
         case .dark:
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(JOColors.background.opacity(0.9))
+                .fill(LegacyColors.background.opacity(0.9))
                 .frame(width: size.width * 0.7, height: size.height * 0.78, alignment: .center)
                 .overlay(
                     VStack(spacing: 10) {
                         Circle()
-                            .fill(JOColors.accent.opacity(0.2))
+                            .fill(LegacyColors.accent.opacity(0.2))
                             .frame(width: 18, height: 18)
                             .overlay(
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(JOColors.accent)
+                                    .foregroundStyle(LegacyColors.accent)
                             )
                         Capsule()
                             .fill(Color.white.opacity(0.12))
@@ -174,7 +174,7 @@ private struct AppearanceOptionCard: View {
                 )
         case .system:
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(JOColors.surface.opacity(0.85))
+                .fill(LegacyColors.surface.opacity(0.85))
                 .frame(width: size.width * 0.7, height: size.height * 0.78, alignment: .center)
                 .overlay(
                     Image(systemName: "gearshape.fill")
@@ -191,13 +191,13 @@ private struct AppearanceOptionCard: View {
     private var selectionBadge: some View {
         ZStack {
             Circle()
-                .fill(JOColors.accent)
+                .fill(LegacyColors.accent)
                 .frame(width: 20, height: 20)
             Image(systemName: "checkmark")
                 .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(JOColors.accentForeground)
+                .foregroundStyle(LegacyColors.accentForeground)
         }
-        .shadow(color: JOColors.accent.opacity(0.35), radius: 4, x: 0, y: 0)
+        .shadow(color: LegacyColors.accent.opacity(0.35), radius: 4, x: 0, y: 0)
     }
 }
 
@@ -206,19 +206,19 @@ private struct ToastView: View {
 
     var body: some View {
         Text(text)
-            .font(JOTypography.caption)
-            .foregroundStyle(JOColors.textPrimary)
-            .padding(.horizontal, JOSpacing.lg)
-            .padding(.vertical, JOSpacing.sm)
-            .background(JOColors.surface.opacity(0.95))
+            .font(LegacyTypography.caption)
+            .foregroundStyle(LegacyColors.textPrimary)
+            .padding(.horizontal, LegacySpacing.lg)
+            .padding(.vertical, LegacySpacing.sm)
+            .background(LegacyColors.surface.opacity(0.95))
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(JOColors.cardBorder, lineWidth: 1)
+                    .stroke(LegacyColors.cardBorder, lineWidth: 1)
             )
-            .shadow(color: JOShadows.card.color, radius: 6, x: 0, y: 4)
+            .shadow(color: LegacyShadows.card.color, radius: 6, x: 0, y: 4)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .padding(.top, JOSpacing.xl + 12)
+            .padding(.top, LegacySpacing.xl + 12)
             .allowsHitTesting(false)
     }
 }

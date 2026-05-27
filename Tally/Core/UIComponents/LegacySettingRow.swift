@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOSettingRow: View {
+struct LegacySettingRow: View {
     let title: String
     let subtitle: String?
     let systemImage: String
@@ -15,7 +15,7 @@ struct JOSettingRow: View {
         subtitle: String? = nil,
         systemImage: String,
         iconBackground: Color,
-        iconForeground: Color = JOColors.profileRowTitle,
+        iconForeground: Color = LegacyColors.profileRowTitle,
         showsChevron: Bool = true,
         isOn: Binding<Bool>? = nil,
         backgroundColor: Color = .clear
@@ -31,7 +31,7 @@ struct JOSettingRow: View {
     }
 
     var body: some View {
-        HStack(spacing: JOSpacing.md) {
+        HStack(spacing: LegacySpacing.md) {
             Image(systemName: systemImage)
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(iconForeground)
@@ -41,12 +41,12 @@ struct JOSettingRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(JOTypography.body)
-                    .foregroundStyle(JOColors.profileRowTitle)
+                    .font(LegacyTypography.body)
+                    .foregroundStyle(LegacyColors.profileRowTitle)
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
-                        .font(JOTypography.caption)
-                        .foregroundStyle(JOColors.profileRowSubtitle)
+                        .font(LegacyTypography.caption)
+                        .foregroundStyle(LegacyColors.profileRowSubtitle)
                 }
             }
 
@@ -58,15 +58,15 @@ struct JOSettingRow: View {
             } else if showsChevron {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(JOColors.profileRowSubtitle)
+                    .foregroundStyle(LegacyColors.profileRowSubtitle)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.vertical, JOSpacing.md)
+        .padding(.horizontal, LegacySpacing.lg)
+        .padding(.vertical, LegacySpacing.md)
         .frame(minHeight: 64)
         .background(backgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: JORadius.profileRow, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: LegacyRadius.profileRow, style: .continuous))
         .contentShape(Rectangle())
     }
 }

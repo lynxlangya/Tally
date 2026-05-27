@@ -9,20 +9,20 @@ struct AccountSettingsView: View {
     @State private var avatarItem: PhotosPickerItem?
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
+        VStack(spacing: LegacySpacing.lg) {
             header
 
-            VStack(spacing: JOSpacing.xl) {
+            VStack(spacing: LegacySpacing.xl) {
                 avatarSection
                 nameSection
             }
-            .padding(.top, JOSpacing.lg)
+            .padding(.top, LegacySpacing.lg)
 
             Spacer()
         }
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.top, JOSpacing.lg)
-        .background(JOColors.background.ignoresSafeArea())
+        .padding(.horizontal, LegacySpacing.lg)
+        .padding(.top, LegacySpacing.lg)
+        .background(LegacyColors.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
@@ -40,22 +40,22 @@ struct AccountSettingsView: View {
     }
 
     private var header: some View {
-        JOHeaderBar(
+        LegacyHeaderBar(
             title: "账号设置",
-            titleFont: JOTypography.headline,
-            titleColor: JOColors.profileRowTitle
+            titleFont: LegacyTypography.headline,
+            titleColor: LegacyColors.profileRowTitle
         ) {
             dismiss()
         }
     }
 
     private var avatarSection: some View {
-        VStack(spacing: JOSpacing.md) {
+        VStack(spacing: LegacySpacing.md) {
             ZStack {
                 Circle()
-                    .fill(JOColors.surface)
+                    .fill(LegacyColors.surface)
                     .frame(width: 96, height: 96)
-                    .overlay(Circle().stroke(JOColors.cardBorder, lineWidth: 1))
+                    .overlay(Circle().stroke(LegacyColors.cardBorder, lineWidth: 1))
 
                 if let image = avatarImage {
                     Image(uiImage: image)
@@ -66,41 +66,41 @@ struct AccountSettingsView: View {
                 } else {
                     Image(systemName: "person.fill")
                         .font(.system(size: 36, weight: .semibold))
-                        .foregroundStyle(JOColors.profileRowSubtitle)
+                        .foregroundStyle(LegacyColors.profileRowSubtitle)
                 }
             }
 
             PhotosPicker(selection: $avatarItem, matching: .images) {
                 Text("更换头像")
-                    .font(JOTypography.caption)
-                    .foregroundStyle(JOColors.accent)
+                    .font(LegacyTypography.caption)
+                    .foregroundStyle(LegacyColors.accent)
             }
         }
         .frame(maxWidth: .infinity)
     }
 
     private var nameSection: some View {
-        VStack(alignment: .leading, spacing: JOSpacing.sm) {
+        VStack(alignment: .leading, spacing: LegacySpacing.sm) {
             Text("名称")
-                .font(JOTypography.caption)
-                .foregroundStyle(JOColors.textSecondary)
+                .font(LegacyTypography.caption)
+                .foregroundStyle(LegacyColors.textSecondary)
 
-            JOLimitedTextField(
+            LegacyLimitedTextField(
                 text: $profileName,
                 placeholder: "输入名称",
                 maxLength: 12,
                 font: UIFont.systemFont(ofSize: 17, weight: .medium),
-                textColor: UIColor(JOColors.textPrimary),
-                placeholderColor: UIColor(JOColors.textSecondary),
+                textColor: UIColor(LegacyColors.textPrimary),
+                placeholderColor: UIColor(LegacyColors.textSecondary),
                 returnKeyType: .done
             )
-            .padding(.horizontal, JOSpacing.lg)
+            .padding(.horizontal, LegacySpacing.lg)
             .frame(height: 48)
-            .background(JOColors.surface)
+            .background(LegacyColors.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(JOColors.cardBorder, lineWidth: 1)
+                    .stroke(LegacyColors.cardBorder, lineWidth: 1)
             )
         }
         .frame(maxWidth: .infinity, alignment: .leading)

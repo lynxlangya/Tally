@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOEmptyStateView: View {
+struct LegacyEmptyStateView: View {
     let title: String
     let subtitle: String?
     let systemImage: String
@@ -25,27 +25,27 @@ struct JOEmptyStateView: View {
         VStack(spacing: spacing) {
             Image(systemName: systemImage)
                 .font(.system(size: iconSize, weight: .semibold))
-                .foregroundStyle(JOColors.textSecondary)
+                .foregroundStyle(LegacyColors.textSecondary)
 
             Text(title)
-                .font(JOTypography.body)
-                .foregroundStyle(JOColors.textPrimary.opacity(0.9))
+                .font(LegacyTypography.body)
+                .foregroundStyle(LegacyColors.textPrimary.opacity(0.9))
 
             if let subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(JOTypography.caption)
-                    .foregroundStyle(JOColors.textSecondary)
+                    .font(LegacyTypography.caption)
+                    .foregroundStyle(LegacyColors.textSecondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
-        .padding(.vertical, JOSpacing.lg)
+        .padding(.vertical, LegacySpacing.lg)
     }
 }
 
 #Preview {
     ZStack {
-        JOColors.background.ignoresSafeArea()
-        JOEmptyStateView(title: "一根刻痕，一笔账。", subtitle: "记一笔")
+        LegacyColors.background.ignoresSafeArea()
+        LegacyEmptyStateView(title: "一根刻痕，一笔账。", subtitle: "记一笔")
             .padding()
     }
 }

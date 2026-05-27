@@ -35,7 +35,7 @@ struct RecurringBillsView: View {
 
                 if viewModel.items.isEmpty {
                     Spacer(minLength: 0)
-                    JOEmptyStateView(
+                    LegacyEmptyStateView(
                         title: "还没有定时账单。"
                     )
                     Spacer(minLength: 0)

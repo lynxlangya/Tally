@@ -8,7 +8,7 @@ struct BillsListHeader: View {
 
     var body: some View {
         HStack {
-            JOBackButton {
+            LegacyBackButton {
                 onBack()
             }
 
@@ -17,24 +17,24 @@ struct BillsListHeader: View {
             Button {
                 onTimeTap()
             } label: {
-                HStack(spacing: JOSpacing.xs) {
+                HStack(spacing: LegacySpacing.xs) {
                     Text(timeTitle)
-                        .font(JOTypography.body)
-                        .foregroundStyle(JOColors.textPrimary)
+                        .font(LegacyTypography.body)
+                        .foregroundStyle(LegacyColors.textPrimary)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(JOColors.textSecondary)
+                        .foregroundStyle(LegacyColors.textSecondary)
                 }
-                .padding(.horizontal, JOSpacing.md)
-                .padding(.vertical, JOSpacing.xs)
-                .background(JOColors.surface)
+                .padding(.horizontal, LegacySpacing.md)
+                .padding(.vertical, LegacySpacing.xs)
+                .background(LegacyColors.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             .buttonStyle(.plain)
 
             Spacer()
 
-            JOBillTypeSegmentedControl(selection: $selection)
+            LegacyBillTypeSegmentedControl(selection: $selection)
         }
     }
 }

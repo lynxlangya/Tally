@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum JOTypography {
+enum LegacyTypography {
     static let titleLarge = Font.system(size: 34, weight: .bold, design: .rounded)
     static let title = Font.system(size: 24, weight: .bold, design: .rounded)
     static let headline = Font.system(size: 17, weight: .semibold)

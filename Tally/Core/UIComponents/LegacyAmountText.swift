@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOAmountText: View {
+struct LegacyAmountText: View {
     enum Size {
         case large
         case medium
@@ -13,7 +13,7 @@ struct JOAmountText: View {
     let size: Size
     let color: Color
 
-    init(cents: Int, sign: String? = nil, size: Size = .medium, color: Color = JOColors.textPrimary) {
+    init(cents: Int, sign: String? = nil, size: Size = .medium, color: Color = LegacyColors.textPrimary) {
         self.cents = cents
         self.sign = sign
         self.size = size
@@ -34,11 +34,11 @@ struct JOAmountText: View {
     private var font: Font {
         switch size {
         case .large:
-            return JOTypography.titleLarge
+            return LegacyTypography.titleLarge
         case .medium:
-            return JOTypography.title
+            return LegacyTypography.title
         case .small:
-            return JOTypography.body
+            return LegacyTypography.body
         case .row:
             return .system(size: 18, weight: .semibold)
         }
