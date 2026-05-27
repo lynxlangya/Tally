@@ -134,7 +134,7 @@ final class QuickEntryViewModel: ObservableObject {
             return false
         }
         guard cents > 0 else {
-            errorMessage = "请输入金额"
+            errorMessage = "金额需大于 0"
             return false
         }
 

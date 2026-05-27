@@ -45,7 +45,7 @@ struct JOEmptyStateView: View {
 #Preview {
     ZStack {
         JOColors.background.ignoresSafeArea()
-        JOEmptyStateView(title: "暂无账单", subtitle: "点击 + 记一笔")
+        JOEmptyStateView(title: "一根刻痕，一笔账。", subtitle: "记一笔")
             .padding()
     }
 }

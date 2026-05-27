@@ -319,7 +319,7 @@ private struct StatsCategoryRanking: View {
             .padding(.horizontal, BillsListLayout.horizontalPadding)
 
             if items.isEmpty {
-                Text("暂无分类记录")
+                Text("没有分类记录。")
                     .font(TallyType.body(13, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -401,7 +401,7 @@ private struct StatsBillsList: View {
                 .padding(.horizontal, BillsListLayout.horizontalPadding)
 
             if dayKeys.isEmpty {
-                Text("暂无明细")
+                Text("没有明细。")
                     .font(TallyType.body(13, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
                     .padding(.horizontal, BillsListLayout.horizontalPadding)

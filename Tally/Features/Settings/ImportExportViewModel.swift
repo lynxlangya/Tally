@@ -48,7 +48,7 @@ final class ImportExportViewModel: ObservableObject {
     }
 
     var dateRangeSubtitle: String {
-        guard let dayKeyRange else { return "暂无记录跨度" }
+        guard let dayKeyRange else { return "还没有记录跨度。" }
         let dayCount = max(
             1,
             (Self.dayKeyCalendar.dateComponents([.day], from: dayKeyRange.0, to: dayKeyRange.1).day ?? 0) + 1
