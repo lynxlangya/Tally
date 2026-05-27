@@ -6,21 +6,21 @@ struct SettingsView: View {
     @Environment(\.appEnvironment) private var environment
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
+        VStack(spacing: LegacySpacing.lg) {
             header
 
             ScrollView {
-                VStack(spacing: JOSpacing.lg) {
+                VStack(spacing: LegacySpacing.lg) {
                     ForEach(settingItems) { item in
                         NavigationLink {
                             destinationView(for: item.destination)
                         } label: {
-                            JOSettingRow(
+                            LegacySettingRow(
                                 title: item.title,
                                 subtitle: item.subtitle,
                                 systemImage: item.systemImage,
-                                iconBackground: JOColors.profileRowIconBackground,
-                                iconForeground: JOColors.profileRowTitle
+                                iconBackground: LegacyColors.profileRowIconBackground,
+                                iconForeground: LegacyColors.profileRowTitle
                             )
                         }
                         .buttonStyle(RowPressStyle())
@@ -29,9 +29,9 @@ struct SettingsView: View {
                 .padding(.bottom, 120)
             }
         }
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.top, JOSpacing.lg)
-        .background(JOColors.background.ignoresSafeArea())
+        .padding(.horizontal, LegacySpacing.lg)
+        .padding(.top, LegacySpacing.lg)
+        .background(LegacyColors.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
@@ -39,10 +39,10 @@ struct SettingsView: View {
     }
 
     private var header: some View {
-        JOHeaderBar(
+        LegacyHeaderBar(
             title: "通用设置",
-            titleFont: JOTypography.headline,
-            titleColor: JOColors.profileRowTitle
+            titleFont: LegacyTypography.headline,
+            titleColor: LegacyColors.profileRowTitle
         ) {
             dismiss()
         }

@@ -11,22 +11,22 @@ struct TimeRangeBar: View {
                 } label: {
                     Text(range.title)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(selection == range ? JOColors.accentForeground : JOColors.textSecondary)
+                        .foregroundStyle(selection == range ? LegacyColors.accentForeground : LegacyColors.textSecondary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 40)
-                        .background(selection == range ? JOColors.accent : Color.clear)
+                        .background(selection == range ? LegacyColors.accent : Color.clear)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(6)
-        .background(JOColors.surface)
+        .background(LegacyColors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(JOColors.cardBorder, lineWidth: 1)
+                .stroke(LegacyColors.cardBorder, lineWidth: 1)
         )
-        .shadow(color: JOShadows.floating.color, radius: JOShadows.floating.radius, x: 0, y: JOShadows.floating.y)
+        .shadow(color: LegacyShadows.floating.color, radius: LegacyShadows.floating.radius, x: 0, y: LegacyShadows.floating.y)
     }
 }

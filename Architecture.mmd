@@ -4,7 +4,7 @@ flowchart TB
     App_TallyApp["TallyApp<br/>应用入口"]
     App_ContentView["ContentView"]
     App_AppRoot["AppRootView"]
-    App_TabScaffold["JOTabScaffold<br/>TabView 自定义 TabBar 与 FAB"]
+    App_TabScaffold["TallyTabScaffold<br/>TabView 自定义 TabBar 与 FAB"]
     App_AppEnv["AppEnvironment<br/>EnvironmentValues 注入"]
     App_DI["DIContainer<br/>仓库与服务实例"]
   end
@@ -143,29 +143,29 @@ flowchart TB
     end
 
     subgraph CoreTheme["Theme"]
-      C_Colors["Colors"]
-      C_Typography["Typography"]
-      C_Radii["Radii"]
-      C_Spacing["Spacing"]
-      C_Shadows["Shadows"]
+      C_Colors["Color tokens<br/>tally* cat*"]
+      C_Typography["TallyType<br/>LegacyTypography"]
+      C_Radii["TallyRadii<br/>LegacyRadius"]
+      C_Spacing["TallySpacing<br/>LegacySpacing"]
+      C_Shadows["TallyShadows<br/>LegacyShadows"]
     end
 
     subgraph CoreComponents["UIComponents"]
-      C_ListRow["JOListRow"]
-      C_AmountText["JOAmountText"]
-      C_Card["JOCard"]
-      C_Segmented["JOSegmentedControl"]
-      C_BillTypeSeg["JOBillTypeSegmentedControl"]
-      C_SheetHandle["JOSheetHandle"]
-      C_SheetContainer["JOSheetContainer"]
-      C_HeaderBar["JOHeaderBar"]
-      C_CategoryTile["JOCategoryIconTile"]
-      C_TabBar["JOTabBar"]
-      C_FAB["JOFloatingAddButton"]
-      C_Other["JOChip JOIconButton JOSettingRow JOBackButton 等"]
+      C_Mark["TallyMark"]
+      C_AmountText["TallyAmountText<br/>LegacyAmountText"]
+      C_Icon["TallyIcon"]
+      C_Segmented["Segmented"]
+      C_BillTypeSeg["LegacyBillTypeSegmentedControl"]
+      C_SheetHandle["LegacySheetHandle"]
+      C_SheetContainer["LegacySheetContainer"]
+      C_HeaderBar["LegacyHeaderBar"]
+      C_CategoryTile["CategoryTile"]
+      C_TabBar["TallyTabBar"]
+      C_FAB["TallyFAB"]
+      C_Other["Chip Sparkline Yen<br/>LegacySettingRow LegacyBackButton 等"]
     end
 
-    CorePreview["PreviewKit<br/>PreviewGallery"]
+    CorePreview["UIComponents/Tally<br/>TallyComponentsGallery"]
   end
 
   %% 资源

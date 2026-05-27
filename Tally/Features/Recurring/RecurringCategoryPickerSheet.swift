@@ -13,42 +13,42 @@ struct RecurringCategoryPickerSheet: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 4)
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
+        VStack(spacing: LegacySpacing.lg) {
             header
 
             ScrollView {
-                VStack(alignment: .leading, spacing: JOSpacing.lg) {
+                VStack(alignment: .leading, spacing: LegacySpacing.lg) {
                     section(title: "支出", items: expenseCategories)
                     section(title: "收入", items: incomeCategories)
                 }
-                .padding(.bottom, JOSpacing.lg)
+                .padding(.bottom, LegacySpacing.lg)
             }
         }
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.top, JOSpacing.lg)
-        .background(JOColors.background.ignoresSafeArea())
+        .padding(.horizontal, LegacySpacing.lg)
+        .padding(.top, LegacySpacing.lg)
+        .background(LegacyColors.background.ignoresSafeArea())
         .onAppear(perform: load)
     }
 
     private var header: some View {
         HStack {
-            JOBackButton {
+            LegacyBackButton {
                 dismiss()
             }
             Spacer()
             Text("选择类别")
-                .font(JOTypography.headline)
-                .foregroundStyle(JOColors.textPrimary)
+                .font(LegacyTypography.headline)
+                .foregroundStyle(LegacyColors.textPrimary)
             Spacer()
             Color.clear.frame(width: 36, height: 36)
         }
     }
 
     private func section(title: String, items: [CategoryRecord]) -> some View {
-        VStack(alignment: .leading, spacing: JOSpacing.md) {
+        VStack(alignment: .leading, spacing: LegacySpacing.md) {
             Text(title)
-                .font(JOTypography.caption)
-                .foregroundStyle(JOColors.textSecondary)
+                .font(LegacyTypography.caption)
+                .foregroundStyle(LegacyColors.textSecondary)
 
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(items) { category in

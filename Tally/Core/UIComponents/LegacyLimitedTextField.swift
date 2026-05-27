@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-struct JOLimitedTextField: UIViewRepresentable {
+struct LegacyLimitedTextField: UIViewRepresentable {
     @Binding var text: String
     let placeholder: String
     let maxLength: Int
@@ -53,9 +53,9 @@ struct JOLimitedTextField: UIViewRepresentable {
     }
 
     final class Coordinator: NSObject, UITextFieldDelegate {
-        private let parent: JOLimitedTextField
+        private let parent: LegacyLimitedTextField
 
-        init(_ parent: JOLimitedTextField) {
+        init(_ parent: LegacyLimitedTextField) {
             self.parent = parent
         }
 

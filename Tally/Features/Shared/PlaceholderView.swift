@@ -6,23 +6,23 @@ struct PlaceholderView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
+        VStack(spacing: LegacySpacing.lg) {
             header
 
-            VStack(spacing: JOSpacing.sm) {
+            VStack(spacing: LegacySpacing.sm) {
                 Text(title)
-                    .font(JOTypography.title)
-                    .foregroundStyle(JOColors.textPrimary)
+                    .font(LegacyTypography.title)
+                    .foregroundStyle(LegacyColors.textPrimary)
                 Text("占位页")
-                    .font(JOTypography.body)
-                    .foregroundStyle(JOColors.textSecondary)
+                    .font(LegacyTypography.body)
+                    .foregroundStyle(LegacyColors.textSecondary)
             }
 
             Spacer()
         }
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.top, JOSpacing.lg)
-        .background(JOColors.background.ignoresSafeArea())
+        .padding(.horizontal, LegacySpacing.lg)
+        .padding(.top, LegacySpacing.lg)
+        .background(LegacyColors.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
@@ -30,7 +30,7 @@ struct PlaceholderView: View {
     }
 
     private var header: some View {
-        JOHeaderBar(
+        LegacyHeaderBar(
             showsTrailingPlaceholder: false
         ) {
             dismiss()

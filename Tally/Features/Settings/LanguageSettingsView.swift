@@ -5,7 +5,7 @@ struct LanguageSettingsView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
 
     var body: some View {
-        VStack(spacing: JOSpacing.lg) {
+        VStack(spacing: LegacySpacing.lg) {
             header
 
             VStack(spacing: 0) {
@@ -15,35 +15,35 @@ struct LanguageSettingsView: View {
 
                     if index < languageOptions.count - 1 {
                         Divider()
-                            .overlay(JOColors.cardBorder.opacity(0.35))
-                            .padding(.horizontal, JOSpacing.lg)
+                            .overlay(LegacyColors.cardBorder.opacity(0.35))
+                            .padding(.horizontal, LegacySpacing.lg)
                     }
                 }
             }
-            .background(JOColors.surface)
+            .background(LegacyColors.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(JOColors.cardBorder, lineWidth: 1)
+                    .stroke(LegacyColors.cardBorder, lineWidth: 1)
             )
             .shadow(
-                color: JOShadows.card.color,
-                radius: JOShadows.card.radius,
-                x: JOShadows.card.x,
-                y: JOShadows.card.y
+                color: LegacyShadows.card.color,
+                radius: LegacyShadows.card.radius,
+                x: LegacyShadows.card.x,
+                y: LegacyShadows.card.y
             )
-            .padding(.top, JOSpacing.sm)
+            .padding(.top, LegacySpacing.sm)
 
             Text("当前版本暂时不可修改，后续会完善语言更改功能。")
-                .font(JOTypography.caption)
-                .foregroundStyle(JOColors.textSecondary)
-                .padding(.top, JOSpacing.sm)
+                .font(LegacyTypography.caption)
+                .foregroundStyle(LegacyColors.textSecondary)
+                .padding(.top, LegacySpacing.sm)
 
             Spacer()
         }
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.top, JOSpacing.lg)
-        .background(JOColors.background.ignoresSafeArea())
+        .padding(.horizontal, LegacySpacing.lg)
+        .padding(.top, LegacySpacing.lg)
+        .background(LegacyColors.background.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
@@ -51,10 +51,10 @@ struct LanguageSettingsView: View {
     }
 
     private var header: some View {
-        JOHeaderBar(
+        LegacyHeaderBar(
             title: "语言设置",
-            titleFont: JOTypography.headline,
-            titleColor: JOColors.profileRowTitle
+            titleFont: LegacyTypography.headline,
+            titleColor: LegacyColors.profileRowTitle
         ) {
             dismiss()
         }
@@ -81,20 +81,20 @@ private struct LanguageOptionRow: View {
     var body: some View {
         HStack {
             Text(option.title)
-                .font(JOTypography.body)
-                .foregroundStyle(JOColors.textPrimary)
+                .font(LegacyTypography.body)
+                .foregroundStyle(LegacyColors.textPrimary)
 
             Spacer()
 
             Circle()
                 .strokeBorder(
-                    option.isSelected ? JOColors.accent : JOColors.textSecondary.opacity(0.6),
+                    option.isSelected ? LegacyColors.accent : LegacyColors.textSecondary.opacity(0.6),
                     lineWidth: 2
                 )
                 .frame(width: 18, height: 18)
         }
-        .padding(.horizontal, JOSpacing.lg)
-        .padding(.vertical, JOSpacing.md + 5)
+        .padding(.horizontal, LegacySpacing.lg)
+        .padding(.vertical, LegacySpacing.md + 5)
     }
 }
 

@@ -26,7 +26,7 @@ final class ThemeManager: ObservableObject {
 
     private init() {
         let options: [AccentOption] = [
-            AccentOption(id: "green", color: JOColors.accent, name: "Green"),
+            AccentOption(id: "green", color: LegacyColors.accent, name: "Green"),
             AccentOption(id: "orange", color: Color(hex: 0xF59E0B), name: "Orange"),
             AccentOption(id: "blue", color: Color(hex: 0x3B82F6), name: "Blue"),
             AccentOption(id: "purple", color: Color(hex: 0xA855F7), name: "Purple"),

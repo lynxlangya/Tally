@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-enum JOTheme {
+enum LegacyTheme {
     enum Mode {
         case system
         case dark
@@ -11,7 +11,7 @@ enum JOTheme {
     static var mode: Mode = .dark
 }
 
-enum JOColors {
+enum LegacyColors {
     private enum Palette {
         static let primary = rgb(19, 236, 55)
         static let backgroundLight = rgb(246, 248, 246)
@@ -71,7 +71,7 @@ enum JOColors {
 
     private static func themed(light: UIColor, dark: UIColor) -> Color {
         Color(UIColor { traitCollection in
-            switch JOTheme.mode {
+            switch LegacyTheme.mode {
             case .system:
                 return traitCollection.userInterfaceStyle == .dark ? dark : light
             case .dark:

@@ -7,13 +7,13 @@ struct BillsListSummaryView: View {
     let type: BillType
 
     var body: some View {
-        VStack(alignment: .leading, spacing: JOSpacing.sm) {
+        VStack(alignment: .leading, spacing: LegacySpacing.sm) {
             Text(title)
-                .font(JOTypography.caption)
-                .foregroundStyle(JOColors.textSecondary)
+                .font(LegacyTypography.caption)
+                .foregroundStyle(LegacyColors.textSecondary)
 
-            HStack(alignment: .bottom, spacing: JOSpacing.md) {
-                JOAmountText(cents: totalCents, size: .large)
+            HStack(alignment: .bottom, spacing: LegacySpacing.md) {
+                LegacyAmountText(cents: totalCents, size: .large)
 
                 if let change {
                     TrendBadge(text: change.percentText, isPositive: change.isPositive, type: type)
@@ -32,7 +32,7 @@ private struct TrendBadge: View {
         let isExpense = type == .expense
         let isIncrease = isPositive
         let shouldUseRed = isExpense ? isIncrease : !isIncrease
-        let background = shouldUseRed ? Color.red.opacity(0.22) : JOColors.accent.opacity(0.22)
+        let background = shouldUseRed ? Color.red.opacity(0.22) : LegacyColors.accent.opacity(0.22)
         let symbol = isPositive ? "arrow.up.right" : "arrow.down.right"
 
         HStack(spacing: 4) {

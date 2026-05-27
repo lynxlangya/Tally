@@ -8,7 +8,7 @@ struct BillsListTrendSection: View {
     @Binding var activeIndex: Int?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: JOSpacing.md) {
+        VStack(alignment: .leading, spacing: LegacySpacing.md) {
             TrendChartView(
                 points: points,
                 highlightIndex: highlightIndex,
@@ -43,7 +43,7 @@ private struct TrendChartView: View {
                     TrendFillPath(points: safePoints, step: step, height: height)
                         .fill(
                             LinearGradient(
-                                colors: [JOColors.accent.opacity(0.35), JOColors.accent.opacity(0.0)],
+                                colors: [LegacyColors.accent.opacity(0.35), LegacyColors.accent.opacity(0.0)],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
@@ -51,25 +51,25 @@ private struct TrendChartView: View {
 
                     TrendLinePath(points: safePoints, step: step, height: height)
                         .stroke(
-                            JOColors.accent.opacity(0.9),
+                            LegacyColors.accent.opacity(0.9),
                             style: StrokeStyle(
                                 lineWidth: BillsListLayout.trendLineWidth,
                                 lineCap: .round,
                                 lineJoin: .round
                             )
                         )
-                        .shadow(color: JOColors.accent.opacity(0.2), radius: 6, x: 0, y: 0)
+                        .shadow(color: LegacyColors.accent.opacity(0.2), radius: 6, x: 0, y: 0)
 
                     if let displayIndex,
                        safePoints.indices.contains(displayIndex) {
                         let x = step * CGFloat(displayIndex)
                         let y = height - CGFloat(safePoints[displayIndex]) * height
                         Circle()
-                            .fill(JOColors.accent)
+                            .fill(LegacyColors.accent)
                             .frame(width: BillsListLayout.trendDotSize, height: BillsListLayout.trendDotSize)
                             .overlay(
                                 Circle()
-                                    .stroke(JOColors.background, lineWidth: BillsListLayout.trendDotStroke)
+                                    .stroke(LegacyColors.background, lineWidth: BillsListLayout.trendDotStroke)
                             )
                             .position(x: x, y: y)
 
@@ -80,7 +80,7 @@ private struct TrendChartView: View {
                                 .foregroundStyle(Color.white)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
-                                .background(JOColors.surface)
+                                .background(LegacyColors.surface)
                                 .clipShape(Capsule())
                                 .position(
                                     x: x,
@@ -170,11 +170,11 @@ private struct ChartGridView: View {
             ForEach(0..<4, id: \.self) { index in
                 if index < 3 {
                     Divider()
-                        .overlay(JOColors.textSecondary.opacity(0.2))
+                        .overlay(LegacyColors.textSecondary.opacity(0.2))
                         .overlay(
                             Rectangle()
                                 .stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-                                .foregroundStyle(JOColors.textSecondary.opacity(0.2))
+                                .foregroundStyle(LegacyColors.textSecondary.opacity(0.2))
                         )
                 } else {
                     Color.clear
@@ -205,7 +205,7 @@ private struct AxisLabelsView: View {
                 }
             }
             .font(.system(size: 10, weight: .medium))
-            .foregroundStyle(JOColors.textSecondary)
+            .foregroundStyle(LegacyColors.textSecondary)
         } else {
             HStack(spacing: 0) {
                 ForEach(labels, id: \.self) { label in
@@ -214,7 +214,7 @@ private struct AxisLabelsView: View {
                 }
             }
             .font(.system(size: 10, weight: .medium))
-            .foregroundStyle(JOColors.textSecondary)
+            .foregroundStyle(LegacyColors.textSecondary)
         }
     }
 }

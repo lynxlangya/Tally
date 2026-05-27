@@ -7,6 +7,7 @@ enum BillsListLayout {
     static let trendHeight: CGFloat = 72
     static let rankBarHeight: CGFloat = 3
     static let rankingSpacing: CGFloat = 14
+    static let rankingBottomPadding: CGFloat = 16
     static let detailSheetHeightRatio: CGFloat = 0.66
     static let detailSheetCornerRadius: CGFloat = 28
     static let detailSheetHandleWidth: CGFloat = 40

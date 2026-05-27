@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct JOTabScaffold: View {
+struct TallyTabScaffold: View {
     @Environment(\.appEnvironment) private var environment
 
     @State private var selectedTab: TallyShellTab = .home
@@ -95,6 +95,6 @@ struct JOTabScaffold: View {
 }
 
 #Preview {
-    JOTabScaffold()
+    TallyTabScaffold()
         .environment(\.appEnvironment, .preview)
 }

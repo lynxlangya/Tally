@@ -5,33 +5,33 @@ struct BillsListCategoryDetailSheet: View {
     let onEdit: (UUID) -> Void
 
     var body: some View {
-        JOSheetContainer(
+        LegacySheetContainer(
             cornerRadius: BillsListLayout.detailSheetCornerRadius,
-            background: JOColors.surface.opacity(0.7)
+            background: LegacyColors.surface.opacity(0.7)
         ) {
-            VStack(spacing: JOSpacing.lg) {
-                JOSheetHandle(
+            VStack(spacing: LegacySpacing.lg) {
+                LegacySheetHandle(
                     width: BillsListLayout.detailSheetHandleWidth,
                     height: BillsListLayout.detailSheetHandleHeight,
                     opacity: 0.3
                 )
-                .padding(.top, JOSpacing.sm)
+                .padding(.top, LegacySpacing.sm)
 
-                VStack(spacing: JOSpacing.sm) {
+                VStack(spacing: LegacySpacing.sm) {
                     Text(detail.title)
-                        .font(JOTypography.headline)
-                        .foregroundStyle(JOColors.textPrimary)
+                        .font(LegacyTypography.headline)
+                        .foregroundStyle(LegacyColors.textPrimary)
 
-                    JOAmountText(cents: detail.totalCents, size: .large)
+                    LegacyAmountText(cents: detail.totalCents, size: .large)
                 }
 
                 ScrollView {
                     if detail.items.isEmpty {
                         Text("没有记录。")
-                            .font(JOTypography.caption)
-                            .foregroundStyle(JOColors.textSecondary)
+                            .font(LegacyTypography.caption)
+                            .foregroundStyle(LegacyColors.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, JOSpacing.xl)
+                            .padding(.top, LegacySpacing.xl)
                     } else {
                         LazyVStack(spacing: 0) {
                             ForEach(Array(detail.items.enumerated()), id: \.element.id) { index, item in
@@ -51,8 +51,8 @@ struct BillsListCategoryDetailSheet: View {
                     }
                 }
                 .scrollIndicators(.hidden)
-                .padding(.horizontal, JOSpacing.xl)
-                .padding(.bottom, JOSpacing.lg)
+                .padding(.horizontal, LegacySpacing.xl)
+                .padding(.bottom, LegacySpacing.lg)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
@@ -67,21 +67,21 @@ private struct DetailRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.dateText)
-                    .font(JOTypography.body)
-                    .foregroundStyle(JOColors.textPrimary)
+                    .font(LegacyTypography.body)
+                    .foregroundStyle(LegacyColors.textPrimary)
 
                 Text(item.noteText)
-                    .font(JOTypography.caption)
-                    .foregroundStyle(JOColors.textSecondary)
+                    .font(LegacyTypography.caption)
+                    .foregroundStyle(LegacyColors.textSecondary)
             }
 
             Spacer()
 
-            JOAmountText(
+            LegacyAmountText(
                 cents: item.amountCents,
                 sign: isIncome ? "+" : "-",
                 size: .small,
-                color: isIncome ? JOColors.accent : JOColors.textPrimary
+                color: isIncome ? LegacyColors.accent : LegacyColors.textPrimary
             )
         }
         .padding(.vertical, BillsListLayout.detailRowVerticalPadding)
