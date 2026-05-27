@@ -8,7 +8,7 @@ final class QuickEntryViewModel: ObservableObject {
         case amount
     }
 
-    enum KeypadKey {
+    enum KeypadKey: Equatable {
         case digit(Int)
         case doubleZero
         case decimal
@@ -72,11 +72,19 @@ final class QuickEntryViewModel: ObservableObject {
     }
 
     var displayAmountText: String {
-        formatAmount(amountText)
+        displayAmount
+    }
+
+    var displayAmount: String {
+        formatTypedAmount(amountText)
+    }
+
+    var canSave: Bool {
+        selectedCategory != nil && amountCents > 0
     }
 
     var amountCents: Int {
-        evaluateExpression(amountText) ?? 0
+        cents(from: amountText) ?? 0
     }
 
     func load() {
@@ -110,9 +118,9 @@ final class QuickEntryViewModel: ObservableObject {
         case .calendar:
             break
         case .minus:
-            appendOperator("-")
+            selectedType = .expense
         case .add:
-            appendOperator("+")
+            selectedType = .income
         }
     }
 
@@ -121,7 +129,7 @@ final class QuickEntryViewModel: ObservableObject {
             errorMessage = "请选择分类"
             return false
         }
-        guard let cents = evaluateExpression(amountText) else {
+        guard let cents = cents(from: amountText) else {
             errorMessage = "金额输入有误"
             return false
         }
@@ -188,6 +196,9 @@ final class QuickEntryViewModel: ObservableObject {
             let items = try categoryRepository.list(type: selectedType)
             categoriesById = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
             categories = sortCategories(items)
+            if selectedCategory?.type != selectedType {
+                selectedCategory = categories.first
+            }
             errorMessage = nil
         } catch {
             categories = []
@@ -245,76 +256,50 @@ final class QuickEntryViewModel: ObservableObject {
             amountText = digit
             return
         }
-        let range = currentOperandRange()
-        let current = String(amountText[range])
-        if current == "0" && !current.contains(".") {
-            amountText.replaceSubrange(range, with: digit)
-            return
-        }
-        if current.contains(".") {
-            guard decimalCount(in: current) < 2 else { return }
+        if amountText.contains(".") {
+            guard decimalCount(in: amountText) < 2 else { return }
         }
         amountText.append(digit)
     }
 
-    private func appendOperator(_ op: Character) {
-        guard !amountText.isEmpty else { return }
-        guard let last = amountText.last else { return }
-        if last == "+" || last == "-" || last == "." {
-            return
-        }
-        amountText.append(op)
-    }
-
     private func appendDoubleZero() {
-        let range = currentOperandRange()
-        let current = String(amountText[range])
-        if current.contains(".") {
-            let remaining = 2 - decimalCount(in: current)
+        if amountText.contains(".") {
+            let remaining = 2 - decimalCount(in: amountText)
             guard remaining > 0 else { return }
             amountText.append(String(repeating: "0", count: min(2, remaining)))
             return
         }
-        if current.isEmpty {
-            amountText.append("0")
-            return
-        }
-        if current == "0" {
+        if amountText == "0" {
             return
         }
         amountText.append("00")
     }
 
     private func appendDecimal() {
-        let range = currentOperandRange()
-        let current = String(amountText[range])
-        guard !current.contains(".") else { return }
-        if current.isEmpty {
-            amountText.append("0.")
-        } else {
-            amountText.append(".")
-        }
+        guard !amountText.contains(".") else { return }
+        amountText.append(".")
     }
 
     private func deleteLast() {
-        guard !amountText.isEmpty else { return }
+        guard amountText.count > 1 else {
+            amountText = "0"
+            return
+        }
         amountText.removeLast()
         if amountText.isEmpty {
             amountText = "0"
         }
     }
 
-    private func formatAmount(_ raw: String) -> String {
-        guard !raw.isEmpty else { return "0.00" }
-        guard raw != "0" else { return "0.00" }
-        return raw
-    }
-
-    private func currentOperandRange() -> Range<String.Index> {
-        if let index = amountText.lastIndex(where: { $0 == "+" || $0 == "-" }) {
-            return amountText.index(after: index)..<amountText.endIndex
-        }
-        return amountText.startIndex..<amountText.endIndex
+    private func formatTypedAmount(_ raw: String) -> String {
+        guard !raw.isEmpty else { return "0" }
+        guard raw != "0" else { return "0" }
+        let parts = raw.split(separator: ".", omittingEmptySubsequences: false)
+        let integerRaw = String(parts.first ?? "0")
+        let integerValue = Int(integerRaw) ?? 0
+        let integer = Self.amountGroupingFormatter.string(from: NSNumber(value: integerValue)) ?? integerRaw
+        guard parts.count > 1 else { return integer }
+        return integer + "." + String(parts[1])
     }
 
     private func decimalCount(in text: String) -> Int {
@@ -335,45 +320,30 @@ final class QuickEntryViewModel: ObservableObject {
         return String(format: "%d.%02d", integerPart, fraction)
     }
 
-    private func evaluateExpression(_ raw: String) -> Int? {
+    private func cents(from raw: String) -> Int? {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-
-        var total = 0
-        var current = ""
-        var sign = 1
-
-        for ch in trimmed {
-            if ch == "+" || ch == "-" {
-                guard !current.isEmpty, let value = cents(from: current) else { return nil }
-                total += sign * value
-                sign = ch == "+" ? 1 : -1
-                current = ""
-                continue
-            }
-            guard ch.isNumber || ch == "." else { return nil }
-            if ch == "." && current.contains(".") {
-                return nil
-            }
-            current.append(ch)
-        }
-
-        guard !current.isEmpty, let value = cents(from: current) else { return nil }
-        total += sign * value
-        guard total >= 0 else { return nil }
-        return total
-    }
-
-    private func cents(from raw: String) -> Int? {
-        guard !raw.isEmpty else { return nil }
-        guard raw.contains(where: { $0.isNumber }) else { return nil }
-        let parts = raw.split(separator: ".", omittingEmptySubsequences: false)
+        guard trimmed.contains(where: { $0.isNumber }) else { return nil }
+        guard trimmed.allSatisfy({ $0.isNumber || $0 == "." }) else { return nil }
+        let parts = trimmed.split(separator: ".", omittingEmptySubsequences: false)
         if parts.count > 2 { return nil }
-        let integerPart = Int(parts.first.map(String.init) ?? "") ?? 0
+        let integerText = String(parts.first ?? "0")
+        guard integerText.isEmpty || integerText.allSatisfy(\.isNumber) else { return nil }
+        let integerPart = Int(integerText.isEmpty ? "0" : integerText) ?? 0
         let fraction = parts.count > 1 ? String(parts[1]) : ""
+        guard fraction.allSatisfy(\.isNumber) else { return nil }
         guard fraction.count <= 2 else { return nil }
         let padded = String(fraction.prefix(2)).padding(toLength: 2, withPad: "0", startingAt: 0)
         guard let fractionValue = Int(padded) else { return nil }
         return integerPart * 100 + fractionValue
     }
+
+    private static let amountGroupingFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        formatter.maximumFractionDigits = 0
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter
+    }()
 }

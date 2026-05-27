@@ -46,7 +46,7 @@ struct TallyAmountText: View {
     }
 
     var body: some View {
-        formattedText(
+        Self.formattedText(
             cents: cents,
             sign: sign,
             size: size,
