@@ -1,22 +1,117 @@
 import CoreData
 
 struct CoreDataSeedService: SeedService {
+    static let colorMigrationFlagKey = "tally.color.migration.v1"
+
     private let context: NSManagedObjectContext
 
     init(context: NSManagedObjectContext) {
         self.context = context
     }
+
+    static let brandColorHexByCategoryName: [String: Int] = [
+        "午餐": BrandSwatch.catPersimmon,
+        "咖啡": BrandSwatch.catOchre,
+        "晚餐": BrandSwatch.catTerracotta,
+        "日用": BrandSwatch.catMoss,
+        "通勤": BrandSwatch.catSlate,
+        "房租": BrandSwatch.catIndigo,
+        "水电": BrandSwatch.catOchre,
+        "网络": BrandSwatch.catTeal,
+        "医疗": BrandSwatch.catRose,
+        "教育": BrandSwatch.catPlum,
+        "衣物": BrandSwatch.catSage,
+        "观影": BrandSwatch.catTerracotta,
+        "音乐": BrandSwatch.catPlum,
+        "宠物": BrandSwatch.catOlive,
+        "旅行": BrandSwatch.catTeal,
+        "礼物": BrandSwatch.catRose,
+        "游戏": BrandSwatch.catIndigo,
+        "未分类": BrandSwatch.catAsh,
+        "薪资": BrandSwatch.catMoss,
+        "奖金": BrandSwatch.catOchre,
+        "副业": BrandSwatch.catTeal,
+        "理财": BrandSwatch.catSlate
+    ]
+
+    private static let brandColorHexBySeedCategoryName: [String: Int] = {
+        var values = brandColorHexByCategoryName
+        values.merge([
+            "早餐": BrandSwatch.catOchre,
+            "运动": BrandSwatch.catSage,
+            "油费": BrandSwatch.catSlate,
+            "甜点": BrandSwatch.catRose,
+            "服饰": BrandSwatch.catSage,
+            "通讯": BrandSwatch.catTeal,
+            "娱乐": BrandSwatch.catTerracotta,
+            "其他": BrandSwatch.catAsh,
+            "交通": BrandSwatch.catSlate,
+            "购物": BrandSwatch.catMoss,
+            "工资": BrandSwatch.catMoss,
+            "基金": BrandSwatch.catSlate,
+            "黄金": BrandSwatch.catOchre,
+            "股票": BrandSwatch.catMoss,
+            "兼职": BrandSwatch.catTeal,
+            "礼金": BrandSwatch.catRose,
+            "红包": BrandSwatch.catRose,
+            "投资": BrandSwatch.catSlate,
+            "退款": BrandSwatch.catTeal
+        ]) { current, _ in current }
+        return values
+    }()
+
+    static var presetCategoryIDs: Set<UUID> {
+        Set(categories.map(\.id))
+    }
+
+    private enum BrandSwatch {
+        static let catTerracotta = 0xB8553E
+        static let catPersimmon = 0xD6864A
+        static let catOchre = 0xC49A3C
+        static let catOlive = 0x7A8043
+        static let catMoss = 0x4D7148
+        static let catSage = 0x5E8B7A
+        static let catTeal = 0x3D7D7E
+        static let catSlate = 0x5C6F86
+        static let catIndigo = 0x5B5E8A
+        static let catPlum = 0x7E4D6E
+        static let catRose = 0xA65566
+        static let catAsh = 0x6B6964
+    }
+
     private struct SeedCategory {
         let id: UUID
         let type: BillType
         let name: String
         let iconKey: String
-        let colorHex: Int
+        let legacyColorHex: Int
         let isSystem: Bool
         let sortOrder: Int
+
+        var colorHex: Int {
+            CoreDataSeedService.brandColorHex(for: name, fallback: legacyColorHex)
+        }
+
+        init(
+            id: UUID,
+            type: BillType,
+            name: String,
+            iconKey: String,
+            colorHex: Int,
+            isSystem: Bool,
+            sortOrder: Int
+        ) {
+            self.id = id
+            self.type = type
+            self.name = name
+            self.iconKey = iconKey
+            self.legacyColorHex = colorHex
+            self.isSystem = isSystem
+            self.sortOrder = sortOrder
+        }
     }
 
-    private let categories: [SeedCategory] = [
+    private static let categories: [SeedCategory] = [
         SeedCategory(id: SystemCategoryID.uncategorizedExpense, type: .expense, name: "未分类", iconKey: "questionmark", colorHex: 0x13EC37, isSystem: true, sortOrder: 0),
         SeedCategory(id: SystemCategoryID.uncategorizedIncome, type: .income, name: "未分类", iconKey: "questionmark", colorHex: 0x13EC37, isSystem: true, sortOrder: 0),
 
@@ -63,6 +158,36 @@ struct CoreDataSeedService: SeedService {
         }
     }
 
+    func migrateLegacyCategoryColors(userDefaults: UserDefaults = .standard) throws {
+        try Self.migrateLegacyCategoryColors(in: context, userDefaults: userDefaults)
+    }
+
+    static func migrateLegacyCategoryColors(
+        in context: NSManagedObjectContext,
+        userDefaults: UserDefaults = .standard
+    ) throws {
+        guard !userDefaults.bool(forKey: colorMigrationFlagKey) else { return }
+
+        let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
+        let categories = try context.fetch(request)
+        for category in categories {
+            guard
+                let id = category.value(forKey: "id") as? UUID,
+                presetCategoryIDs.contains(id),
+                let name = category.value(forKey: "name") as? String,
+                let colorHex = brandColorHexBySeedCategoryName[name]
+            else {
+                continue
+            }
+            category.setValue(Int64(colorHex), forKey: "colorHex")
+        }
+
+        if context.hasChanges {
+            try context.save()
+        }
+        userDefaults.set(true, forKey: colorMigrationFlagKey)
+    }
+
     func seedPreviewBill() throws {
         let object = NSEntityDescription.insertNewObject(forEntityName: "Bill", into: context)
         let now = Date()
@@ -85,7 +210,7 @@ struct CoreDataSeedService: SeedService {
     }
 
     private func ensurePresetCategories() throws {
-        for seed in categories {
+        for seed in Self.categories {
             let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
             request.fetchLimit = 1
             request.predicate = NSPredicate(format: "id == %@", seed.id as CVarArg)
@@ -109,5 +234,9 @@ struct CoreDataSeedService: SeedService {
         object.setValue(Int64(seed.colorHex), forKey: "colorHex")
         object.setValue(seed.isSystem, forKey: "isSystem")
         object.setValue(Int64(seed.sortOrder), forKey: "sortOrder")
+    }
+
+    private static func brandColorHex(for name: String, fallback: Int) -> Int {
+        brandColorHexBySeedCategoryName[name] ?? fallback
     }
 }
