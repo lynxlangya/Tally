@@ -12,10 +12,16 @@ struct BillsListView: View {
 
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
+    private let hidesTabBarOnAppear: Bool
 
-    init(repository: BillRepository, categoryRepository: CategoryRepository) {
+    init(
+        repository: BillRepository,
+        categoryRepository: CategoryRepository,
+        hidesTabBarOnAppear: Bool = true
+    ) {
         self.billRepository = repository
         self.categoryRepository = categoryRepository
+        self.hidesTabBarOnAppear = hidesTabBarOnAppear
         _viewModel = StateObject(wrappedValue: BillsListViewModel(
             repository: repository,
             categoryRepository: categoryRepository
@@ -78,7 +84,7 @@ struct BillsListView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
-            tabBarVisibility?.setVisible(false)
+            tabBarVisibility?.setVisible(!hidesTabBarOnAppear)
         }
         .task {
             viewModel.load()
