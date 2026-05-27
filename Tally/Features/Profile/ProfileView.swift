@@ -226,7 +226,10 @@ struct ProfileView: View {
                 billRepository: environment.container.repositories.bill
             )
         case .importExport:
-            ImportExportView(importExportService: environment.container.services.importExport)
+            ImportExportView(
+                importExportService: environment.container.services.importExport,
+                billRepository: environment.container.repositories.bill
+            )
         case .theme:
             ThemeSettingsView()
         case .language:

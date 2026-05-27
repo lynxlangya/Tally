@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import UniformTypeIdentifiers
 
 struct ImportExportView: View {
@@ -8,28 +7,33 @@ struct ImportExportView: View {
     @StateObject private var viewModel: ImportExportViewModel
     @State private var activeImporter: ImportFileKind?
 
-    init(importExportService: ImportExportService) {
-        _viewModel = StateObject(wrappedValue: ImportExportViewModel(service: importExportService))
+    init(importExportService: ImportExportService, billRepository: BillRepository) {
+        _viewModel = StateObject(wrappedValue: ImportExportViewModel(
+            service: importExportService,
+            billRepository: billRepository
+        ))
     }
 
     var body: some View {
         ZStack {
-            JOColors.background.ignoresSafeArea()
+            Color.tallyBg.ignoresSafeArea()
 
-            VStack(spacing: JOSpacing.lg) {
-                header
+            VStack(spacing: 0) {
+                TallyNavHeader(title: "导入与导出", onBack: { dismiss() })
 
-                exportScopePicker
-                    .padding(.top, JOSpacing.sm)
-
-                actionList
-
-                boundaryHint
-
-                Spacer()
+                ScrollView {
+                    VStack(spacing: TallySpacing.s6) {
+                        currentDataBlock
+                        exportScopePicker
+                        actionCards
+                        recentLogCard
+                    }
+                    .padding(.horizontal, TallySpacing.s4)
+                    .padding(.top, TallySpacing.s2)
+                    .padding(.bottom, 120)
+                }
+                .scrollIndicators(.hidden)
             }
-            .padding(.horizontal, JOSpacing.lg)
-            .padding(.top, JOSpacing.lg)
 
             if let toast = viewModel.toastMessage {
                 ImportExportToastView(text: toast)
@@ -40,11 +44,22 @@ struct ImportExportView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
+            viewModel.reloadCurrentData()
         }
-        .sheet(item: $viewModel.sharePayload, onDismiss: {
-            viewModel.clearSharePayload()
-        }) { payload in
-            ImportExportActivityView(activityItems: [payload.fileURL])
+        .fileExporter(
+            isPresented: Binding(
+                get: { viewModel.exportPayload != nil },
+                set: { isPresented in
+                    if !isPresented {
+                        viewModel.clearExportPayload()
+                    }
+                }
+            ),
+            document: ImportExportDocument(data: viewModel.exportPayload?.data ?? Data()),
+            contentType: viewModel.exportPayload?.contentType ?? .data,
+            defaultFilename: viewModel.exportPayload?.defaultFilename ?? "Tally"
+        ) { _ in
+            viewModel.clearExportPayload()
         }
         .fileImporter(
             isPresented: Binding(
@@ -122,111 +137,120 @@ struct ImportExportView: View {
         }
     }
 
-    private var header: some View {
-        JOHeaderBar(
-            title: "导入导出",
-            titleFont: JOTypography.headline,
-            titleColor: JOColors.profileRowTitle
-        ) {
-            dismiss()
-        }
-    }
+    private var currentDataBlock: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s2) {
+            Eyebrow("当前数据")
 
-    private var actionList: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(actionItems.enumerated()), id: \.offset) { index, item in
-                Button {
-                    handleAction(item.kind)
-                } label: {
-                    JOSettingRow(
-                        title: item.title,
-                        subtitle: item.subtitle,
-                        systemImage: item.systemImage,
-                        iconBackground: JOColors.profileRowIconBackground,
-                        iconForeground: JOColors.profileRowTitle
-                    )
-                }
-                .disabled(viewModel.isProcessing)
-                .buttonStyle(RowPressStyle())
-
-                if index < actionItems.count - 1 {
-                    Divider()
-                        .overlay(JOColors.cardBorder.opacity(0.35))
-                        .padding(.horizontal, JOSpacing.lg)
-                }
+            HStack(alignment: .firstTextBaseline, spacing: TallySpacing.s2) {
+                Text("\(viewModel.currentRecordCount)")
+                    .font(TallyType.num(32, weight: .semibold))
+                    .foregroundStyle(Color.tallyInk)
+                Text("条记录")
+                    .font(TallyType.body(13, weight: .medium))
+                    .foregroundStyle(Color.tallyInkDim)
             }
+
+            Text(viewModel.dateRangeSubtitle)
+                .font(TallyType.body(12, weight: .medium))
+                .foregroundStyle(Color.tallyInkFaint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.78)
         }
-        .background(JOColors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(JOColors.cardBorder, lineWidth: 1)
-        )
-        .shadow(
-            color: JOShadows.card.color,
-            radius: JOShadows.card.radius,
-            x: JOShadows.card.x,
-            y: JOShadows.card.y
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, TallySpacing.s2)
     }
 
     private var exportScopePicker: some View {
-        VStack(alignment: .leading, spacing: JOSpacing.sm) {
+        HStack(spacing: TallySpacing.s3) {
             Text("导出范围")
-                .font(JOTypography.caption)
-                .foregroundStyle(JOColors.textSecondary)
+                .font(TallyType.body(12, weight: .medium))
+                .foregroundStyle(Color.tallyInkFaint)
 
-            HStack(spacing: JOSpacing.sm) {
-                ForEach(ExportScope.allCases) { scope in
-                    Button {
-                        guard !viewModel.isProcessing else { return }
-                        viewModel.selectedScope = scope
-                    } label: {
-                        Text(scope.title)
-                            .font(JOTypography.caption)
-                            .foregroundStyle(
-                                viewModel.selectedScope == scope
-                                    ? JOColors.accentForeground
-                                    : JOColors.textSecondary
-                            )
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, JOSpacing.sm)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(
-                                        viewModel.selectedScope == scope
-                                            ? JOColors.accent
-                                            : JOColors.surface
-                                    )
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(JOColors.cardBorder, lineWidth: 1)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(viewModel.isProcessing)
+            Spacer(minLength: 0)
+
+            Segmented(
+                value: $viewModel.selectedScope,
+                options: ExportScope.allCases.map { ($0, $0.title) },
+                size: .sm
+            )
+            .disabled(viewModel.isProcessing)
+        }
+    }
+
+    private var actionCards: some View {
+        VStack(spacing: 10) {
+            ForEach(actionItems) { item in
+                Button {
+                    handleAction(item.kind)
+                } label: {
+                    ImportExportActionCard(item: item)
                 }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isProcessing)
             }
         }
     }
 
-    private var boundaryHint: some View {
-        VStack(alignment: .leading, spacing: JOSpacing.xs) {
-            Text("金额口径：CNY，固定 2 位小数，导入时禁止负数。")
-            Text("时间口径：occurredAtUTC + occurredLocalDate。")
+    private var recentLogCard: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s3) {
+            Eyebrow("最近记录")
+
+            VStack(spacing: 0) {
+                if recentLogs.isEmpty {
+                    Text("暂无导入导出记录")
+                        .font(TallyType.body(12, weight: .medium))
+                        .foregroundStyle(Color.tallyInkFaint)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(TallySpacing.s4)
+                } else {
+                    ForEach(Array(recentLogs.enumerated()), id: \.element.id) { index, log in
+                        ImportExportLogRow(log: log, isLast: index == recentLogs.count - 1)
+                    }
+                }
+            }
+            .background(Color.tallySurface)
+            .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous)
+                    .stroke(Color.tallyLine, lineWidth: 0.5)
+            )
         }
-        .font(JOTypography.caption)
-        .foregroundStyle(JOColors.textSecondary)
-        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var recentLogs: [ImportExportLog] {
+        Array(viewModel.logs.prefix(3))
     }
 
     private var actionItems: [ImportExportActionItem] {
         [
-            .init(kind: .exportCSV, title: "导出 CSV", subtitle: "用于表格分析与二次处理", systemImage: "tablecells.fill"),
-            .init(kind: .exportBackup, title: "导出备份（JSON）", subtitle: "完整备份账单与类别数据", systemImage: "externaldrive.fill"),
-            .init(kind: .importBackup, title: "导入备份（JSON）", subtitle: "从备份文件恢复数据", systemImage: "square.and.arrow.down.fill"),
-            .init(kind: .importCSV, title: "导入 CSV", subtitle: "从标准 CSV 导入账单", systemImage: "arrow.down.doc.fill")
+            .init(
+                kind: .exportCSV,
+                title: "导出 CSV",
+                subtitle: "用于表格分析与二次处理",
+                icon: "square.and.arrow.up",
+                style: .primary
+            ),
+            .init(
+                kind: .exportBackup,
+                title: "导出备份 JSON",
+                subtitle: "完整备份账单与类别数据",
+                icon: "square.and.arrow.up",
+                style: .neutral
+            ),
+            .init(
+                kind: .importBackup,
+                title: "导入备份",
+                subtitle: "从备份文件恢复数据",
+                icon: "square.and.arrow.down",
+                style: .neutral
+            ),
+            .init(
+                kind: .importCSV,
+                title: "导入 CSV",
+                subtitle: "从标准 CSV 导入账单",
+                icon: "square.and.arrow.down",
+                style: .neutral
+            )
         ]
     }
 
@@ -244,14 +268,178 @@ struct ImportExportView: View {
     }
 }
 
-private struct ImportExportActionItem {
+private struct ImportExportActionCard: View {
+    let item: ImportExportActionItem
+
+    var body: some View {
+        HStack(spacing: TallySpacing.s3) {
+            TallyIcon(name: item.icon, size: 18)
+                .foregroundStyle(item.style.iconForeground)
+                .frame(width: 36, height: 36)
+                .background(item.style.iconBackground)
+                .clipShape(RoundedRectangle(cornerRadius: TallyRadii.md, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(TallyType.body(15, weight: .semibold))
+                    .foregroundStyle(item.style.titleColor)
+                    .lineLimit(1)
+
+                Text(item.subtitle)
+                    .font(TallyType.body(12, weight: .medium))
+                    .foregroundStyle(Color.tallyInkFaint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.tallyInkFaint)
+        }
+        .padding(TallySpacing.s4)
+        .background(item.style.background)
+        .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous)
+                .stroke(item.style.border, lineWidth: 0.5)
+        )
+    }
+}
+
+private struct ImportExportLogRow: View {
+    let log: ImportExportLog
+    let isLast: Bool
+
+    var body: some View {
+        HStack(spacing: TallySpacing.s3) {
+            Circle()
+                .fill(statusColor)
+                .frame(width: 6, height: 6)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(log.title)
+                    .font(TallyType.body(13, weight: .medium))
+                    .foregroundStyle(Color.tallyInk)
+                    .lineLimit(1)
+
+                Text(metaText)
+                    .font(TallyType.body(11, weight: .medium))
+                    .foregroundStyle(Color.tallyInkFaint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(Color.tallyInkGhost)
+        }
+        .padding(.horizontal, TallySpacing.s4)
+        .padding(.vertical, TallySpacing.s3)
+        .overlay(alignment: .bottom) {
+            if !isLast {
+                Rectangle()
+                    .fill(Color.tallyLine)
+                    .frame(height: 0.5)
+                    .padding(.leading, 26)
+            }
+        }
+    }
+
+    private var statusColor: Color {
+        switch log.status {
+        case .success:
+            return .catMoss
+        case .warning:
+            return .catOchre
+        case .failure:
+            return .catTerracotta
+        }
+    }
+
+    private var metaText: String {
+        "\(Self.dateFormatter.string(from: log.createdAt)) · \(Self.timeFormatter.string(from: log.createdAt)) · \(log.count) 条 · \(log.errors) 错误"
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy/M/d"
+        return formatter
+    }()
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }()
+}
+
+private struct ImportExportActionItem: Identifiable {
+    var id: ImportExportAction { kind }
+
     let kind: ImportExportAction
     let title: String
     let subtitle: String
-    let systemImage: String
+    let icon: String
+    let style: ImportExportActionStyle
 }
 
-private enum ImportExportAction {
+private enum ImportExportActionStyle {
+    case primary
+    case neutral
+
+    var background: Color {
+        switch self {
+        case .primary:
+            return .tallyAccentTint
+        case .neutral:
+            return .tallySurface
+        }
+    }
+
+    var border: Color {
+        switch self {
+        case .primary:
+            return .tallyAccent.opacity(0.28)
+        case .neutral:
+            return .tallyLine
+        }
+    }
+
+    var iconBackground: Color {
+        switch self {
+        case .primary:
+            return .tallyAccent
+        case .neutral:
+            return .tallySurface2
+        }
+    }
+
+    var iconForeground: Color {
+        switch self {
+        case .primary:
+            return .tallyAccentInk
+        case .neutral:
+            return .tallyInkDim
+        }
+    }
+
+    var titleColor: Color {
+        switch self {
+        case .primary:
+            return .tallyAccent
+        case .neutral:
+            return .tallyInk
+        }
+    }
+}
+
+private enum ImportExportAction: Hashable {
     case exportCSV
     case exportBackup
     case importBackup
@@ -272,43 +460,51 @@ private enum ImportFileKind {
     }
 }
 
+private struct ImportExportDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.commaSeparatedText, .json, .data] }
+
+    var data: Data
+
+    init(data: Data = Data()) {
+        self.data = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        data = configuration.file.regularFileContents ?? Data()
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
+
 private struct ImportExportToastView: View {
     let text: String
 
     var body: some View {
         Text(text)
-            .font(JOTypography.caption)
-            .foregroundStyle(JOColors.textPrimary)
-            .padding(.horizontal, JOSpacing.lg)
-            .padding(.vertical, JOSpacing.sm)
-            .background(JOColors.surface.opacity(0.95))
+            .font(TallyType.body(12, weight: .medium))
+            .foregroundStyle(Color.tallyInk)
+            .padding(.horizontal, TallySpacing.s4)
+            .padding(.vertical, TallySpacing.s2)
+            .background(Color.tallySurface.opacity(0.96))
             .clipShape(Capsule())
             .overlay(
                 Capsule()
-                    .stroke(JOColors.cardBorder, lineWidth: 1)
+                    .stroke(Color.tallyLine, lineWidth: 0.5)
             )
-            .shadow(color: JOShadows.card.color, radius: 6, x: 0, y: 4)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .padding(.top, JOSpacing.xl + 12)
+            .padding(.top, 72)
             .allowsHitTesting(false)
-    }
-}
-
-private struct ImportExportActivityView: UIViewControllerRepresentable {
-    let activityItems: [Any]
-
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
-    }
-
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
-        // no-op
     }
 }
 
 #Preview {
     NavigationStack {
-        ImportExportView(importExportService: StubImportExportService())
+        ImportExportView(
+            importExportService: StubImportExportService(),
+            billRepository: MockBillRepository()
+        )
     }
     .environment(\.appEnvironment, .preview)
 }
