@@ -334,13 +334,16 @@ final class BillsListViewModel: ObservableObject {
             pointLabels = dates.map(shortDateText)
         case .quarter:
             let start = quarterStart(for: normalizedAnchorDate)
+            let end = calendar.date(byAdding: .month, value: 3, to: start) ?? start
             let weekStarts = (0..<13).map { offset in
                 calendar.date(byAdding: .weekOfYear, value: offset, to: start) ?? start
             }
-            totals = weekStarts.map { weekStart in
-                let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) ?? weekStart
+            totals = weekStarts.enumerated().map { index, weekStart in
+                let nextWeekStart = weekStarts.indices.contains(index + 1) ? weekStarts[index + 1] : end
+                let bucketEnd = min(nextWeekStart, end)
+                let endDate = calendar.date(byAdding: .day, value: -1, to: bucketEnd) ?? weekStart
                 let startKey = DayKeyFormatter.dayKey(for: weekStart, timeZone: calendar.timeZone)
-                let endKey = DayKeyFormatter.dayKey(for: weekEnd, timeZone: calendar.timeZone)
+                let endKey = DayKeyFormatter.dayKey(for: endDate, timeZone: calendar.timeZone)
                 return dayTotals
                     .filter { $0.key >= startKey && $0.key <= endKey }
                     .reduce(0) { $0 + $1.value }

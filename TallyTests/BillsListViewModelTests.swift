@@ -53,12 +53,13 @@ final class BillsListViewModelTests: XCTestCase {
 
     func testQuarterAndYearRangesProduceSensibleTrendPointCounts() async throws {
         let categoryId = UUID()
-        let result = await MainActor.run { () -> (Int, Int, String, String) in
+        let result = await MainActor.run { () -> (Int, Int, Int, String, String) in
             let viewModel = BillsListViewModel(
                 repository: MockBillRepository(seed: [
                     makeBill(type: .expense, cents: 1_000, date: fixedDate(year: 2026, month: 1, day: 3), categoryId: categoryId),
                     makeBill(type: .expense, cents: 2_000, date: fixedDate(year: 2026, month: 3, day: 28), categoryId: categoryId),
-                    makeBill(type: .expense, cents: 3_000, date: fixedDate(year: 2026, month: 8, day: 8), categoryId: categoryId)
+                    makeBill(type: .expense, cents: 3_000, date: fixedDate(year: 2026, month: 8, day: 8), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 4_000, date: fixedDate(year: 2026, month: 9, day: 30), categoryId: categoryId)
                 ]),
                 categoryRepository: MockCategoryRepository(seed: [
                     makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
@@ -69,19 +70,43 @@ final class BillsListViewModelTests: XCTestCase {
             viewModel.selectedType = .expense
             viewModel.load()
             let quarterCount = viewModel.trend30Cents.count
+            let quarterLastBucket = viewModel.trend30Cents.last ?? 0
             let quarterTitle = viewModel.timeTitle
 
             viewModel.anchorDate = fixedDate(year: 2026, month: 8, day: 10)
             viewModel.timeRange = .year
             let yearCount = viewModel.trend30Cents.count
             let yearTitle = viewModel.timeTitle
-            return (quarterCount, yearCount, quarterTitle, yearTitle)
+            return (quarterCount, quarterLastBucket, yearCount, quarterTitle, yearTitle)
         }
 
         XCTAssertEqual(result.0, 13)
-        XCTAssertEqual(result.1, 12)
-        XCTAssertEqual(result.2, "2026 · Q1")
-        XCTAssertEqual(result.3, "2026 · 全年")
+        XCTAssertEqual(result.1, 0)
+        XCTAssertEqual(result.2, 12)
+        XCTAssertEqual(result.3, "2026 · Q1")
+        XCTAssertEqual(result.4, "2026 · 全年")
+    }
+
+    func testQuarterTrendIncludesFinalCalendarDay() async throws {
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> [Int] in
+            let viewModel = BillsListViewModel(
+                repository: MockBillRepository(seed: [
+                    makeBill(type: .expense, cents: 4_000, date: fixedDate(year: 2026, month: 9, day: 30), categoryId: categoryId)
+                ]),
+                categoryRepository: MockCategoryRepository(seed: [
+                    makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
+                ])
+            )
+            viewModel.anchorDate = fixedDate(year: 2026, month: 8, day: 10)
+            viewModel.timeRange = .quarter
+            viewModel.selectedType = .expense
+            viewModel.load()
+            return viewModel.trend30Cents
+        }
+
+        XCTAssertEqual(result.count, 13)
+        XCTAssertEqual(result.last, 4_000)
     }
 
     func testCustomRangeUsesTrailingThirtyDaysAndKeepsAllBillRows() async throws {
