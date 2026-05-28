@@ -240,7 +240,7 @@ final class HomeViewModel: ObservableObject {
             return (category.name, category.iconKey, Color(hex: hex))
         }
         let hex = CategoryColorPalette.defaultHex(for: fallbackId)
-        return ("未分类", "questionmark", Color(hex: hex))
+        return ("未分类", "tag", Color(hex: hex))
     }
 
     private func dayTitle(for dayKey: String, todayKey: String, yesterdayKey: String) -> String {

@@ -162,7 +162,7 @@ struct CategoriesView: View {
     }
 
     private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
+        Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
     }
 
     private var deleteAlertBinding: Binding<Bool> {
@@ -191,7 +191,7 @@ struct CategoriesView: View {
             id: SystemCategoryID.uncategorizedExpense,
             type: .expense,
             name: "未分类",
-            iconKey: "questionmark",
+            iconKey: "tag",
             colorHex: 0x6B6964,
             isSystem: true,
             sortOrder: 0
@@ -200,7 +200,7 @@ struct CategoriesView: View {
             id: UUID(),
             type: .expense,
             name: "餐饮",
-            iconKey: "fork.knife",
+            iconKey: "fork-knife",
             colorHex: 0xB8553E,
             isSystem: false,
             sortOrder: 1
@@ -209,7 +209,7 @@ struct CategoriesView: View {
             id: UUID(),
             type: .expense,
             name: "购物",
-            iconKey: "cart.fill",
+            iconKey: "shopping-cart",
             colorHex: 0x4D7148,
             isSystem: false,
             sortOrder: 2

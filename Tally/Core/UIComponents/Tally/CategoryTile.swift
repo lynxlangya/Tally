@@ -57,8 +57,8 @@ struct CategoryTile: View {
 private struct CategoryTilePreview: View {
     var body: some View {
         HStack(spacing: TallySpacing.s4) {
-            CategoryTile(iconName: "fork.knife", color: .catTerracotta)
-            CategoryTile(iconName: "cart.fill", color: .catTeal, filled: .solid)
+            CategoryTile(iconName: "fork-knife", color: .catTerracotta)
+            CategoryTile(iconName: "shopping-cart", color: .catTeal, filled: .solid)
             CategoryTile(iconName: "missing", color: .catAsh, size: 48, radius: TallyRadii.lg)
         }
         .padding()

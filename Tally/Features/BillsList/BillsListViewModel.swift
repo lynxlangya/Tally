@@ -417,7 +417,7 @@ final class BillsListViewModel: ObservableObject {
         return sorted.prefix(6).map { (id, value) in
             let category = categoriesById[id]
             let name = category?.name ?? "未分类"
-            let iconName = category?.iconKey ?? "questionmark"
+            let iconName = category?.iconKey ?? "tag"
             let iconHex = category?.colorHex.map { UInt32($0) }
             let percent = Double(value.amount) / Double(totalCents)
             return RankingItem(
@@ -442,7 +442,7 @@ final class BillsListViewModel: ObservableObject {
         let categoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
         let category = categoriesById[categoryId]
         let title = category?.name ?? "未分类"
-        let iconName = category?.iconKey ?? "questionmark"
+        let iconName = category?.iconKey ?? "tag"
         let iconHex = category?.colorHex.map { UInt32($0) }
 
         let timeString = BillTimeFormatter.timeText(for: bill)

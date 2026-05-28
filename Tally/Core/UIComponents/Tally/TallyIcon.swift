@@ -22,78 +22,232 @@ struct TallyIcon: View {
 
 extension TallyIcon {
     enum Catalog {
-        static let forkKnife = "fork.knife"
-        static let cupAndSaucerFill = "cup.and.saucer.fill"
-        static let cartFill = "cart.fill"
-        static let bagFill = "bag.fill"
-        static let houseFill = "house.fill"
-        static let lightbulbFill = "lightbulb.fill"
-        static let dropFill = "drop.fill"
-        static let crossCaseFill = "cross.case.fill"
-        static let pillsFill = "pills.fill"
-        static let graduationcapFill = "graduationcap.fill"
-        static let bookFill = "book.fill"
-        static let carFill = "car.fill"
-        static let tramFill = "tram.fill"
-        static let airplane = "airplane"
-        static let fuelpumpFill = "fuelpump.fill"
-        static let cupAndHeatWavesFill = "cup.and.heat.waves.fill"
-        static let birthdayCakeFill = "birthday.cake.fill"
-        static let banknoteFill = "banknote.fill"
-        static let creditcardFill = "creditcard.fill"
-        static let briefcaseFill = "briefcase.fill"
-        static let dumbbellFill = "dumbbell.fill"
-        static let figureWalk = "figure.walk"
-        static let giftFill = "gift.fill"
-        static let film = "film"
-        static let musicNote = "music.note"
-        static let pawprintFill = "pawprint.fill"
-        static let leafFill = "leaf.fill"
-        static let wifi = "wifi"
-        static let phoneFill = "phone.fill"
-        static let calendar = "calendar"
-        static let repeatIcon = "repeat"
-        static let tshirtFill = "tshirt.fill"
+        // MARK: Food & Drink
+        static let forkKnife = "fork-knife"
+        static let coffee = "coffee"
+        static let bowlFood = "bowl-food"
+        static let hamburger = "hamburger"
+        static let pizza = "pizza"
+        static let wine = "wine"
+        static let beerStein = "beer-stein"
+        static let iceCream = "ice-cream"
+        static let cookingPot = "cooking-pot"
+        static let cake = "cake"
+        static let cookie = "cookie"
+
+        // MARK: Shopping
+        static let shoppingCart = "shopping-cart"
+        static let shoppingBag = "shopping-bag"
+        static let handbag = "handbag"
+        static let tag = "tag"
+        static let storefront = "storefront"
+        static let receipt = "receipt"
+
+        // MARK: Home & Utilities
+        static let house = "house"
+        static let couch = "couch"
+        static let bed = "bed"
+        static let lightbulb = "lightbulb"
+        static let lightning = "lightning"
+        static let drop = "drop"
+        static let flame = "flame"
+        static let trash = "trash"
+        static let wrench = "wrench"
+
+        // MARK: Transport
+        static let car = "car"
+        static let bus = "bus"
+        static let train = "train"
+        static let airplaneTilt = "airplane-tilt"
+        static let gasPump = "gas-pump"
+        static let bicycle = "bicycle"
+        static let motorcycle = "motorcycle"
+        static let taxi = "taxi"
+        static let mapPin = "map-pin"
+
+        // MARK: Health
+        static let firstAidKit = "first-aid-kit"
+        static let pill = "pill"
+        static let heartbeat = "heartbeat"
+        static let syringe = "syringe"
+        static let tooth = "tooth"
+        static let stethoscope = "stethoscope"
+
+        // MARK: Education
+        static let graduationCap = "graduation-cap"
+        static let bookOpen = "book-open"
+        static let books = "books"
+        static let notebook = "notebook"
+        static let pencil = "pencil"
+
+        // MARK: Entertainment
+        static let filmSlate = "film-slate"
+        static let musicNotes = "music-notes"
+        static let gameController = "game-controller"
+        static let popcorn = "popcorn"
+        static let television = "television"
+        static let headphones = "headphones"
+        static let ticket = "ticket"
+        static let camera = "camera"
+
+        // MARK: Fitness
+        static let barbell = "barbell"
+        static let personSimpleRun = "person-simple-run"
+        static let soccerBall = "soccer-ball"
+        static let basketball = "basketball"
+        static let sneakerMove = "sneaker-move"
+
+        // MARK: Tech & Comm
+        static let wifiHigh = "wifi-high"
+        static let phone = "phone"
+        static let deviceMobile = "device-mobile"
+        static let laptop = "laptop"
+        static let cloud = "cloud"
+
+        // MARK: Clothing & Beauty
+        static let tShirt = "t-shirt"
+        static let pants = "pants"
+        static let dress = "dress"
+        static let eyeglasses = "eyeglasses"
         static let scissors = "scissors"
-        static let gamecontrollerFill = "gamecontroller.fill"
-        static let docTextFill = "doc.text.fill"
+
+        // MARK: Pets
+        static let pawPrint = "paw-print"
+        static let dog = "dog"
+        static let cat = "cat"
+
+        // MARK: Travel
+        static let suitcaseRolling = "suitcase-rolling"
+        static let mountains = "mountains"
+        static let tent = "tent"
+        static let globeHemisphereWest = "globe-hemisphere-west"
+
+        // MARK: Social
+        static let heart = "heart"
+        static let handHeart = "hand-heart"
+        static let usersThree = "users-three"
+        static let baby = "baby"
+        static let gift = "gift"
+
+        // MARK: Income & Finance
+        static let briefcase = "briefcase"
+        static let moneyWavy = "money-wavy"
+        static let bank = "bank"
+        static let coins = "coins"
+        static let creditCard = "credit-card"
+        static let wallet = "wallet"
+        static let currencyCny = "currency-cny"
+
+        // MARK: Utility
+        static let repeatIcon = "repeat"
+        static let fileText = "file-text"
+        static let leaf = "leaf"
+        static let gearSix = "gear-six"
+        static let bell = "bell"
+        static let globe = "globe"
+        static let magnifyingGlass = "magnifying-glass"
+        static let info = "info"
 
         static let all: [String] = [
             forkKnife,
-            cupAndSaucerFill,
-            cartFill,
-            bagFill,
-            houseFill,
-            lightbulbFill,
-            dropFill,
-            crossCaseFill,
-            pillsFill,
-            graduationcapFill,
-            bookFill,
-            carFill,
-            tramFill,
-            airplane,
-            fuelpumpFill,
-            cupAndHeatWavesFill,
-            birthdayCakeFill,
-            banknoteFill,
-            creditcardFill,
-            briefcaseFill,
-            dumbbellFill,
-            figureWalk,
-            giftFill,
-            film,
-            musicNote,
-            pawprintFill,
-            leafFill,
-            wifi,
-            phoneFill,
-            calendar,
-            repeatIcon,
-            tshirtFill,
+            coffee,
+            bowlFood,
+            hamburger,
+            pizza,
+            wine,
+            beerStein,
+            iceCream,
+            cookingPot,
+            cake,
+            cookie,
+            shoppingCart,
+            shoppingBag,
+            handbag,
+            tag,
+            storefront,
+            receipt,
+            house,
+            couch,
+            bed,
+            lightbulb,
+            lightning,
+            drop,
+            flame,
+            trash,
+            wrench,
+            car,
+            bus,
+            train,
+            airplaneTilt,
+            gasPump,
+            bicycle,
+            motorcycle,
+            taxi,
+            mapPin,
+            firstAidKit,
+            pill,
+            heartbeat,
+            syringe,
+            tooth,
+            stethoscope,
+            graduationCap,
+            bookOpen,
+            books,
+            notebook,
+            pencil,
+            filmSlate,
+            musicNotes,
+            gameController,
+            popcorn,
+            television,
+            headphones,
+            ticket,
+            camera,
+            barbell,
+            personSimpleRun,
+            soccerBall,
+            basketball,
+            sneakerMove,
+            wifiHigh,
+            phone,
+            deviceMobile,
+            laptop,
+            cloud,
+            tShirt,
+            pants,
+            dress,
+            eyeglasses,
             scissors,
-            gamecontrollerFill,
-            docTextFill
+            pawPrint,
+            dog,
+            cat,
+            suitcaseRolling,
+            mountains,
+            tent,
+            globeHemisphereWest,
+            heart,
+            handHeart,
+            usersThree,
+            baby,
+            gift,
+            briefcase,
+            moneyWavy,
+            bank,
+            coins,
+            creditCard,
+            wallet,
+            currencyCny
+        ]
+
+        static let utility: [String] = [
+            repeatIcon,
+            fileText,
+            leaf,
+            gearSix,
+            bell,
+            globe,
+            magnifyingGlass,
+            info
         ]
     }
 }
