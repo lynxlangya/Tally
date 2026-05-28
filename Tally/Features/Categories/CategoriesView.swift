@@ -130,7 +130,7 @@ struct CategoriesView: View {
                 }
             )
         }
-        .alert("最多新增 30 个分类", isPresented: $showsLimitAlert) {
+        .alert(viewModel.maxUserCategoriesMessage, isPresented: $showsLimitAlert) {
             Button("知道了", role: .cancel) {}
         }
         .alert("该类别下所有账单归类到未分类，是否继续？", isPresented: deleteAlertBinding) {

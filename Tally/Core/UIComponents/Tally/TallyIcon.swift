@@ -1,12 +1,11 @@
 import SwiftUI
-import UIKit
 
 struct TallyIcon: View {
     let name: String
     var size: CGFloat = 20
 
     var body: some View {
-        if UIImage(named: name) != nil {
+        if Catalog.assetNames.contains(name) {
             Image(name)
                 .renderingMode(.template)
                 .resizable()
@@ -249,6 +248,8 @@ extension TallyIcon {
             magnifyingGlass,
             info
         ]
+
+        static let assetNames: Set<String> = Set(all + utility)
     }
 }
 

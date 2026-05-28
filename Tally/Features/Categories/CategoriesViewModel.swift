@@ -9,7 +9,7 @@ final class CategoriesViewModel: ObservableObject {
     @Published private(set) var selectedType: BillType = .expense
 
     private let repository: CategoryRepository
-    private let maxUserCategories = 30
+    let maxUserCategories = 30
 
     init(repository: CategoryRepository) {
         self.repository = repository
@@ -17,6 +17,10 @@ final class CategoriesViewModel: ObservableObject {
 
     var isAtLimit: Bool {
         userCategoryCount >= maxUserCategories
+    }
+
+    var maxUserCategoriesMessage: String {
+        "最多新增 \(maxUserCategories) 个分类"
     }
 
     func load(type: BillType) {
@@ -39,7 +43,7 @@ final class CategoriesViewModel: ObservableObject {
             return errorMessage
         }
         guard !isAtLimit else {
-            errorMessage = "最多新增 30 个分类"
+            errorMessage = maxUserCategoriesMessage
             return errorMessage
         }
         guard !categories.contains(where: { !$0.isSystem && $0.name == trimmed }) else {
