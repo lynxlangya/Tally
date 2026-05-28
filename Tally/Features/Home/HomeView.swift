@@ -337,17 +337,15 @@ private struct HomeDayGroupView: View {
 
             VStack(spacing: 0) {
                 ForEach(Array(group.items.enumerated()), id: \.element.id) { index, item in
-                    HomeBillRow(item: item) {
-                        onSelect(item)
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button {
+                    HomeBillRow(
+                        item: item,
+                        onSelect: {
+                            onSelect(item)
+                        },
+                        onDelete: {
                             onDelete(item)
-                        } label: {
-                            Image(systemName: "trash")
                         }
-                        .tint(.red)
-                    }
+                    )
 
                     if index < group.items.count - 1 {
                         Rectangle()
@@ -393,6 +391,7 @@ private struct HomeDayGroupTotals: View {
 private struct HomeBillRow: View {
     let item: HomeViewModel.Item
     let onSelect: () -> Void
+    let onDelete: () -> Void
 
     @Environment(\.tallyThemeColors) private var themeColors
 
@@ -435,6 +434,12 @@ private struct HomeBillRow: View {
         }
         .buttonStyle(HomeBillRowButtonStyle())
         .accessibilityLabel(Text("\(item.title) \(item.isIncome ? "收入" : "支出")"))
+        .accessibilityAction(named: Text("删除"), onDelete)
+        .contextMenu {
+            Button(role: .destructive, action: onDelete) {
+                Label("删除", systemImage: "trash")
+            }
+        }
     }
 }
 
