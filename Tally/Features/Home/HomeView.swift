@@ -97,6 +97,23 @@ struct HomeView: View {
         } message: {
             Text("该操作不可撤销")
         }
+        .alert("操作未完成", isPresented: errorAlertBinding) {
+            Button("知道了", role: .cancel) {
+                viewModel.dismissError()
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+    }
+
+    private var errorAlertBinding: Binding<Bool> {
+        Binding {
+            viewModel.errorMessage != nil
+        } set: { isPresented in
+            if !isPresented {
+                viewModel.dismissError()
+            }
+        }
     }
 }
 

@@ -40,6 +40,59 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(result.2, 0)
     }
 
+    func testLoadFailureSurfacesErrorWithoutClearingExistingRows() async throws {
+        let today = fixedDate(year: 2026, month: 4, day: 12, hour: 10, minute: 0)
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> (Int, String?) in
+            let bill = makeBill(
+                id: UUID(),
+                categoryId: categoryId,
+                occurredAtUTC: today,
+                occurredLocalDate: "2026-04-12"
+            )
+            let repository = InMemoryBillRepository(records: [bill])
+            let viewModel = HomeViewModel(
+                repository: repository,
+                categoryRepository: makeCategoryRepository(categoryId: categoryId),
+                nowProvider: { today }
+            )
+            viewModel.load()
+            repository.listError = RepositoryError.notFound
+            viewModel.load()
+            return (viewModel.groups.count, viewModel.errorMessage)
+        }
+
+        XCTAssertEqual(result.0, 1)
+        XCTAssertEqual(result.1, "账单加载失败，请稍后重试")
+    }
+
+    func testDeleteFailureSurfacesErrorAndKeepsRows() async throws {
+        let today = fixedDate(year: 2026, month: 4, day: 12, hour: 10, minute: 0)
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> (Int, Int, String?) in
+            let bill = makeBill(
+                id: UUID(),
+                categoryId: categoryId,
+                occurredAtUTC: today,
+                occurredLocalDate: "2026-04-12"
+            )
+            let repository = InMemoryBillRepository(records: [bill])
+            let viewModel = HomeViewModel(
+                repository: repository,
+                categoryRepository: makeCategoryRepository(categoryId: categoryId),
+                nowProvider: { today }
+            )
+            viewModel.load()
+            repository.deleteError = RepositoryError.notFound
+            viewModel.deleteBill(id: bill.id)
+            return (viewModel.groups.count, (try? repository.list().count) ?? -1, viewModel.errorMessage)
+        }
+
+        XCTAssertEqual(result.0, 1)
+        XCTAssertEqual(result.1, 1)
+        XCTAssertEqual(result.2, "删除账单失败，请稍后重试")
+    }
+
     func testGroupsSortByOccurredLocalDateDescending() async throws {
         let now = fixedDate(year: 2026, month: 4, day: 13, hour: 9, minute: 0)
         let categoryId = UUID()
@@ -218,21 +271,29 @@ final class HomeViewModelTests: XCTestCase {
         now: Date
     ) -> HomeViewModel {
         let categoryRepository = MockCategoryRepository(seed: [
-            CategoryRecord(
-                id: categoryId,
-                type: .expense,
-                name: "午餐",
-                iconKey: "fork.knife",
-                colorHex: nil,
-                isSystem: false,
-                sortOrder: 0
-            )
+            makeCategory(id: categoryId)
         ])
         let repository = MockBillRepository(seed: bills)
         return HomeViewModel(
             repository: repository,
             categoryRepository: categoryRepository,
             nowProvider: { now }
+        )
+    }
+
+    private func makeCategoryRepository(categoryId: UUID) -> MockCategoryRepository {
+        MockCategoryRepository(seed: [makeCategory(id: categoryId)])
+    }
+
+    private func makeCategory(id: UUID) -> CategoryRecord {
+        CategoryRecord(
+            id: id,
+            type: .expense,
+            name: "午餐",
+            iconKey: "fork.knife",
+            colorHex: nil,
+            isSystem: false,
+            sortOrder: 0
         )
     }
 

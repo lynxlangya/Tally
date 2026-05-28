@@ -4,13 +4,19 @@ import Foundation
 final class InMemoryRecurringRepository: RecurringRepository {
     private(set) var tasks: [RecurringTaskRecord]
     private(set) var updatedTasks: [RecurringTaskRecord] = []
+    var listError: Error?
+    var deleteError: Error?
+    var setEnabledError: Error?
 
     init(tasks: [RecurringTaskRecord]) {
         self.tasks = tasks
     }
 
     func list() throws -> [RecurringTaskRecord] {
-        tasks
+        if let listError {
+            throw listError
+        }
+        return tasks
     }
 
     func create(_ record: RecurringTaskRecord) throws {
@@ -27,10 +33,16 @@ final class InMemoryRecurringRepository: RecurringRepository {
     }
 
     func delete(id: UUID) throws {
+        if let deleteError {
+            throw deleteError
+        }
         tasks.removeAll { $0.id == id }
     }
 
     func setEnabled(id: UUID, isEnabled: Bool) throws {
+        if let setEnabledError {
+            throw setEnabledError
+        }
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         let original = tasks[index]
         tasks[index] = RecurringTaskRecord(
@@ -55,6 +67,8 @@ final class InMemoryRecurringRepository: RecurringRepository {
 final class InMemoryBillRepository: BillRepository {
     private(set) var records: [BillRecord]
     private(set) var createdDrafts: [BillDraft] = []
+    var listError: Error?
+    var deleteError: Error?
 
     init(records: [BillRecord] = []) {
         self.records = records
@@ -94,15 +108,24 @@ final class InMemoryBillRepository: BillRepository {
     }
 
     func fetch(by dayKey: String) throws -> [BillRecord] {
-        records.filter { $0.occurredLocalDate == dayKey }
+        if let listError {
+            throw listError
+        }
+        return records.filter { $0.occurredLocalDate == dayKey }
     }
 
     func list() throws -> [BillRecord] {
-        records
+        if let listError {
+            throw listError
+        }
+        return records
     }
 
     func list(fromDayKey: String, toDayKey: String, type: BillType?) throws -> [BillRecord] {
-        records.filter { record in
+        if let listError {
+            throw listError
+        }
+        return records.filter { record in
             let withinRange = record.occurredLocalDate >= fromDayKey && record.occurredLocalDate <= toDayKey
             let typeMatches = type == nil || record.type == type
             return withinRange && typeMatches
@@ -110,7 +133,10 @@ final class InMemoryBillRepository: BillRepository {
     }
 
     func list(monthKey: String, type: BillType?) throws -> [BillRecord] {
-        records.filter { record in
+        if let listError {
+            throw listError
+        }
+        return records.filter { record in
             let monthMatches = record.occurredLocalDate.hasPrefix(monthKey)
             let typeMatches = type == nil || record.type == type
             return monthMatches && typeMatches
@@ -118,6 +144,9 @@ final class InMemoryBillRepository: BillRepository {
     }
 
     func listYears() throws -> [Int] {
+        if let listError {
+            throw listError
+        }
         let years = records.compactMap { record -> Int? in
             guard record.occurredLocalDate.count >= 4 else { return nil }
             return Int(record.occurredLocalDate.prefix(4))
@@ -126,6 +155,9 @@ final class InMemoryBillRepository: BillRepository {
     }
 
     func delete(id: UUID) throws {
+        if let deleteError {
+            throw deleteError
+        }
         records.removeAll { $0.id == id }
     }
 
