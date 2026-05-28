@@ -162,7 +162,7 @@ struct CategoriesView: View {
     }
 
     private var gridColumns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
+        Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
     }
 
     private var deleteAlertBinding: Binding<Bool> {
