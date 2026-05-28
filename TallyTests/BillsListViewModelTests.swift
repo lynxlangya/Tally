@@ -139,6 +139,36 @@ final class BillsListViewModelTests: XCTestCase {
         XCTAssertEqual(result.2, ["2026-05-20", "2026-05-01"])
     }
 
+    func testBatchFilterUpdateAppliesOnlyOnceAfterLoad() async throws {
+        let expenseId = UUID()
+        let incomeId = UUID()
+        let result = await MainActor.run { () -> Int in
+            let repository = CountingBillRepository(seed: [
+                makeBill(type: .expense, cents: 1_000, date: fixedDate(year: 2026, month: 5, day: 1), categoryId: expenseId),
+                makeBill(type: .income, cents: 5_000, date: fixedDate(year: 2026, month: 5, day: 20), categoryId: incomeId)
+            ])
+            let viewModel = BillsListViewModel(
+                repository: repository,
+                categoryRepository: MockCategoryRepository(seed: [
+                    makeCategory(id: expenseId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148),
+                    makeCategory(id: incomeId, type: .income, name: "奖金", icon: "gift.fill", colorHex: 0xA65566)
+                ])
+            )
+            viewModel.anchorDate = fixedDate(year: 2026, month: 5, day: 20)
+            viewModel.load()
+
+            let callsAfterLoad = repository.rangeListCallCount
+            viewModel.updateFilters(
+                selectedType: .income,
+                timeRange: .year,
+                anchorDate: fixedDate(year: 2026, month: 8, day: 10)
+            )
+            return repository.rangeListCallCount - callsAfterLoad
+        }
+
+        XCTAssertEqual(result, 2)
+    }
+
     private func makeCategory(id: UUID, type: BillType, name: String, icon: String, colorHex: Int) -> CategoryRecord {
         CategoryRecord(
             id: id,
@@ -185,5 +215,126 @@ final class BillsListViewModelTests: XCTestCase {
             second: 0
         )
         return calendar.date(from: components) ?? Date(timeIntervalSince1970: 0)
+    }
+}
+
+private final class CountingBillRepository: BillRepository {
+    private var storage: [BillRecord]
+    private(set) var rangeListCallCount = 0
+
+    init(seed: [BillRecord]) {
+        storage = seed
+    }
+
+    func create(_ draft: BillDraft) throws -> BillRecord {
+        let snapshot = TimePolicy.snapshot(for: draft.occurredAtLocal)
+        let record = BillRecord(
+            id: UUID(),
+            type: draft.type,
+            amount: draft.amount,
+            occurredAtUTC: snapshot.occurredAtUTC,
+            tzId: snapshot.tzId,
+            tzOffset: snapshot.tzOffset,
+            occurredLocalDate: snapshot.occurredLocalDate,
+            note: draft.note,
+            categoryId: draft.categoryId,
+            isFromRecurring: draft.isFromRecurring,
+            createdAt: Date(),
+            updatedAt: Date(),
+            deletedAt: nil,
+            trashUntil: nil
+        )
+        storage.append(record)
+        return record
+    }
+
+    func update(_ record: BillRecord) throws -> BillRecord {
+        guard let index = storage.firstIndex(where: { $0.id == record.id }) else { throw RepositoryError.notFound }
+        storage[index] = record
+        return record
+    }
+
+    func fetch(by dayKey: String) throws -> [BillRecord] {
+        storage.filter { $0.occurredLocalDate == dayKey && $0.deletedAt == nil }
+    }
+
+    func list() throws -> [BillRecord] {
+        storage.filter { $0.deletedAt == nil }
+    }
+
+    func list(fromDayKey: String, toDayKey: String, type: BillType?) throws -> [BillRecord] {
+        rangeListCallCount += 1
+        return storage.filter { record in
+            guard record.deletedAt == nil else { return false }
+            guard record.occurredLocalDate >= fromDayKey && record.occurredLocalDate <= toDayKey else { return false }
+            if let type {
+                return record.type == type
+            }
+            return true
+        }
+    }
+
+    func list(monthKey: String, type: BillType?) throws -> [BillRecord] {
+        storage.filter { record in
+            guard record.deletedAt == nil else { return false }
+            guard record.occurredLocalDate.hasPrefix(monthKey) else { return false }
+            if let type {
+                return record.type == type
+            }
+            return true
+        }
+    }
+
+    func listYears() throws -> [Int] {
+        storage.compactMap { Int($0.occurredLocalDate.prefix(4)) }
+    }
+
+    func delete(id: UUID) throws {
+        guard let index = storage.firstIndex(where: { $0.id == id }) else { throw RepositoryError.notFound }
+        storage.remove(at: index)
+    }
+
+    func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws {
+        guard let record = storage.first(where: { $0.id == id }) else { throw RepositoryError.notFound }
+        _ = try update(BillRecord(
+            id: record.id,
+            type: record.type,
+            amount: record.amount,
+            occurredAtUTC: record.occurredAtUTC,
+            tzId: record.tzId,
+            tzOffset: record.tzOffset,
+            occurredLocalDate: record.occurredLocalDate,
+            note: record.note,
+            categoryId: record.categoryId,
+            isFromRecurring: record.isFromRecurring,
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+            deletedAt: deletedAt,
+            trashUntil: trashUntil
+        ))
+    }
+
+    func restore(id: UUID) throws {
+        guard let record = storage.first(where: { $0.id == id }) else { throw RepositoryError.notFound }
+        _ = try update(BillRecord(
+            id: record.id,
+            type: record.type,
+            amount: record.amount,
+            occurredAtUTC: record.occurredAtUTC,
+            tzId: record.tzId,
+            tzOffset: record.tzOffset,
+            occurredLocalDate: record.occurredLocalDate,
+            note: record.note,
+            categoryId: record.categoryId,
+            isFromRecurring: record.isFromRecurring,
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+            deletedAt: nil,
+            trashUntil: nil
+        ))
+    }
+
+    func purgeExpired(asOf date: Date) throws {
+        storage.removeAll { ($0.trashUntil ?? Date.distantFuture) < date }
     }
 }
