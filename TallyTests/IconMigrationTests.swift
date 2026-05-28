@@ -49,6 +49,14 @@ final class IconMigrationTests: XCTestCase {
             XCTAssertNotNil(UIImage(named: icon), icon)
         }
     }
+
+    func testCategoryIconAccessibilityLabelsCoverSheetIcons() {
+        for icon in CategoryIconCatalog.sheetIcons {
+            let label = CategoryIconCatalog.accessibilityLabel(for: icon)
+            XCTAssertFalse(label.isEmpty, icon)
+            XCTAssertNotEqual(label, icon, icon)
+        }
+    }
 }
 
 private extension IconMigrationTests {

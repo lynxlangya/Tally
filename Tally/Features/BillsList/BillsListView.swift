@@ -477,6 +477,8 @@ private struct DenseBillRow: View {
         .padding(.horizontal, BillsListLayout.horizontalPadding)
         .padding(.vertical, TallySpacing.s3)
         .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(accessibilitySummary))
     }
 
     private var iconColor: Color {
@@ -484,6 +486,12 @@ private struct DenseBillRow: View {
             return Color(hex: hex)
         }
         return .catAsh
+    }
+
+    private var accessibilitySummary: String {
+        let typeText = item.isIncome ? "收入" : "支出"
+        let amountText = MoneyFormatter.string(fromCents: item.amountCents)
+        return "\(item.title)，\(item.subtitle)，\(typeText)，\(amountText)"
     }
 }
 

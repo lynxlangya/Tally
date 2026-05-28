@@ -175,7 +175,7 @@ struct CategoryEditSheet: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(isReadOnly)
-                    .accessibilityLabel(icon)
+                    .accessibilityLabel(CategoryIconCatalog.accessibilityLabel(for: icon))
                 }
             }
         }
