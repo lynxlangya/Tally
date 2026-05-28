@@ -446,13 +446,13 @@ private enum ProfileDestination: Hashable, Identifiable {
 }
 
 private let profileRows: [ProfileRow] = [
-    ProfileRow(icon: "cart.fill", title: "分类管理", subtitle: "支出 0 · 收入 0", destination: .categories),
+    ProfileRow(icon: "shopping-cart", title: "分类管理", subtitle: "支出 0 · 收入 0", destination: .categories),
     ProfileRow(icon: "repeat", title: "定时记账", subtitle: "0 条已启用", destination: .recurring),
-    ProfileRow(icon: "doc.text.fill", title: "导入与导出", subtitle: "CSV · JSON 备份", destination: .importExport),
-    ProfileRow(icon: "leaf.fill", title: "主题与外观", subtitle: "深色 · 朱砂", destination: .theme),
-    ProfileRow(icon: "book.fill", title: "语言", subtitle: "简体中文", destination: .language),
-    ProfileRow(icon: "tram.fill", title: "Widget", subtitle: "快捷记账 · 月度趋势", destination: .widget),
-    ProfileRow(icon: "doc.text.fill", title: "关于 Tally", subtitle: "v1.0", destination: .about)
+    ProfileRow(icon: "file-text", title: "导入与导出", subtitle: "CSV · JSON 备份", destination: .importExport),
+    ProfileRow(icon: "leaf", title: "主题与外观", subtitle: "深色 · 朱砂", destination: .theme),
+    ProfileRow(icon: "globe", title: "语言", subtitle: "简体中文", destination: .language),
+    ProfileRow(icon: "bell", title: "Widget", subtitle: "快捷记账 · 月度趋势", destination: .widget),
+    ProfileRow(icon: "info", title: "关于 Tally", subtitle: "v1.0", destination: .about)
 ]
 
 #Preview {

@@ -40,9 +40,9 @@ struct TallyComponentsGallery: View {
 
                 section("Tiles") {
                     HStack(spacing: TallySpacing.s4) {
-                        CategoryTile(iconName: "fork.knife", color: .catTerracotta)
-                        CategoryTile(iconName: "cart.fill", color: .catTeal)
-                        CategoryTile(iconName: "banknote.fill", color: .catOchre, filled: .solid)
+                        CategoryTile(iconName: "fork-knife", color: .catTerracotta)
+                        CategoryTile(iconName: "shopping-cart", color: .catTeal)
+                        CategoryTile(iconName: "money-wavy", color: .catOchre, filled: .solid)
                     }
                 }
 

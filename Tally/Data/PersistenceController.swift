@@ -104,6 +104,7 @@ struct PersistenceController {
                         let seedService = CoreDataSeedService(context: viewContext)
                         try seedService.seedIfNeeded()
                         try seedService.migrateLegacyCategoryColors()
+                        try seedService.migrateLegacyIconKeys()
                     }
                     startupState.markReady()
                 } catch {

@@ -20,14 +20,14 @@ extension BillsListViewModel {
         let investId = UUID(uuidString: "00000000-0000-0000-0000-000000000203")!
 
         let categories: [CategoryRecord] = [
-            CategoryRecord(id: rentId, type: .expense, name: "房租", iconKey: "house.fill", colorHex: 0x13EC37, isSystem: false, sortOrder: 1),
-            CategoryRecord(id: foodId, type: .expense, name: "餐饮", iconKey: "fork.knife", colorHex: 0xF97316, isSystem: false, sortOrder: 2),
-            CategoryRecord(id: transitId, type: .expense, name: "交通", iconKey: "train.side.front.car", colorHex: 0x38BDF8, isSystem: false, sortOrder: 3),
-            CategoryRecord(id: shoppingId, type: .expense, name: "购物", iconKey: "cart.fill", colorHex: 0xA855F7, isSystem: false, sortOrder: 4),
-            CategoryRecord(id: funId, type: .expense, name: "娱乐", iconKey: "gamecontroller.fill", colorHex: 0xF472B6, isSystem: false, sortOrder: 5),
-            CategoryRecord(id: salaryId, type: .income, name: "工资", iconKey: "creditcard.fill", colorHex: 0x22C55E, isSystem: false, sortOrder: 1),
-            CategoryRecord(id: bonusId, type: .income, name: "奖金", iconKey: "gift.fill", colorHex: 0x3B82F6, isSystem: false, sortOrder: 2),
-            CategoryRecord(id: investId, type: .income, name: "理财", iconKey: "chart.line.uptrend.xyaxis", colorHex: 0x14B8A6, isSystem: false, sortOrder: 3)
+            CategoryRecord(id: rentId, type: .expense, name: "房租", iconKey: "house", colorHex: 0x13EC37, isSystem: false, sortOrder: 1),
+            CategoryRecord(id: foodId, type: .expense, name: "餐饮", iconKey: "fork-knife", colorHex: 0xF97316, isSystem: false, sortOrder: 2),
+            CategoryRecord(id: transitId, type: .expense, name: "交通", iconKey: "train", colorHex: 0x38BDF8, isSystem: false, sortOrder: 3),
+            CategoryRecord(id: shoppingId, type: .expense, name: "购物", iconKey: "shopping-cart", colorHex: 0xA855F7, isSystem: false, sortOrder: 4),
+            CategoryRecord(id: funId, type: .expense, name: "娱乐", iconKey: "game-controller", colorHex: 0xF472B6, isSystem: false, sortOrder: 5),
+            CategoryRecord(id: salaryId, type: .income, name: "工资", iconKey: "credit-card", colorHex: 0x22C55E, isSystem: false, sortOrder: 1),
+            CategoryRecord(id: bonusId, type: .income, name: "奖金", iconKey: "gift", colorHex: 0x3B82F6, isSystem: false, sortOrder: 2),
+            CategoryRecord(id: investId, type: .income, name: "理财", iconKey: "coins", colorHex: 0x14B8A6, isSystem: false, sortOrder: 3)
         ]
 
         let bills: [BillRecord] = [

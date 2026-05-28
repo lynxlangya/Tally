@@ -228,7 +228,7 @@ final class QuickEntryViewModel: ObservableObject {
                 id: categoryId,
                 type: bill.type,
                 name: "未分类",
-                iconKey: "questionmark",
+                iconKey: "tag",
                 colorHex: Int(CategoryColorPalette.defaultHex(for: categoryId)),
                 isSystem: true,
                 sortOrder: 0

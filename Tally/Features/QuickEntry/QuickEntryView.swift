@@ -245,7 +245,7 @@ struct QuickEntryView: View {
             id: SystemCategoryID.uncategorized(for: viewModel.selectedType),
             type: viewModel.selectedType,
             name: "未分类",
-            iconKey: "questionmark",
+            iconKey: "tag",
             colorHex: Int(CategoryColorPalette.defaultHex(for: SystemCategoryID.uncategorized(for: viewModel.selectedType))),
             isSystem: true,
             sortOrder: 0

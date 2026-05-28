@@ -30,7 +30,7 @@ struct CategoryEditSheet: View {
         self.onSave = onSave
         self.onDelete = onDelete
 
-        let defaultIcon = CategoryIconCatalog.icons.first ?? "questionmark"
+        let defaultIcon = CategoryIconCatalog.icons.first ?? "tag"
         let initialIcon = existing?.iconKey ?? defaultIcon
         _selectedIcon = State(initialValue: initialIcon)
         _name = State(initialValue: existing?.name ?? "")
