@@ -1,9 +1,12 @@
 import Foundation
+import os
 #if canImport(WidgetKit)
 import WidgetKit
 #endif
 
 enum WidgetSnapshotService {
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "widget")
+
     static func refresh(using repository: BillRepository, now: Date = Date()) {
         do {
             let todayKey = DayKeyFormatter.dayKey(for: now)
@@ -18,7 +21,7 @@ enum WidgetSnapshotService {
             WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.summaryTrend)
             #endif
         } catch {
-            // 保持静默失败，避免影响主流程
+            logger.error("Widget snapshot refresh failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
