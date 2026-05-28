@@ -21,6 +21,7 @@ final class RecurringBillsViewModel: ObservableObject {
     @Published private(set) var enabledCount: Int = 0
     @Published private(set) var pausedCount: Int = 0
     @Published private(set) var monthlyFixedExpenseCents: Int = 0
+    @Published private(set) var errorMessage: String?
 
     private let recurringRepository: RecurringRepository
     private let categoryRepository: CategoryRepository
@@ -56,12 +57,14 @@ final class RecurringBillsViewModel: ObservableObject {
                         isEnabled: task.isEnabled
                     )
                 }
+            errorMessage = nil
         } catch {
-            items = []
-            enabledCount = 0
-            pausedCount = 0
-            monthlyFixedExpenseCents = 0
+            errorMessage = "定时账单加载失败，请稍后重试"
         }
+    }
+
+    func dismissError() {
+        errorMessage = nil
     }
 
     func toggleEnabled(id: UUID, isEnabled: Bool) {
@@ -69,7 +72,7 @@ final class RecurringBillsViewModel: ObservableObject {
             try recurringRepository.setEnabled(id: id, isEnabled: isEnabled)
             load()
         } catch {
-            // TODO: surface error when error handling UX is defined.
+            errorMessage = isEnabled ? "启用定时账单失败，请稍后重试" : "暂停定时账单失败，请稍后重试"
         }
     }
 
@@ -78,7 +81,7 @@ final class RecurringBillsViewModel: ObservableObject {
             try recurringRepository.delete(id: id)
             load()
         } catch {
-            // TODO: surface error when error handling UX is defined.
+            errorMessage = "删除定时账单失败，请稍后重试"
         }
     }
 

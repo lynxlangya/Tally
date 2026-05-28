@@ -42,6 +42,7 @@ final class HomeViewModel: ObservableObject {
 
     @Published private(set) var summary: Summary
     @Published private(set) var groups: [Group] = []
+    @Published private(set) var errorMessage: String?
 
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
@@ -70,13 +71,18 @@ final class HomeViewModel: ObservableObject {
             let categoryMap = loadCategories()
             updateSummary(with: bills)
             groups = buildGroups(from: bills, categoryMap: categoryMap)
+            errorMessage = nil
             WidgetSnapshotService.refresh(using: billRepository, now: nowProvider())
         } catch {
-            loadedBills = []
-            billById = [:]
-            summary = Summary(monthTitle: monthTitle(for: nowProvider()), expenseCents: 0, incomeCents: 0)
-            groups = []
+            if loadedBills.isEmpty && groups.isEmpty {
+                summary = Summary(monthTitle: monthTitle(for: nowProvider()), expenseCents: 0, incomeCents: 0)
+            }
+            errorMessage = "账单加载失败，请稍后重试"
         }
+    }
+
+    func dismissError() {
+        errorMessage = nil
     }
 
     var dailyAverageCents: Int {
@@ -134,7 +140,7 @@ final class HomeViewModel: ObservableObject {
             NotificationCenter.default.post(name: .billDidChange, object: nil)
             load()
         } catch {
-            // TODO: surface error when error handling UX is defined.
+            errorMessage = "删除账单失败，请稍后重试"
         }
     }
 

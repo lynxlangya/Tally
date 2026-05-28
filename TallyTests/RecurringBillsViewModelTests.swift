@@ -78,6 +78,89 @@ final class RecurringBillsViewModelTests: XCTestCase {
         XCTAssertEqual(result.2, 1)
     }
 
+    func testLoadFailureSurfacesErrorAndKeepsExistingRows() async throws {
+        let category = makeCategory(id: UUID(), name: "房租", iconKey: "house.fill", colorHex: nil, type: .expense)
+        let task = makeTask(
+            category: category,
+            amountCents: 540000,
+            rule: .monthlyFirst,
+            nextFireDate: fixedDate(year: 2026, month: 6, day: 1, hour: 9, minute: 0),
+            isEnabled: true
+        )
+
+        let result = await MainActor.run { () -> (Int, Int, String?) in
+            let recurringRepository = InMemoryRecurringRepository(tasks: [task])
+            let categoryRepository = MockCategoryRepository(seed: [category])
+            let viewModel = RecurringBillsViewModel(
+                recurringRepository: recurringRepository,
+                categoryRepository: categoryRepository
+            )
+            viewModel.load()
+            recurringRepository.listError = RepositoryError.notFound
+            viewModel.load()
+            return (viewModel.items.count, viewModel.enabledCount, viewModel.errorMessage)
+        }
+
+        XCTAssertEqual(result.0, 1)
+        XCTAssertEqual(result.1, 1)
+        XCTAssertEqual(result.2, "定时账单加载失败，请稍后重试")
+    }
+
+    func testToggleFailureSurfacesErrorAndKeepsState() async throws {
+        let category = makeCategory(id: UUID(), name: "房租", iconKey: "house.fill", colorHex: nil, type: .expense)
+        let task = makeTask(
+            category: category,
+            amountCents: 540000,
+            rule: .monthlyFirst,
+            nextFireDate: fixedDate(year: 2026, month: 6, day: 1, hour: 9, minute: 0),
+            isEnabled: true
+        )
+
+        let result = await MainActor.run { () -> (Bool, Int, String?) in
+            let recurringRepository = InMemoryRecurringRepository(tasks: [task])
+            let categoryRepository = MockCategoryRepository(seed: [category])
+            let viewModel = RecurringBillsViewModel(
+                recurringRepository: recurringRepository,
+                categoryRepository: categoryRepository
+            )
+            viewModel.load()
+            recurringRepository.setEnabledError = RepositoryError.notFound
+            viewModel.toggleEnabled(id: task.id, isEnabled: false)
+            return (viewModel.items.first?.isEnabled ?? false, viewModel.enabledCount, viewModel.errorMessage)
+        }
+
+        XCTAssertTrue(result.0)
+        XCTAssertEqual(result.1, 1)
+        XCTAssertEqual(result.2, "暂停定时账单失败，请稍后重试")
+    }
+
+    func testDeleteFailureSurfacesErrorAndKeepsState() async throws {
+        let category = makeCategory(id: UUID(), name: "房租", iconKey: "house.fill", colorHex: nil, type: .expense)
+        let task = makeTask(
+            category: category,
+            amountCents: 540000,
+            rule: .monthlyFirst,
+            nextFireDate: fixedDate(year: 2026, month: 6, day: 1, hour: 9, minute: 0),
+            isEnabled: true
+        )
+
+        let result = await MainActor.run { () -> (Int, String?) in
+            let recurringRepository = InMemoryRecurringRepository(tasks: [task])
+            let categoryRepository = MockCategoryRepository(seed: [category])
+            let viewModel = RecurringBillsViewModel(
+                recurringRepository: recurringRepository,
+                categoryRepository: categoryRepository
+            )
+            viewModel.load()
+            recurringRepository.deleteError = RepositoryError.notFound
+            viewModel.delete(id: task.id)
+            return (viewModel.items.count, viewModel.errorMessage)
+        }
+
+        XCTAssertEqual(result.0, 1)
+        XCTAssertEqual(result.1, "删除定时账单失败，请稍后重试")
+    }
+
     private func makeCategory(
         id: UUID,
         name: String,
