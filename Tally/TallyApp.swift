@@ -11,6 +11,7 @@ import SwiftUI
 struct TallyApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var themeManager = ThemeManager.shared
+    @StateObject private var languageManager = LanguageManager.shared
     private let environment = AppEnvironment.live
 
     init() {
@@ -24,6 +25,7 @@ struct TallyApp: App {
             ContentView()
                 .environment(\.appEnvironment, environment)
                 .applyTheme(settings: themeManager.settings)
+                .environment(\.locale, languageManager.currentLocale)
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }

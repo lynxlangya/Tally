@@ -7,6 +7,7 @@ struct ProfileView: View {
     @AppStorage("dailyReminderEnabled") private var dailyReminderEnabled: Bool = false
     @AppStorage("profileName") private var profileName: String = "Mr. 琅邪"
     @ObservedObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var languageManager = LanguageManager.shared
 
     @StateObject private var viewModel: ProfileViewModel
     @State private var showReminderSettingsPrompt = false
@@ -257,6 +258,8 @@ struct ProfileView: View {
             return versionSubtitle
         case .theme:
             return "\(themeManager.settings.appearance.profileTitle) · \(themeManager.settings.accent.name)"
+        case .language:
+            return languageManager.selectedLanguage.title
         default:
             return row.subtitle
         }
