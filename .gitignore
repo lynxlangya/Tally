@@ -2,6 +2,7 @@
 *.xcuserstate
 xcuserdata/
 **/xcuserdata/
+build/
 
 # Xcode workspace user settings
 *.xcworkspace/xcuserdata/
