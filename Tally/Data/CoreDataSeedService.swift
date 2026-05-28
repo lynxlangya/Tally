@@ -286,18 +286,25 @@ struct CoreDataSeedService: SeedService {
     }
 
     private func ensurePresetCategories() throws {
+        let seedIDs = Self.categories.map(\.id)
+        let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
+        request.predicate = NSPredicate(format: "id IN %@", seedIDs)
+        let existingObjects = try context.fetch(request)
+        var existingByID: [UUID: NSManagedObject] = [:]
+        for object in existingObjects {
+            guard let id = object.value(forKey: "id") as? UUID else { continue }
+            existingByID[id] = object
+        }
+
         for seed in Self.categories {
-            let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
-            request.fetchLimit = 1
-            request.predicate = NSPredicate(format: "id == %@", seed.id as CVarArg)
-            let objects = try context.fetch(request)
-            if let existing = objects.first {
+            if let existing = existingByID[seed.id] {
                 if seed.isSystem {
                     apply(seed, to: existing)
                 }
             } else {
                 let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
                 apply(seed, to: object)
+                existingByID[seed.id] = object
             }
         }
     }

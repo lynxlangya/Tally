@@ -18,6 +18,7 @@ struct TallyApp: App {
     @StateObject private var languageManager = LanguageManager.shared
     @StateObject private var persistenceStartupState: PersistenceStartupState
     @State private var didRunInitialStartupJobs = false
+    @State private var isRecurringCatchUpRunning = false
     private let environment: AppEnvironment
 
     init() {
@@ -67,14 +68,28 @@ struct TallyApp: App {
     }
 
     private func runRecurringCatchUpIfNeeded() {
-        do {
-            let created = try environment.container.services.recurring.runCatchUp(maxDays: 60)
-            if created > 0 {
-                NotificationCenter.default.post(name: .billDidChange, object: nil)
-                WidgetSnapshotService.refresh(using: environment.container.repositories.bill)
+        guard !isRecurringCatchUpRunning else { return }
+        isRecurringCatchUpRunning = true
+
+        let recurringService = environment.container.services.recurring
+        let billRepository = environment.container.repositories.bill
+        DispatchQueue.global(qos: .utility).async {
+            let result = Result {
+                try recurringService.runCatchUp(maxDays: 60)
             }
-        } catch {
-            recurringLogger.error("Recurring catch-up failed: \(error.localizedDescription, privacy: .public)")
+
+            DispatchQueue.main.async {
+                isRecurringCatchUpRunning = false
+                switch result {
+                case .success(let created):
+                    if created > 0 {
+                        NotificationCenter.default.post(name: .billDidChange, object: nil)
+                        WidgetSnapshotService.refresh(using: billRepository)
+                    }
+                case .failure(let error):
+                    recurringLogger.error("Recurring catch-up failed: \(error.localizedDescription, privacy: .public)")
+                }
+            }
         }
     }
 
