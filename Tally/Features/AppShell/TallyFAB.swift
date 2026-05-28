@@ -56,6 +56,7 @@ struct TallyFAB: View {
                 }
         )
         .accessibilityLabel(Text("记一笔"))
+        .accessibilityIdentifier("shell.quickEntry")
     }
 }
 

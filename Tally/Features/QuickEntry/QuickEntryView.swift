@@ -231,6 +231,7 @@ struct QuickEntryView: View {
         }
         .buttonStyle(.plain)
         .disabled(!viewModel.canSave)
+        .accessibilityIdentifier("quickEntry.save")
     }
 
     private var dateText: String {
