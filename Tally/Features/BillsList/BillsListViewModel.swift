@@ -20,19 +20,31 @@ final class BillsListViewModel: ObservableObject {
     @Published private(set) var categoryRankingTotalCount: Int = 0
 
     @Published var selectedType: BillType = .expense {
-        didSet { applyFilters() }
+        didSet {
+            guard oldValue != selectedType else { return }
+            applyFiltersIfReady()
+        }
     }
 
     @Published var timeRange: TimeRange = .month {
-        didSet { applyFilters() }
+        didSet {
+            guard oldValue != timeRange else { return }
+            applyFiltersIfReady()
+        }
     }
 
     @Published var rankSort: RankSort = .most {
-        didSet { applyFilters() }
+        didSet {
+            guard oldValue != rankSort else { return }
+            applyFiltersIfReady()
+        }
     }
 
     @Published var anchorDate: Date = Date() {
-        didSet { applyFilters() }
+        didSet {
+            guard oldValue != anchorDate else { return }
+            applyFiltersIfReady()
+        }
     }
 
     private let billRepository: BillRepository
@@ -40,6 +52,8 @@ final class BillsListViewModel: ObservableObject {
     private var categoriesById: [UUID: CategoryRecord] = [:]
     private var currentBills: [BillRecord] = []
     private var currentBillsById: [UUID: BillRecord] = [:]
+    private var didLoad = false
+    private var isBatchingFilterUpdates = false
 
     private let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
@@ -105,7 +119,40 @@ final class BillsListViewModel: ObservableObject {
     }
 
     func toggleRankSort() {
-        rankSort = rankSort == .most ? .least : .most
+        updateFilters(rankSort: rankSort == .most ? .least : .most)
+    }
+
+    func updateFilters(
+        selectedType: BillType? = nil,
+        timeRange: TimeRange? = nil,
+        rankSort: RankSort? = nil,
+        anchorDate: Date? = nil
+    ) {
+        var shouldApply = false
+        isBatchingFilterUpdates = true
+        defer {
+            isBatchingFilterUpdates = false
+            if shouldApply {
+                applyFiltersIfReady()
+            }
+        }
+
+        if let selectedType, self.selectedType != selectedType {
+            self.selectedType = selectedType
+            shouldApply = true
+        }
+        if let timeRange, self.timeRange != timeRange {
+            self.timeRange = timeRange
+            shouldApply = true
+        }
+        if let rankSort, self.rankSort != rankSort {
+            self.rankSort = rankSort
+            shouldApply = true
+        }
+        if let anchorDate, self.anchorDate != anchorDate {
+            self.anchorDate = anchorDate
+            shouldApply = true
+        }
     }
 
     func load() {
@@ -116,8 +163,10 @@ final class BillsListViewModel: ObservableObject {
             categoriesById = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
             errorMessage = nil
             updateAvailableYears()
+            didLoad = true
             applyFilters()
         } catch {
+            didLoad = false
             errorMessage = FeatureErrorMessage.message(for: error, fallback: "账本加载失败，请稍后重试")
         }
     }
@@ -125,6 +174,11 @@ final class BillsListViewModel: ObservableObject {
     private var normalizedAnchorDate: Date {
         let dayKey = DayKeyFormatter.dayKey(for: anchorDate)
         return DayKeyFormatter.date(from: dayKey, timeZone: calendar.timeZone) ?? anchorDate
+    }
+
+    private func applyFiltersIfReady() {
+        guard didLoad, !isBatchingFilterUpdates else { return }
+        applyFilters()
     }
 
     private func applyFilters() {
@@ -150,15 +204,24 @@ final class BillsListViewModel: ObservableObject {
             summaryChange = computeSummaryChange(currentTotal: summaryTotalCents)
 
             let trendBills = allBills.filter { $0.type == .expense }
-            let trend = buildTrend(for: trendBills)
+            let trend = BillsListTrendBuilder(
+                timeRange: timeRange,
+                anchorDate: normalizedAnchorDate,
+                calendar: calendar
+            )
+            .build(for: trendBills)
             trendPoints = trend.points
             trendHighlightIndex = trend.highlightIndex
             axisLabels = trend.axisLabels
             trendValuesCents = trend.valuesCents
-            trendPeak = makeTrendPeak(values: trend.valuesCents, labels: trend.pointLabels)
+            trendPeak = trend.peak
 
-            rankingItems = buildRanking(for: filtered)
-            categoryRankingTotalCount = categoryCount(for: filtered)
+            let rankingBuilder = BillsListRankingBuilder(
+                sort: rankSort,
+                categoriesById: categoriesById
+            )
+            rankingItems = rankingBuilder.build(for: filtered)
+            categoryRankingTotalCount = rankingBuilder.categoryCount(for: filtered)
 
             let grouped = Dictionary(grouping: allBills, by: { $0.occurredLocalDate })
             groupedRows = grouped.mapValues { bills in
@@ -292,152 +355,6 @@ final class BillsListViewModel: ObservableObject {
         return SummaryChange(percentText: percentText, isPositive: delta >= 0)
     }
 
-    private func buildTrend(for bills: [BillRecord]) -> (points: [Double], highlightIndex: Int?, axisLabels: [String], valuesCents: [Int], pointLabels: [String]) {
-        let totals: [Int]
-        let axisLabels: [String]
-        let pointLabels: [String]
-        let dayTotals = bills.reduce(into: [String: Int]()) { result, bill in
-            result[bill.occurredLocalDate, default: 0] += bill.amount.cents
-        }
-        let monthTotals = bills.reduce(into: [String: Int]()) { result, bill in
-            let monthKey = String(bill.occurredLocalDate.prefix(7))
-            result[monthKey, default: 0] += bill.amount.cents
-        }
-
-        switch timeRange {
-        case .week:
-            let start = startOfWeek(for: normalizedAnchorDate)
-            let dates = (0..<7).map { offset in
-                let date = calendar.date(byAdding: .day, value: offset, to: start) ?? start
-                return date
-            }
-            totals = dates.map { date in
-                let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
-                return dayTotals[dayKey, default: 0]
-            }
-            axisLabels = ["一", "二", "三", "四", "五", "六", "日"]
-            pointLabels = dates.map(shortDateText)
-        case .month:
-            let start = startOfMonth(for: normalizedAnchorDate)
-            let dayRange = calendar.range(of: .day, in: .month, for: start) ?? 1..<2
-            let dates = dayRange.map { day in
-                let date = calendar.date(byAdding: .day, value: day - 1, to: start) ?? start
-                return date
-            }
-            totals = dates.map { date in
-                let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
-                return dayTotals[dayKey, default: 0]
-            }
-            let month = calendar.component(.month, from: normalizedAnchorDate)
-            let lastDay = dayRange.count
-            axisLabels = ["\(month)/1", "\(month)/15", "\(month)/\(lastDay)"]
-            pointLabels = dates.map(shortDateText)
-        case .quarter:
-            let start = quarterStart(for: normalizedAnchorDate)
-            let end = calendar.date(byAdding: .month, value: 3, to: start) ?? start
-            let weekStarts = (0..<13).map { offset in
-                calendar.date(byAdding: .weekOfYear, value: offset, to: start) ?? start
-            }
-            totals = weekStarts.enumerated().map { index, weekStart in
-                let nextWeekStart = weekStarts.indices.contains(index + 1) ? weekStarts[index + 1] : end
-                let bucketEnd = min(nextWeekStart, end)
-                let endDate = calendar.date(byAdding: .day, value: -1, to: bucketEnd) ?? weekStart
-                let startKey = DayKeyFormatter.dayKey(for: weekStart, timeZone: calendar.timeZone)
-                let endKey = DayKeyFormatter.dayKey(for: endDate, timeZone: calendar.timeZone)
-                return dayTotals
-                    .filter { $0.key >= startKey && $0.key <= endKey }
-                    .reduce(0) { $0 + $1.value }
-            }
-            axisLabels = [
-                shortDateText(for: weekStarts.first ?? start),
-                shortDateText(for: weekStarts[min(6, weekStarts.count - 1)]),
-                shortDateText(for: weekStarts.last ?? start)
-            ]
-            pointLabels = weekStarts.map(shortDateText)
-        case .year:
-            let year = calendar.component(.year, from: normalizedAnchorDate)
-            totals = (1...12).map { month in
-                let prefix = String(format: "%04d-%02d", year, month)
-                return monthTotals[prefix, default: 0]
-            }
-            axisLabels = ["1月", "6月", "12月"]
-            pointLabels = (1...12).map { "\($0)月" }
-        case .custom:
-            let start = calendar.date(byAdding: .day, value: -29, to: normalizedAnchorDate) ?? normalizedAnchorDate
-            let dates = (0..<30).map { offset in
-                calendar.date(byAdding: .day, value: offset, to: start) ?? start
-            }
-            totals = dates.map { date in
-                let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
-                return dayTotals[dayKey, default: 0]
-            }
-            axisLabels = [
-                shortDateText(for: dates.first ?? start),
-                shortDateText(for: dates[min(14, dates.count - 1)]),
-                shortDateText(for: dates.last ?? start)
-            ]
-            pointLabels = dates.map(shortDateText)
-        }
-
-        let maxValue = totals.max() ?? 0
-        let normalized = maxValue > 0 ? totals.map { Double($0) / Double(maxValue) } : totals.map { _ in 0 }
-        let highlightIndex = totals.firstIndex(of: maxValue)
-        return (normalized, highlightIndex, axisLabels, totals, pointLabels)
-    }
-
-    private func buildRanking(for bills: [BillRecord]) -> [RankingItem] {
-        let totalCents = bills.reduce(0) { $0 + $1.amount.cents }
-        guard totalCents > 0 else { return [] }
-
-        let totals = bills.reduce(into: [UUID: (amount: Int, count: Int)]()) { result, bill in
-            let categoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
-            let current = result[categoryId] ?? (0, 0)
-            result[categoryId] = (current.amount + bill.amount.cents, current.count + 1)
-        }
-
-        let sorted = totals.filter { $0.value.amount > 0 }.sorted { lhs, rhs in
-            if lhs.value.amount != rhs.value.amount {
-                return rankSort == .most
-                    ? lhs.value.amount > rhs.value.amount
-                    : lhs.value.amount < rhs.value.amount
-            }
-            if lhs.value.count != rhs.value.count {
-                return rankSort == .most
-                    ? lhs.value.count > rhs.value.count
-                    : lhs.value.count < rhs.value.count
-            }
-            let lhsName = categoriesById[lhs.key]?.name ?? ""
-            let rhsName = categoriesById[rhs.key]?.name ?? ""
-            if lhsName != rhsName {
-                return lhsName.localizedStandardCompare(rhsName) == .orderedAscending
-            }
-            return lhs.key.uuidString < rhs.key.uuidString
-        }
-
-        return sorted.prefix(6).map { (id, value) in
-            let category = categoriesById[id]
-            let name = category?.name ?? "未分类"
-            let iconName = category?.iconKey ?? "tag"
-            let iconHex = category?.colorHex.map { UInt32($0) }
-            let percent = Double(value.amount) / Double(totalCents)
-            return RankingItem(
-                id: id,
-                title: name,
-                iconName: iconName,
-                iconColorHex: iconHex,
-                count: value.count,
-                percent: percent,
-                amountCents: value.amount
-            )
-        }
-    }
-
-    private func categoryCount(for bills: [BillRecord]) -> Int {
-        Set(bills.map { bill in
-            bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
-        }).count
-    }
-
     private func makeRowItem(for bill: BillRecord) -> RowItem {
         let categoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
         let category = categoriesById[categoryId]
@@ -458,37 +375,6 @@ final class BillsListViewModel: ObservableObject {
             amountCents: bill.amount.cents,
             isIncome: bill.type == .income
         )
-    }
-
-    private func startOfWeek(for date: Date) -> Date {
-        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
-        return calendar.date(from: components) ?? date
-    }
-
-    private func startOfMonth(for date: Date) -> Date {
-        let components = calendar.dateComponents([.year, .month], from: date)
-        return calendar.date(from: components) ?? date
-    }
-
-    private func quarterStart(for date: Date) -> Date {
-        let month = calendar.component(.month, from: date)
-        let quarterStartMonth = ((month - 1) / 3) * 3 + 1
-        var components = calendar.dateComponents([.year], from: date)
-        components.month = quarterStartMonth
-        components.day = 1
-        return calendar.date(from: components) ?? date
-    }
-
-    private func shortDateText(for date: Date) -> String {
-        "\(calendar.component(.month, from: date))/\(calendar.component(.day, from: date))"
-    }
-
-    private func makeTrendPeak(values: [Int], labels: [String]) -> TrendPeak? {
-        guard let maxValue = values.max(), maxValue > 0, let index = values.firstIndex(of: maxValue) else {
-            return nil
-        }
-        let label = labels.indices.contains(index) ? labels[index] : ""
-        return TrendPeak(index: index, label: label, amountCents: maxValue)
     }
 
     private static func detailDateString(for bill: BillRecord) -> String {
