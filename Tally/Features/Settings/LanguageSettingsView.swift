@@ -30,7 +30,6 @@ struct LanguageSettingsView: View {
                         previewCard
                         languageSection
                         formatPreviewSection
-                        resetButton
                     }
                     .padding(.horizontal, TallySpacing.s6)
                     .padding(.bottom, TallySpacing.s9)
@@ -93,8 +92,7 @@ struct LanguageSettingsView: View {
 
                 LanguageCodeTile(
                     code: selectedLanguage.shortCode,
-                    accent: accent,
-                    isSystem: selectedLanguage == .system
+                    accent: accent
                 )
             }
             .padding(.horizontal, TallySpacing.s5)
@@ -167,7 +165,7 @@ struct LanguageSettingsView: View {
 
     private var formatPreviewSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            LanguageSectionTitle(title: "格式预览", trailing: selectedLanguage.localeIdentifier ?? "System")
+            LanguageSectionTitle(title: "格式预览", trailing: selectedLanguage.localeIdentifier)
 
             VStack(spacing: 0) {
                 LanguageFormatRow(title: "日期", value: formattedDate)
@@ -185,31 +183,6 @@ struct LanguageSettingsView: View {
                     .stroke(Color.tallyLine, lineWidth: 0.5)
             )
         }
-    }
-
-    private var resetButton: some View {
-        Button {
-            select(.system)
-        } label: {
-            HStack(spacing: TallySpacing.s3) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 14, weight: .semibold))
-                Text("恢复跟随系统")
-                    .font(TallyType.body(14, weight: .semibold))
-            }
-            .foregroundStyle(Color.tallyInkDim)
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(Color.tallyBg)
-            .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous)
-                    .stroke(Color.tallyLine, style: StrokeStyle(lineWidth: 0.75, dash: [3, 3]))
-            )
-        }
-        .buttonStyle(.plain)
-        .disabled(selectedLanguage == .system)
-        .opacity(selectedLanguage == .system ? 0.58 : 1)
     }
 
     private var formattedDate: String {
@@ -293,7 +266,6 @@ private struct LanguageOptionRow: View {
                 LanguageCodeTile(
                     code: language.shortCode,
                     accent: accent,
-                    isSystem: language == .system,
                     isCompact: true
                 )
 
@@ -335,29 +307,22 @@ private struct LanguageOptionRow: View {
 private struct LanguageCodeTile: View {
     let code: String
     let accent: Color
-    let isSystem: Bool
     var isCompact = false
 
     var body: some View {
         RoundedRectangle(cornerRadius: isCompact ? TallyRadii.sm : TallyRadii.lg, style: .continuous)
-            .fill(isSystem ? Color.tallySurface2 : accent.opacity(0.16))
+            .fill(accent.opacity(0.16))
             .frame(width: isCompact ? 42 : 64, height: isCompact ? 42 : 64)
             .overlay(
                 RoundedRectangle(cornerRadius: isCompact ? TallyRadii.sm : TallyRadii.lg, style: .continuous)
-                    .stroke(isSystem ? Color.tallyLineHi : accent.opacity(0.42), lineWidth: 0.75)
+                    .stroke(accent.opacity(0.42), lineWidth: 0.75)
             )
             .overlay {
-                if isSystem {
-                    Image(systemName: "globe")
-                        .font(.system(size: isCompact ? 17 : 24, weight: .semibold))
-                        .foregroundStyle(Color.tallyInkDim)
-                } else {
-                    Text(code)
-                        .font(TallyType.body(isCompact ? 15 : 22, weight: .semibold))
-                        .foregroundStyle(accent)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.62)
-                }
+                Text(code)
+                    .font(TallyType.body(isCompact ? 15 : 22, weight: .semibold))
+                    .foregroundStyle(accent)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.62)
             }
     }
 }
