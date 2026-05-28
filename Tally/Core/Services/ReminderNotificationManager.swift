@@ -1,10 +1,12 @@
 import Foundation
+import os
 import UserNotifications
 
 final class ReminderNotificationManager {
     static let shared = ReminderNotificationManager()
 
     private let center: UNUserNotificationCenter
+    private let logger = Logger(subsystem: "com.langya.Tally", category: "reminder")
 
     private init(center: UNUserNotificationCenter = .current()) {
         self.center = center
@@ -18,6 +20,7 @@ final class ReminderNotificationManager {
         do {
             return try await center.requestAuthorization(options: [.alert, .badge, .sound])
         } catch {
+            logger.error("Reminder authorization request failed: \(error.localizedDescription, privacy: .public)")
             return false
         }
     }
@@ -41,7 +44,7 @@ final class ReminderNotificationManager {
         do {
             try await center.add(request)
         } catch {
-            // ignore for MVP
+            logger.error("Daily reminder scheduling failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 

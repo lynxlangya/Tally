@@ -6,7 +6,10 @@
 //
 
 import Foundation
+import os
 import SwiftUI
+
+private let recurringLogger = Logger(subsystem: "com.langya.Tally", category: "recurring")
 
 @main
 struct TallyApp: App {
@@ -71,7 +74,7 @@ struct TallyApp: App {
                 WidgetSnapshotService.refresh(using: environment.container.repositories.bill)
             }
         } catch {
-            // Keep startup resilient even if recurring catch-up fails.
+            recurringLogger.error("Recurring catch-up failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
