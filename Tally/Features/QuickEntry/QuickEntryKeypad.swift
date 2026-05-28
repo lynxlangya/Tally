@@ -70,6 +70,26 @@ struct QuickEntryKeypad: View {
             .frame(height: QuickEntryLayout.keypadKeyHeight)
         }
         .buttonStyle(QuickEntryKeyButtonStyle(reduceMotion: themeManager.settings.reduceMotion))
+        .accessibilityIdentifier("quickEntry.key.\(accessibilityID(for: key))")
+    }
+
+    private func accessibilityID(for key: QuickEntryViewModel.KeypadKey) -> String {
+        switch key {
+        case .digit(let value):
+            return String(value)
+        case .doubleZero:
+            return "00"
+        case .decimal:
+            return "decimal"
+        case .delete:
+            return "delete"
+        case .calendar:
+            return "calendar"
+        case .minus:
+            return "minus"
+        case .add:
+            return "add"
+        }
     }
 }
 
