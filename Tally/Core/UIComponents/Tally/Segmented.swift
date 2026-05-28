@@ -35,6 +35,8 @@ struct Segmented<Value: Hashable>: View {
     let options: [(Value, String)]
     let size: Size
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     init(value: Binding<Value>, options: [(Value, String)], size: Size = .md) {
         self._value = value
         self.options = options
@@ -52,11 +54,11 @@ struct Segmented<Value: Hashable>: View {
                 } label: {
                     Text(option.1)
                         .font(TallyType.body(size.fontSize, weight: .medium))
-                        .foregroundStyle(active ? Color.tallyAccentInk : Color.tallyInkDim)
+                        .foregroundStyle(active ? themeColors.accentInk : Color.tallyInkDim)
                         .padding(.horizontal, size.horizontalPadding)
                         .padding(.vertical, size.verticalPadding)
                         .frame(minWidth: 44)
-                        .background(active ? Color.tallyAccent : Color.clear)
+                        .background(active ? themeColors.accent : Color.clear)
                         .clipShape(Capsule(style: .continuous))
                 }
                 .buttonStyle(.plain)

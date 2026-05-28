@@ -1,7 +1,10 @@
 import SwiftUI
+import UIKit
 
 struct QuickEntryKeypad: View {
     let onKey: (QuickEntryViewModel.KeypadKey) -> Void
+
+    @ObservedObject private var themeManager = ThemeManager.shared
 
     private let columns = Array(
         repeating: GridItem(.flexible(), spacing: QuickEntryLayout.keypadSpacing),
@@ -39,6 +42,9 @@ struct QuickEntryKeypad: View {
         style: QuickEntryKeyStyle
     ) -> some View {
         Button {
+            if themeManager.settings.hapticFeedback {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
             onKey(key)
         } label: {
             ZStack {
@@ -63,7 +69,7 @@ struct QuickEntryKeypad: View {
             }
             .frame(height: QuickEntryLayout.keypadKeyHeight)
         }
-        .buttonStyle(QuickEntryKeyButtonStyle())
+        .buttonStyle(QuickEntryKeyButtonStyle(reduceMotion: themeManager.settings.reduceMotion))
     }
 }
 
@@ -87,9 +93,11 @@ private enum QuickEntryKeyStyle {
 }
 
 private struct QuickEntryKeyButtonStyle: ButtonStyle {
+    let reduceMotion: Bool
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.94 : 1)
-            .animation(.tallySpring, value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .tallySpring, value: configuration.isPressed)
     }
 }

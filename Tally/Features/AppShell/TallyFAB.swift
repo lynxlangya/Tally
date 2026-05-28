@@ -1,20 +1,28 @@
 import SwiftUI
+import UIKit
 
 struct TallyFAB: View {
     let action: () -> Void
 
+    @Environment(\.tallyThemeColors) private var themeColors
+    @ObservedObject private var themeManager = ThemeManager.shared
     @GestureState private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            if themeManager.settings.hapticFeedback {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+            action()
+        } label: {
             Circle()
-                .fill(Color.tallyAccent)
+                .fill(themeColors.accent)
                 .frame(width: 68, height: 68)
                 .overlay(
                     TallyMark(
                         size: 26,
                         variant: .one,
-                        color: .tallyAccentInk,
+                        color: themeColors.accentInk,
                         strokeWidth: 3.2
                     )
                 )
@@ -32,14 +40,14 @@ struct TallyFAB: View {
                 )
                 .overlay(
                     Circle()
-                        .stroke(Color.tallyAccent.opacity(0.32), lineWidth: 1)
+                        .stroke(themeColors.accent.opacity(0.32), lineWidth: 1)
                         .padding(-6)
                 )
                 .tallyShadow(.shadowFab)
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.96 : 1)
-        .animation(.tallySpring, value: isPressed)
+        .animation(themeManager.settings.reduceMotion ? nil : .tallySpring, value: isPressed)
         .contentShape(Circle())
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)

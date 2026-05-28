@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct TallyApp: App {
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var themeManager = ThemeManager.shared
     private let environment = AppEnvironment.live
 
     init() {
@@ -22,6 +23,7 @@ struct TallyApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.appEnvironment, environment)
+                .applyTheme(settings: themeManager.settings)
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
@@ -38,6 +40,36 @@ struct TallyApp: App {
             }
         } catch {
             // Keep startup resilient even if recurring catch-up fails.
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func applyTheme(settings: ThemeSettings) -> some View {
+        if let colorScheme = settings.appearance.preferredColorScheme {
+            self
+                .environment(\.colorScheme, colorScheme)
+                .environment(\.tallyThemeColors, TallyThemeColors(accent: settings.accent))
+                .preferredColorScheme(colorScheme)
+                .tint(settings.accent.color)
+                .transaction { transaction in
+                    if settings.reduceMotion {
+                        transaction.disablesAnimations = true
+                        transaction.animation = nil
+                    }
+                }
+        } else {
+            self
+                .environment(\.tallyThemeColors, TallyThemeColors(accent: settings.accent))
+                .preferredColorScheme(nil)
+                .tint(settings.accent.color)
+                .transaction { transaction in
+                    if settings.reduceMotion {
+                        transaction.disablesAnimations = true
+                        transaction.animation = nil
+                    }
+                }
         }
     }
 }

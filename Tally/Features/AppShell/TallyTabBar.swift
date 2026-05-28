@@ -34,6 +34,8 @@ struct TallyTabBar: View {
     @Binding var selection: TallyShellTab
     let onFabTap: () -> Void
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     var body: some View {
         VStack(spacing: 0) {
             LinearGradient(
@@ -82,7 +84,7 @@ struct TallyTabBar: View {
             VStack(spacing: 4) {
                 ZStack(alignment: .top) {
                     Circle()
-                        .fill(active ? Color.tallyAccent : Color.clear)
+                        .fill(active ? themeColors.accent : Color.clear)
                         .frame(width: 4, height: 4)
                         .offset(y: -10)
                     Image(systemName: tab.systemImage)

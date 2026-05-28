@@ -3,6 +3,7 @@ import UIKit
 
 struct QuickEntryView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.tallyThemeColors) private var themeColors
     @StateObject private var viewModel: QuickEntryViewModel
     @State private var showsCategoryPicker = false
     @State private var showsDatePicker = false
@@ -211,7 +212,7 @@ struct QuickEntryView: View {
                 TallyMark(
                     size: 18,
                     variant: .one,
-                    color: viewModel.canSave ? .tallyAccentInk : .tallyInkFaint,
+                    color: viewModel.canSave ? themeColors.accentInk : .tallyInkFaint,
                     strokeWidth: 2.5
                 )
 
@@ -221,8 +222,8 @@ struct QuickEntryView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, QuickEntryLayout.confirmButtonVerticalPadding)
-            .foregroundStyle(viewModel.canSave ? Color.tallyAccentInk : Color.tallyInkFaint)
-            .background(viewModel.canSave ? Color.tallyAccent : Color.tallySurface3)
+            .foregroundStyle(viewModel.canSave ? themeColors.accentInk : Color.tallyInkFaint)
+            .background(viewModel.canSave ? themeColors.accent : Color.tallySurface3)
             .clipShape(RoundedRectangle(cornerRadius: QuickEntryLayout.confirmButtonCornerRadius, style: .continuous))
             .if(viewModel.canSave) { view in
                 view.tallyShadow(.shadowFab)
@@ -319,6 +320,8 @@ private struct HeroAmount: View {
     let text: String
     let type: BillType
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 0) {
             Text(type == .expense ? "−" : "+")
@@ -350,11 +353,11 @@ private struct HeroAmount: View {
     }
 
     private var signColor: Color {
-        type == .income ? .tallyAccent : .tallyInkDim
+        type == .income ? themeColors.accent : .tallyInkDim
     }
 
     private var caretColor: Color {
-        type == .income ? .tallyAccent : .tallyInkDim
+        type == .income ? themeColors.accent : .tallyInkDim
     }
 
     private var integerPart: String {
@@ -464,6 +467,7 @@ private struct TallyNoteField: UIViewRepresentable {
 
 private struct QuickEntryDatePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.tallyThemeColors) private var themeColors
     @Binding var selection: Date
 
     var body: some View {
@@ -480,7 +484,7 @@ private struct QuickEntryDatePickerSheet: View {
                 } label: {
                     Text("完成")
                         .font(TallyType.body(14, weight: .semibold))
-                        .foregroundStyle(Color.tallyAccent)
+                        .foregroundStyle(themeColors.accent)
                 }
                 .buttonStyle(.plain)
             }
@@ -492,7 +496,7 @@ private struct QuickEntryDatePickerSheet: View {
             )
             .datePickerStyle(.wheel)
             .labelsHidden()
-            .tint(Color.tallyAccent)
+            .tint(themeColors.accent)
             .environment(\.locale, Locale(identifier: "zh_CN"))
             .frame(maxWidth: .infinity)
             .frame(height: 180)

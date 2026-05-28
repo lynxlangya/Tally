@@ -3,6 +3,7 @@ import SwiftUI
 struct BillsListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
+    @Environment(\.tallyThemeColors) private var themeColors
     @StateObject private var viewModel: BillsListViewModel
     @State private var selectedCategory: CategorySheetTarget?
     @State private var editingBill: BillRecord?
@@ -166,9 +167,9 @@ struct BillsListView: View {
                 } label: {
                     Image(systemName: "calendar")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.tallyAccent)
+                        .foregroundStyle(themeColors.accent)
                         .frame(width: 34, height: 34)
-                        .background(Color.tallyAccentTint)
+                        .background(themeColors.accentTint)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -185,6 +186,8 @@ private struct CategorySheetTarget: Identifiable {
 
 private struct StatsSummaryCard: View {
     let summary: BillsListViewModel.Summary
+
+    @Environment(\.tallyThemeColors) private var themeColors
 
     var body: some View {
         VStack(spacing: TallySpacing.s4) {
@@ -209,7 +212,7 @@ private struct StatsSummaryCard: View {
                     sign: summary.balanceCents >= 0 ? .income : .expense,
                     size: 22,
                     weight: .semibold,
-                    color: summary.balanceCents >= 0 ? .tallyAccent : .tallyInk
+                    color: summary.balanceCents >= 0 ? themeColors.accent : .tallyInk
                 )
                 .lineLimit(1)
                 .minimumScaleFactor(0.78)
@@ -247,6 +250,8 @@ private struct StatsTrendCard: View {
     let peak: BillsListViewModel.TrendPeak?
     let axisLabels: [String]
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     var body: some View {
         VStack(spacing: TallySpacing.s3) {
             HStack(alignment: .firstTextBaseline) {
@@ -261,7 +266,7 @@ private struct StatsTrendCard: View {
             GeometryReader { proxy in
                 Sparkline(
                     data: normalized,
-                    color: .tallyAccent,
+                    color: themeColors.accent,
                     fill: true,
                     dot: true,
                     dotIndex: peak?.index,
@@ -438,6 +443,8 @@ private struct StatsBillsList: View {
 private struct DenseBillRow: View {
     let item: BillsListViewModel.RowItem
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     var body: some View {
         HStack(spacing: TallySpacing.s3) {
             CategoryTile(iconName: item.iconName, color: iconColor, size: 32, radius: TallyRadii.sm)
@@ -460,7 +467,7 @@ private struct DenseBillRow: View {
                 sign: item.isIncome ? .income : .expense,
                 size: 15,
                 weight: .semibold,
-                color: item.isIncome ? .tallyAccent : .tallyInk
+                color: item.isIncome ? themeColors.accent : .tallyInk
             )
             .lineLimit(1)
             .minimumScaleFactor(0.75)
@@ -488,6 +495,7 @@ private struct DenseBillRowButtonStyle: ButtonStyle {
 
 private struct StatsDatePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.tallyThemeColors) private var themeColors
     @Binding var selection: Date
 
     var body: some View {
@@ -503,14 +511,14 @@ private struct StatsDatePickerSheet: View {
                     dismiss()
                 }
                 .font(TallyType.body(14, weight: .semibold))
-                .foregroundStyle(Color.tallyAccent)
+                .foregroundStyle(themeColors.accent)
                 .buttonStyle(.plain)
             }
 
             DatePicker("选择时间", selection: $selection, displayedComponents: [.date])
                 .datePickerStyle(.wheel)
                 .labelsHidden()
-                .tint(Color.tallyAccent)
+                .tint(themeColors.accent)
                 .environment(\.locale, Locale(identifier: "zh_CN"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 180)

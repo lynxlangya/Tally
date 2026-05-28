@@ -6,6 +6,7 @@ struct ProfileView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @AppStorage("dailyReminderEnabled") private var dailyReminderEnabled: Bool = false
     @AppStorage("profileName") private var profileName: String = "Mr. 琅邪"
+    @ObservedObject private var themeManager = ThemeManager.shared
 
     @StateObject private var viewModel: ProfileViewModel
     @State private var showReminderSettingsPrompt = false
@@ -254,6 +255,8 @@ struct ProfileView: View {
             return viewModel.recurringSubtitle
         case .about:
             return versionSubtitle
+        case .theme:
+            return "\(themeManager.settings.appearance.profileTitle) · \(themeManager.settings.accent.name)"
         default:
             return row.subtitle
         }

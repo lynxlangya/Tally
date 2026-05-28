@@ -166,6 +166,8 @@ private struct HomeStatsRow: View {
     let summary: HomeViewModel.Summary
     let dailyAverageCents: Int
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             HomeStatCell(
@@ -180,7 +182,7 @@ private struct HomeStatsRow: View {
                 label: "结余",
                 cents: summary.balanceCents,
                 sign: summary.balance >= 0 ? .income : .expense,
-                color: summary.balance >= 0 ? .tallyAccent : .tallyInk,
+                color: summary.balance >= 0 ? themeColors.accent : .tallyInk,
                 alignment: .center
             )
 
@@ -253,6 +255,8 @@ private struct HomeTrendCard: View {
     let trend7Labels: [String]
     let currentWeekdayText: String
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     private var currentAmount: Int {
         trend7Cents.last ?? 0
     }
@@ -273,7 +277,7 @@ private struct HomeTrendCard: View {
             GeometryReader { proxy in
                 Sparkline(
                     data: trend7Cents.map(Double.init),
-                    color: .tallyAccent,
+                    color: themeColors.accent,
                     fill: false,
                     dot: true,
                     baseline: true,
@@ -368,6 +372,8 @@ private struct HomeDayGroupView: View {
 private struct HomeDayGroupTotals: View {
     let group: HomeViewModel.Group
 
+    @Environment(\.tallyThemeColors) private var themeColors
+
     var body: some View {
         HStack(spacing: TallySpacing.s2) {
             if group.expenseTotalCents > 0 {
@@ -376,7 +382,7 @@ private struct HomeDayGroupTotals: View {
             }
             if group.incomeTotalCents > 0 {
                 Text("+\(moneyText(group.incomeTotalCents))")
-                    .foregroundStyle(Color.tallyAccent)
+                    .foregroundStyle(themeColors.accent)
             }
         }
         .font(TallyType.num(12, weight: .medium))
@@ -393,6 +399,8 @@ private struct HomeDayGroupTotals: View {
 private struct HomeBillRow: View {
     let item: HomeViewModel.Item
     let onSelect: () -> Void
+
+    @Environment(\.tallyThemeColors) private var themeColors
 
     var body: some View {
         Button(action: onSelect) {
@@ -421,7 +429,7 @@ private struct HomeBillRow: View {
                     sign: item.isIncome ? .income : .expense,
                     size: 16,
                     weight: .semibold,
-                    color: item.isIncome ? .tallyAccent : .tallyInk
+                    color: item.isIncome ? themeColors.accent : .tallyInk
                 )
                 .lineLimit(1)
                 .minimumScaleFactor(0.76)

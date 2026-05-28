@@ -20,11 +20,12 @@ extension View {
 
 private struct TallyShadowModifier: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.tallyThemeColors) private var themeColors
 
     let style: TallyShadows.Style
 
     func body(content: Content) -> some View {
-        let layers = style.layers(for: colorScheme)
+        let layers = style.layers(for: colorScheme, themeColors: themeColors)
         return layers.reduce(AnyView(content)) { view, layer in
             AnyView(
                 view.shadow(
@@ -46,7 +47,7 @@ private struct TallyShadowLayer {
 }
 
 private extension TallyShadows.Style {
-    func layers(for colorScheme: ColorScheme) -> [TallyShadowLayer] {
+    func layers(for colorScheme: ColorScheme, themeColors: TallyThemeColors) -> [TallyShadowLayer] {
         switch (self, colorScheme) {
         case (.shadow1, .dark):
             return [
@@ -68,13 +69,13 @@ private extension TallyShadows.Style {
             ]
         case (.shadowFab, .dark):
             return [
-                TallyShadowLayer(color: .tallyAccent.opacity(0.45), radius: 32, x: 0, y: 12),
+                TallyShadowLayer(color: themeColors.accent.opacity(0.45), radius: 32, x: 0, y: 12),
                 TallyShadowLayer(color: Color.black.opacity(0.5), radius: 12, x: 0, y: 4)
             ]
         case (.shadowFab, _):
             return [
-                TallyShadowLayer(color: .tallyAccent.opacity(0.35), radius: 32, x: 0, y: 12),
-                TallyShadowLayer(color: Color.tallyAccentLo.opacity(0.18), radius: 12, x: 0, y: 4)
+                TallyShadowLayer(color: themeColors.accent.opacity(0.35), radius: 32, x: 0, y: 12),
+                TallyShadowLayer(color: themeColors.accentLo.opacity(0.18), radius: 12, x: 0, y: 4)
             ]
         }
     }
