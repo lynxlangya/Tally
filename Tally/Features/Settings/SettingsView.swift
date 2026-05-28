@@ -70,8 +70,6 @@ struct SettingsView: View {
             )
         case .widget:
             WidgetPreviewView()
-        default:
-            PlaceholderView(title: destination.title)
         }
     }
 }
@@ -87,8 +85,6 @@ private struct SettingsItem: Identifiable {
 private enum SettingsDestination: String {
     case account
     case importExport
-    case export
-    case lock
     case recurring
     case widget
     case theme
@@ -100,10 +96,6 @@ private enum SettingsDestination: String {
             return "账号设置"
         case .importExport:
             return "导入导出"
-        case .export:
-            return "导出数据"
-        case .lock:
-            return "解锁密码"
         case .recurring:
             return "定时记账"
         case .widget:
