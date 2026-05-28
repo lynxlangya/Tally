@@ -3,7 +3,6 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @StateObject private var viewModel: HomeViewModel
-    @State private var showsBillsList = false
     @State private var editingBill: BillRecord?
     @State private var showsDeleteConfirm = false
     @State private var deleteCandidateId: UUID?
@@ -31,8 +30,7 @@ struct HomeView: View {
                         dailyAverageCents: viewModel.dailyAverageCents,
                         trend7Cents: viewModel.trend7Cents,
                         trend7Labels: viewModel.trend7Labels,
-                        currentWeekdayText: viewModel.currentWeekdayText,
-                        onOpenCalendar: { showsBillsList = true }
+                        currentWeekdayText: viewModel.currentWeekdayText
                     )
 
                     if viewModel.groups.isEmpty {
@@ -70,12 +68,6 @@ struct HomeView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .billDidChange)) { _ in
             viewModel.load()
-        }
-        .navigationDestination(isPresented: $showsBillsList) {
-            BillsListView(
-                repository: repository,
-                categoryRepository: categoryRepository
-            )
         }
         .sheet(item: $editingBill) { bill in
             QuickEntryView(
@@ -128,28 +120,9 @@ private struct HomeHeader: View {
     let trend7Cents: [Int]
     let trend7Labels: [String]
     let currentWeekdayText: String
-    let onOpenCalendar: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Eyebrow("本月 · \(summary.monthShortTitle)")
-
-                Spacer()
-
-                Button(action: onOpenCalendar) {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color.tallyInkDim)
-                        .frame(width: 32, height: 32)
-                        .background(Color.tallySurface2)
-                        .clipShape(RoundedRectangle(cornerRadius: TallyRadii.sm, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("打开账本"))
-            }
-            .padding(.bottom, TallySpacing.s2)
-
             TallyAmountText(
                 cents: summary.expenseCents,
                 size: 56,
@@ -176,6 +149,7 @@ private struct HomeHeader: View {
             .padding(.top, TallySpacing.s5)
         }
         .padding(.horizontal, HomeLayout.horizontalPadding)
+        .padding(.top, TallySpacing.s4)
     }
 }
 
@@ -484,20 +458,6 @@ private struct HomeEmptyState: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, HomeLayout.horizontalPadding)
-    }
-}
-
-private extension HomeViewModel.Summary {
-    var monthShortTitle: String {
-        let pattern = #"(\d{1,2})月"#
-        guard
-            let regex = try? NSRegularExpression(pattern: pattern),
-            let match = regex.firstMatch(in: monthTitle, range: NSRange(monthTitle.startIndex..., in: monthTitle)),
-            let range = Range(match.range(at: 1), in: monthTitle)
-        else {
-            return monthTitle
-        }
-        return "\(monthTitle[range]) 月"
     }
 }
 
