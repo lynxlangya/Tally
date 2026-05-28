@@ -7,6 +7,7 @@ enum BillRecordMapper {
               let type = BillType(rawValue: typeRaw) else { throw RepositoryError.invalidData(field: "Bill.type") }
         guard let amountValue = object.value(forKey: "amount") as? Int64,
               let amountInt = Int(exactly: amountValue) else { throw RepositoryError.invalidData(field: "Bill.amount") }
+        guard amountInt >= 0 else { throw RepositoryError.invalidData(field: "Bill.amount") }
         guard let occurredAtUTC = object.value(forKey: "occurredAtUTC") as? Date else { throw RepositoryError.invalidData(field: "Bill.occurredAtUTC") }
         guard let tzId = object.value(forKey: "tzId") as? String else { throw RepositoryError.invalidData(field: "Bill.tzId") }
         guard let tzOffsetValue = object.value(forKey: "tzOffset") as? Int32 else { throw RepositoryError.invalidData(field: "Bill.tzOffset") }
