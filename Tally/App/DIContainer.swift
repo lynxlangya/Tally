@@ -68,7 +68,7 @@ final class DIContainer {
     let repositories: Repositories
     let services: Services
 
-    init(repositories: Repositories, services: Services = Services.mock()) {
+    init(repositories: Repositories, services: Services) {
         self.repositories = repositories
         self.services = services
     }
