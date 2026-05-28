@@ -37,8 +37,11 @@ final class DIContainer {
         let security: SecurityService
         let seed: SeedService
 
-        static func live(context: NSManagedObjectContext, repositories: Repositories) -> Services {
-            Services(
+        static func live(container: NSPersistentContainer, repositories: Repositories) -> Services {
+            let recurringContext = container.newBackgroundContext()
+            recurringContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+            return Services(
                 export: StubExportService(),
                 importExport: DefaultImportExportService(
                     billRepository: repositories.bill,
@@ -47,11 +50,11 @@ final class DIContainer {
                     importWriteRepository: repositories.importWrite
                 ),
                 recurring: DefaultRecurringService(
-                    recurringRepository: repositories.recurring,
-                    billRepository: repositories.bill
+                    recurringRepository: CoreDataRecurringRepository(context: recurringContext),
+                    billRepository: CoreDataBillRepository(context: recurringContext)
                 ),
                 security: StubSecurityService(),
-                seed: CoreDataSeedService(context: context)
+                seed: CoreDataSeedService(context: container.viewContext)
             )
         }
 
@@ -75,8 +78,10 @@ final class DIContainer {
     }
 
     static func live(persistenceController: PersistenceController) -> DIContainer {
-        let context = persistenceController.container.viewContext
         let repos = Repositories.live(container: persistenceController.container)
-        return DIContainer(repositories: repos, services: Services.live(context: context, repositories: repos))
+        return DIContainer(
+            repositories: repos,
+            services: Services.live(container: persistenceController.container, repositories: repos)
+        )
     }
 }
