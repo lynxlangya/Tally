@@ -20,7 +20,7 @@ enum WidgetTheme {
         color: Color = textPrimary,
         showYen: Bool = true
     ) -> some View {
-        let parts = amountParts(cents: cents)
+        let parts = MoneyFormatter.parts(fromCents: cents)
         let decimalSize = size * 0.62
 
         return HStack(alignment: .firstTextBaseline, spacing: 0) {
@@ -42,25 +42,7 @@ enum WidgetTheme {
     }
 
     static func compactMoney(cents: Int) -> String {
-        let sign = cents < 0 ? "-" : ""
-        let yuan = abs(cents) / 100
-        if yuan >= 10_000 {
-            let value = Double(yuan) / 10_000
-            return String(format: "%@¥%.1f万", sign, value)
-        }
-        return "\(sign)¥\(yuan)"
-    }
-
-    private static func amountParts(cents: Int) -> (integer: String, decimal: String) {
-        let absCents = abs(cents)
-        let yuan = absCents / 100
-        let cent = absCents % 100
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = Locale(identifier: "en_US")
-        formatter.usesGroupingSeparator = true
-        let integer = formatter.string(from: NSNumber(value: yuan)) ?? "\(yuan)"
-        return (integer, String(format: "%02d", cent))
+        MoneyFormatter.compactString(fromCents: cents)
     }
 }
 

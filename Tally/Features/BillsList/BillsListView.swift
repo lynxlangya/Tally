@@ -304,9 +304,8 @@ private struct StatsTrendCard: View {
     }
 
     private var peakText: String {
-        guard let peak else { return "峰值 - ¥0" }
-        let yuan = peak.amountCents / 100
-        return "峰值 \(peak.label) ¥\(yuan)"
+        guard let peak else { return "峰值 - \(MoneyFormatter.wholeYuanString(fromCents: 0))" }
+        return "峰值 \(peak.label) \(MoneyFormatter.wholeYuanString(fromCents: peak.amountCents))"
     }
 }
 
@@ -369,7 +368,7 @@ private struct RankingRow: View {
 
                     Spacer()
 
-                    Text("¥\(item.amountCents / 100)")
+                    Text(MoneyFormatter.wholeYuanString(fromCents: item.amountCents))
                         .font(TallyType.num(13, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                 }

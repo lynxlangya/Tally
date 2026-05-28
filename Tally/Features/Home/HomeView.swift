@@ -306,13 +306,7 @@ private struct HomeTrendCard: View {
     }
 
     private func compactAmountText(_ cents: Int) -> String {
-        let yuan = cents / 100
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = Locale(identifier: "en_US")
-        formatter.maximumFractionDigits = 0
-        let amount = formatter.string(from: NSNumber(value: yuan)) ?? "\(yuan)"
-        return "¥\(amount)"
+        MoneyFormatter.wholeYuanString(fromCents: cents)
     }
 }
 
@@ -383,8 +377,7 @@ private struct HomeDayGroupTotals: View {
     }
 
     private func moneyText(_ cents: Int) -> String {
-        let parts = TallyAmountText.amountParts(cents: cents)
-        return "¥\(parts.integer).\(parts.decimal)"
+        MoneyFormatter.string(fromCents: cents)
     }
 }
 

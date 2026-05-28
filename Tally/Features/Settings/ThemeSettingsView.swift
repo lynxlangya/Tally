@@ -496,7 +496,7 @@ private struct AppearanceCard: View {
                     .fill(ink.opacity(0.24))
                     .frame(width: 22, height: 4)
                 Spacer()
-                Text("¥6,421")
+                Text(MoneyFormatter.wholeYuanString(fromCents: 642_100))
                     .font(TallyType.num(16, weight: .semibold))
                     .foregroundStyle(ink)
                 Rectangle()

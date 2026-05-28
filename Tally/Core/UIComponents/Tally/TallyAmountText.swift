@@ -93,16 +93,8 @@ struct TallyAmountText: View {
                 .foregroundColor(resolvedColor.opacity(0.5))
     }
 
-    static func amountParts(cents: Int) -> (integer: String, decimal: String) {
-        let absCents = abs(cents)
-        let yuan = absCents / 100
-        let cent = absCents % 100
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = Locale(identifier: "en_US")
-        formatter.usesGroupingSeparator = true
-        let integer = formatter.string(from: NSNumber(value: yuan)) ?? "\(yuan)"
-        return (integer, String(format: "%02d", cent))
+    static func amountParts(cents: Int) -> MoneyFormatter.Parts {
+        MoneyFormatter.parts(fromCents: cents)
     }
 }
 
@@ -126,7 +118,7 @@ private struct TallyAmountTextPreview: View {
                     VStack(alignment: .leading, spacing: TallySpacing.s2) {
                         Eyebrow("SIZE \(Int(size))")
                         TallyAmountText(cents: 12345678, sign: .expense, size: size)
-                        TallyAmountText(cents: -987654, sign: .income, size: size, color: .tallyAccent)
+                        TallyAmountText(cents: 987654, sign: .income, size: size, color: .tallyAccent)
                         TallyAmountText(cents: 4200, size: size, dim: true)
                     }
                 }
