@@ -118,7 +118,7 @@ final class BillsListViewModel: ObservableObject {
             updateAvailableYears()
             applyFilters()
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "账本加载失败，请稍后重试")
         }
     }
 
@@ -183,7 +183,7 @@ final class BillsListViewModel: ObservableObject {
             categoryRankingTotalCount = 0
             summaryTotalCents = 0
             summaryChange = nil
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "账本加载失败，请稍后重试")
         }
     }
 

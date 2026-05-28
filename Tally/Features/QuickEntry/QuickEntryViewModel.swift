@@ -186,7 +186,7 @@ final class QuickEntryViewModel: ObservableObject {
             errorMessage = nil
             return true
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "保存账单失败，请稍后重试")
             return false
         }
     }
@@ -202,7 +202,7 @@ final class QuickEntryViewModel: ObservableObject {
             errorMessage = nil
         } catch {
             categories = []
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "分类加载失败，请稍后重试")
         }
     }
 
