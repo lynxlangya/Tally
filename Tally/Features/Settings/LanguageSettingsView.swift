@@ -201,13 +201,7 @@ struct LanguageSettingsView: View {
     }
 
     private var formattedAmount: String {
-        let formatter = NumberFormatter()
-        formatter.locale = languageManager.currentLocale
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "CNY"
-        formatter.maximumFractionDigits = 2
-        formatter.minimumFractionDigits = 2
-        return formatter.string(from: NSNumber(value: 6421.88)) ?? "¥6,421.88"
+        MoneyFormatter.string(fromCents: 642_188)
     }
 
     private var previewDate: Date {
