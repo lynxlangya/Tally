@@ -90,6 +90,7 @@ final class CoreDataRecurringRepository: RecurringRepository {
               let type = BillType(rawValue: typeRaw) else { throw RepositoryError.invalidData(field: "RecurringTask.type") }
         guard let amountValue = object.value(forKey: "amount") as? Int64,
               let amountInt = Int(exactly: amountValue) else { throw RepositoryError.invalidData(field: "RecurringTask.amount") }
+        guard amountInt >= 0 else { throw RepositoryError.invalidData(field: "RecurringTask.amount") }
         guard let hourValue = object.value(forKey: "hour") as? Int16 else { throw RepositoryError.invalidData(field: "RecurringTask.hour") }
         guard let minuteValue = object.value(forKey: "minute") as? Int16 else { throw RepositoryError.invalidData(field: "RecurringTask.minute") }
         guard let isEnabled = object.value(forKey: "isEnabled") as? Bool else { throw RepositoryError.invalidData(field: "RecurringTask.isEnabled") }
