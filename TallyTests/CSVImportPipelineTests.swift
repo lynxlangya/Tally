@@ -86,6 +86,81 @@ final class CSVImportPipelineTests: XCTestCase {
         XCTAssertTrue(result.errorSummary.contains(where: { $0.contains("第5行：金额非法") }))
     }
 
+    func testValidateAllowsSameDayAmountAndCategoryAtDifferentTimes() throws {
+        let categoryId = UUID()
+        let categories = [expenseCategory(id: categoryId, name: "咖啡")]
+        let csv = """
+        时间,类型,分类,金额,备注
+        2026-02-01 09:00:00,支出,咖啡,18.00,早咖啡
+        2026-02-01 18:00:00,支出,咖啡,18.00,晚咖啡
+        """
+        let payload = try pipeline.loadPayload(from: Data(csv.utf8))
+
+        let result = pipeline.validate(
+            payload: payload,
+            categories: categories,
+            existingBills: [],
+            parseAmount: parseAmount
+        )
+
+        XCTAssertEqual(result.pendingCount, 2)
+        XCTAssertEqual(result.conflictCount, 0)
+        XCTAssertEqual(result.failedCount, 0)
+        XCTAssertEqual(result.bills.map(\.note), ["早咖啡", "晚咖啡"])
+    }
+
+    func testValidateCountsExactTimestampDuplicateAsConflict() throws {
+        let categoryId = UUID()
+        let categories = [expenseCategory(id: categoryId, name: "咖啡")]
+        let csv = """
+        时间,类型,分类,金额,备注
+        2026-02-01 09:00:00,支出,咖啡,18.00,第一杯
+        2026-02-01 09:00:00,支出,咖啡,18.00,重复行
+        2026-02-01 18:00:00,支出,咖啡,18.00,晚咖啡
+        """
+        let payload = try pipeline.loadPayload(from: Data(csv.utf8))
+
+        let result = pipeline.validate(
+            payload: payload,
+            categories: categories,
+            existingBills: [],
+            parseAmount: parseAmount
+        )
+
+        XCTAssertEqual(result.pendingCount, 2)
+        XCTAssertEqual(result.conflictCount, 1)
+        XCTAssertEqual(result.failedCount, 0)
+        XCTAssertEqual(result.bills.map(\.note), ["第一杯", "晚咖啡"])
+    }
+
+    func testValidateComparesExistingBillsByTimestampNotDayOnly() throws {
+        let categoryId = UUID()
+        let categories = [expenseCategory(id: categoryId, name: "咖啡")]
+        let existingBill = billRecord(
+            amountCents: 1800,
+            occurredAtLocal: parseLocalDate("2026-02-01 09:00:00"),
+            categoryId: categoryId
+        )
+        let csv = """
+        时间,类型,分类,金额,备注
+        2026-02-01 18:00:00,支出,咖啡,18.00,可导入
+        2026-02-01 09:00:00,支出,咖啡,18.00,已有重复
+        """
+        let payload = try pipeline.loadPayload(from: Data(csv.utf8))
+
+        let result = pipeline.validate(
+            payload: payload,
+            categories: categories,
+            existingBills: [existingBill],
+            parseAmount: parseAmount
+        )
+
+        XCTAssertEqual(result.pendingCount, 1)
+        XCTAssertEqual(result.conflictCount, 1)
+        XCTAssertEqual(result.failedCount, 0)
+        XCTAssertEqual(result.bills.first?.note, "可导入")
+    }
+
     func testValidatePerformanceForTenThousandRows() throws {
         let categoryId = UUID()
         let categories = [
@@ -293,5 +368,37 @@ private extension CSVImportPipelineTests {
             let cents = NSDecimalNumber(decimal: decimal * 100).intValue
             return cents > 0 ? cents : nil
         }
+    }
+
+    func expenseCategory(id: UUID, name: String) -> CategoryRecord {
+        CategoryRecord(
+            id: id,
+            type: .expense,
+            name: name,
+            iconKey: "cup.and.saucer",
+            colorHex: nil,
+            isSystem: false,
+            sortOrder: 1
+        )
+    }
+
+    func billRecord(amountCents: Int, occurredAtLocal: Date, categoryId: UUID) -> BillRecord {
+        let snapshot = TimePolicy.snapshot(for: occurredAtLocal)
+        return BillRecord(
+            id: UUID(),
+            type: .expense,
+            amount: Money(cents: amountCents),
+            occurredAtUTC: snapshot.occurredAtUTC,
+            tzId: snapshot.tzId,
+            tzOffset: snapshot.tzOffset,
+            occurredLocalDate: snapshot.occurredLocalDate,
+            note: nil,
+            categoryId: categoryId,
+            isFromRecurring: false,
+            createdAt: Date(),
+            updatedAt: Date(),
+            deletedAt: nil,
+            trashUntil: nil
+        )
     }
 }
