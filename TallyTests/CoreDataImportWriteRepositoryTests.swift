@@ -4,15 +4,15 @@ import XCTest
 
 final class CoreDataImportWriteRepositoryTests: XCTestCase {
     @MainActor
-    func testImportBackupPersistsCategoriesBillsAndRecurringTasks() throws {
+    func testImportBackupPersistsCategoriesBillsAndRecurringTasks() async throws {
         let persistence = PersistenceController(inMemory: true)
         let context = persistence.container.viewContext
         try CoreDataSeedService(context: context).seedIfNeeded()
-        let repository = CoreDataImportWriteRepository(context: context)
+        let repository = CoreDataImportWriteRepository(container: persistence.container)
 
         let categoryId = UUID()
         let now = fixedDate(year: 2026, month: 4, day: 12, hour: 10, minute: 0)
-        let result = try repository.importBackup(
+        let result = try await repository.importBackup(
             categories: [
                 BackupImportCategory(
                     id: categoryId,
@@ -79,19 +79,19 @@ final class CoreDataImportWriteRepositoryTests: XCTestCase {
     }
 
     @MainActor
-    func testImportBackupRollsBackWhenParentSaveFails() throws {
+    func testImportBackupRollsBackWhenBackgroundSaveFails() async throws {
         let persistence = PersistenceController(inMemory: true)
-        let context = FailingSaveManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-        context.persistentStoreCoordinator = persistence.container.persistentStoreCoordinator
-        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        try CoreDataSeedService(context: context).seedIfNeeded()
-        context.shouldFailOnSave = true
+        let viewContext = persistence.container.viewContext
+        try CoreDataSeedService(context: viewContext).seedIfNeeded()
+        let failingContext = FailingSaveManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        failingContext.persistentStoreCoordinator = persistence.container.persistentStoreCoordinator
+        failingContext.shouldFailOnSave = true
 
-        let repository = CoreDataImportWriteRepository(context: context)
+        let repository = CoreDataImportWriteRepository(makeBackgroundContext: { failingContext })
         let categoryId = UUID()
 
-        XCTAssertThrowsError(
-            try repository.importBackup(
+        do {
+            _ = try await repository.importBackup(
                 categories: [
                     BackupImportCategory(
                         id: categoryId,
@@ -105,10 +105,13 @@ final class CoreDataImportWriteRepositoryTests: XCTestCase {
                 bills: [],
                 recurringTasks: []
             )
-        )
+            XCTFail("expected background save to fail")
+        } catch {
+            // Expected: the background context rolls back all pending import objects.
+        }
 
         let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
-        let categories = try context.fetch(request)
+        let categories = try viewContext.fetch(request)
         XCTAssertFalse(categories.contains(where: { ($0.value(forKey: "id") as? UUID) == categoryId }))
     }
 }

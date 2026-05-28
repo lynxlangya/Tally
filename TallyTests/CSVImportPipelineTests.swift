@@ -244,6 +244,40 @@ final class CSVImportPipelineTests: XCTestCase {
     }
 
     @MainActor
+    func testDefaultImportExportServiceCSVImportUsesBatchWriteRepository() async throws {
+        let persistence = PersistenceController(inMemory: true)
+        let context = persistence.container.viewContext
+        try CoreDataSeedService(context: context).seedIfNeeded()
+        let billRepository = CoreDataBillRepository(context: context)
+        let service = DefaultImportExportService(
+            billRepository: billRepository,
+            categoryRepository: CoreDataCategoryRepository(context: context),
+            recurringRepository: CoreDataRecurringRepository(context: context),
+            importWriteRepository: CoreDataImportWriteRepository(container: persistence.container),
+            nowProvider: { self.parseLocalDate("2026-02-01 09:00:00") }
+        )
+        let originalSnapshot = WidgetDataStore.loadSnapshot()
+        WidgetDataStore.saveSnapshot(.placeholder)
+        defer { WidgetDataStore.saveSnapshot(originalSnapshot) }
+
+        let csv = """
+        时间,类型,分类,金额,备注
+        2026-02-01 08:00:00,支出,,10.00,早餐
+        2026-02-01 18:00:00,支出,,18.00,晚餐
+        """
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("tally-import-batch-\(UUID().uuidString).csv")
+        try Data(csv.utf8).write(to: fileURL, options: .atomic)
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        let result = try await service.importCSV(from: fileURL)
+
+        XCTAssertEqual(result.importedCount, 2)
+        XCTAssertEqual(result.skippedCount, 0)
+        XCTAssertEqual(result.failedCount, 0)
+        XCTAssertEqual(try billRepository.list().count, 2)
+    }
+
+    @MainActor
     func testPreviewImportBackupCountsDuplicateBillIDAsConflict() async throws {
         let service = DefaultImportExportService(
             billRepository: MockBillRepository(),

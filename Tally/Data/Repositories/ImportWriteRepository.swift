@@ -5,7 +5,9 @@ protocol ImportWriteRepository {
         categories: [BackupImportCategory],
         bills: [BackupImportBill],
         recurringTasks: [BackupImportRecurringTask]
-    ) throws -> ImportWriteResult
+    ) async throws -> ImportWriteResult
+
+    func importBills(_ bills: [BackupImportBill]) async throws -> ImportWriteResult
 }
 
 struct BackupImportCategory {

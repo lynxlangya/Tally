@@ -2,97 +2,117 @@ import CoreData
 import Foundation
 
 struct CoreDataImportWriteRepository: ImportWriteRepository {
-    private let context: NSManagedObjectContext
+    private let makeBackgroundContext: () -> NSManagedObjectContext
 
-    init(context: NSManagedObjectContext) {
-        self.context = context
+    init(container: NSPersistentContainer) {
+        self.makeBackgroundContext = {
+            container.newBackgroundContext()
+        }
+    }
+
+    init(makeBackgroundContext: @escaping () -> NSManagedObjectContext) {
+        self.makeBackgroundContext = makeBackgroundContext
     }
 
     func importBackup(
         categories: [BackupImportCategory],
         bills: [BackupImportBill],
         recurringTasks: [BackupImportRecurringTask]
-    ) throws -> ImportWriteResult {
-        let childContext = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
-        childContext.parent = context
-        childContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+    ) async throws -> ImportWriteResult {
+        try await performImport(categories: categories, bills: bills, recurringTasks: recurringTasks)
+    }
 
-        return try childContext.performAndWaitThrowing {
+    func importBills(_ bills: [BackupImportBill]) async throws -> ImportWriteResult {
+        try await performImport(categories: [], bills: bills, recurringTasks: [])
+    }
+
+    private func performImport(
+        categories: [BackupImportCategory],
+        bills: [BackupImportBill],
+        recurringTasks: [BackupImportRecurringTask]
+    ) async throws -> ImportWriteResult {
+        let context = makeBackgroundContext()
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        return try await context.perform {
             do {
-                var importedCount = 0
-                var skippedCount = 0
-
-                var categoryObjects = try fetchManagedObjectMap(entityName: "Category", context: childContext)
-                for category in categories {
-                    if let object = categoryObjects[category.id] {
-                        let isSystem = object.value(forKey: "isSystem") as? Bool ?? false
-                        if isSystem {
-                            skippedCount += 1
-                            continue
-                        }
-                        apply(category: category, to: object)
-                        importedCount += 1
-                    } else {
-                        let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: childContext)
-                        apply(category: category, to: object)
-                        categoryObjects[category.id] = object
-                        importedCount += 1
-                    }
-                }
-
-                let categoryIDs = Set(categoryObjects.keys)
-
-                let billObjects = try fetchManagedObjectMap(entityName: "Bill", context: childContext)
-                for bill in bills {
-                    if billObjects[bill.id] != nil {
-                        skippedCount += 1
-                        continue
-                    }
-                    let object = NSEntityDescription.insertNewObject(forEntityName: "Bill", into: childContext)
-                    let resolvedCategoryID = categoryIDs.contains(bill.categoryId)
-                        ? bill.categoryId
-                        : SystemCategoryID.uncategorized(for: bill.type)
-                    apply(bill: bill, resolvedCategoryID: resolvedCategoryID, to: object)
-                    importedCount += 1
-                }
-
-                var recurringObjects = try fetchManagedObjectMap(entityName: "RecurringTask", context: childContext)
-                for recurring in recurringTasks {
-                    if let object = recurringObjects[recurring.id] {
-                        apply(recurring: recurring, to: object)
-                        importedCount += 1
-                    } else {
-                        let object = NSEntityDescription.insertNewObject(forEntityName: "RecurringTask", into: childContext)
-                        apply(recurring: recurring, to: object)
-                        recurringObjects[recurring.id] = object
-                        importedCount += 1
-                    }
-                }
-
-                if childContext.hasChanges {
-                    try childContext.save()
-                }
-
-                try context.performAndWaitThrowing {
-                    if context.hasChanges {
-                        try context.save()
-                    }
-                }
-
-                return ImportWriteResult(importedCount: importedCount, skippedCount: skippedCount)
+                return try Self.importRecords(
+                    categories: categories,
+                    bills: bills,
+                    recurringTasks: recurringTasks,
+                    in: context
+                )
             } catch {
-                childContext.rollback()
-                try? context.performAndWaitThrowing {
-                    if context.hasChanges {
-                        context.rollback()
-                    }
-                }
+                context.rollback()
                 throw error
             }
         }
     }
 
-    private func fetchManagedObjectMap(
+    private static func importRecords(
+        categories: [BackupImportCategory],
+        bills: [BackupImportBill],
+        recurringTasks: [BackupImportRecurringTask],
+        in context: NSManagedObjectContext
+    ) throws -> ImportWriteResult {
+        var importedCount = 0
+        var skippedCount = 0
+
+        var categoryObjects = try fetchManagedObjectMap(entityName: "Category", context: context)
+        for category in categories {
+            if let object = categoryObjects[category.id] {
+                let isSystem = object.value(forKey: "isSystem") as? Bool ?? false
+                if isSystem {
+                    skippedCount += 1
+                    continue
+                }
+                apply(category: category, to: object)
+                importedCount += 1
+            } else {
+                let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
+                apply(category: category, to: object)
+                categoryObjects[category.id] = object
+                importedCount += 1
+            }
+        }
+
+        let categoryIDs = Set(categoryObjects.keys)
+
+        let billObjects = try fetchManagedObjectMap(entityName: "Bill", context: context)
+        for bill in bills {
+            if billObjects[bill.id] != nil {
+                skippedCount += 1
+                continue
+            }
+            let object = NSEntityDescription.insertNewObject(forEntityName: "Bill", into: context)
+            let resolvedCategoryID = categoryIDs.contains(bill.categoryId)
+                ? bill.categoryId
+                : SystemCategoryID.uncategorized(for: bill.type)
+            apply(bill: bill, resolvedCategoryID: resolvedCategoryID, to: object)
+            importedCount += 1
+        }
+
+        var recurringObjects = try fetchManagedObjectMap(entityName: "RecurringTask", context: context)
+        for recurring in recurringTasks {
+            if let object = recurringObjects[recurring.id] {
+                apply(recurring: recurring, to: object)
+                importedCount += 1
+            } else {
+                let object = NSEntityDescription.insertNewObject(forEntityName: "RecurringTask", into: context)
+                apply(recurring: recurring, to: object)
+                recurringObjects[recurring.id] = object
+                importedCount += 1
+            }
+        }
+
+        if context.hasChanges {
+            try context.save()
+        }
+
+        return ImportWriteResult(importedCount: importedCount, skippedCount: skippedCount)
+    }
+
+    private static func fetchManagedObjectMap(
         entityName: String,
         context: NSManagedObjectContext
     ) throws -> [UUID: NSManagedObject] {
@@ -107,7 +127,7 @@ struct CoreDataImportWriteRepository: ImportWriteRepository {
         return result
     }
 
-    private func apply(category: BackupImportCategory, to object: NSManagedObject) {
+    private static func apply(category: BackupImportCategory, to object: NSManagedObject) {
         object.setValue(category.id, forKey: "id")
         object.setValue(category.type.rawValue, forKey: "type")
         object.setValue(category.name, forKey: "name")
@@ -117,7 +137,7 @@ struct CoreDataImportWriteRepository: ImportWriteRepository {
         object.setValue(Int64(category.sortOrder), forKey: "sortOrder")
     }
 
-    private func apply(bill: BackupImportBill, resolvedCategoryID: UUID, to object: NSManagedObject) {
+    private static func apply(bill: BackupImportBill, resolvedCategoryID: UUID, to object: NSManagedObject) {
         object.setValue(bill.id, forKey: "id")
         object.setValue(bill.type.rawValue, forKey: "type")
         object.setValue(Int64(bill.amountCents), forKey: "amount")
@@ -134,7 +154,7 @@ struct CoreDataImportWriteRepository: ImportWriteRepository {
         object.setValue(bill.trashUntil, forKey: "trashUntil")
     }
 
-    private func apply(recurring: BackupImportRecurringTask, to object: NSManagedObject) {
+    private static func apply(recurring: BackupImportRecurringTask, to object: NSManagedObject) {
         object.setValue(recurring.id, forKey: "id")
         object.setValue(recurring.type.rawValue, forKey: "type")
         object.setValue(Int64(recurring.amountCents), forKey: "amount")
