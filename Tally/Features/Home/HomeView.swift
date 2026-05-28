@@ -426,13 +426,23 @@ private struct HomeBillRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(HomeBillRowButtonStyle())
-        .accessibilityLabel(Text("\(item.title) \(item.isIncome ? "收入" : "支出")"))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(accessibilitySummary))
         .accessibilityAction(named: Text("删除"), onDelete)
         .contextMenu {
             Button(role: .destructive, action: onDelete) {
                 Label("删除", systemImage: "trash")
             }
         }
+    }
+
+    private var accessibilitySummary: String {
+        let typeText = item.isIncome ? "收入" : "支出"
+        let amountText = MoneyFormatter.string(fromCents: item.amountCents)
+        if item.subtitle.isEmpty {
+            return "\(item.title)，\(typeText)，\(amountText)"
+        }
+        return "\(item.title)，\(item.subtitle)，\(typeText)，\(amountText)"
     }
 }
 

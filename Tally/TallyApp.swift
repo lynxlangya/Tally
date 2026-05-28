@@ -126,8 +126,12 @@ private struct PersistenceStartupStatusView: View {
 }
 
 private extension View {
-    @ViewBuilder
     func applyTheme(settings: ThemeSettings) -> some View {
+        modifier(TallyThemeModifier(settings: settings))
+    }
+
+    @ViewBuilder
+    func applyResolvedTheme(settings: ThemeSettings, reduceMotion: Bool) -> some View {
         if let colorScheme = settings.appearance.preferredColorScheme {
             self
                 .environment(\.colorScheme, colorScheme)
@@ -135,7 +139,7 @@ private extension View {
                 .preferredColorScheme(colorScheme)
                 .tint(settings.accent.color)
                 .transaction { transaction in
-                    if settings.reduceMotion {
+                    if reduceMotion {
                         transaction.disablesAnimations = true
                         transaction.animation = nil
                     }
@@ -146,11 +150,23 @@ private extension View {
                 .preferredColorScheme(nil)
                 .tint(settings.accent.color)
                 .transaction { transaction in
-                    if settings.reduceMotion {
+                    if reduceMotion {
                         transaction.disablesAnimations = true
                         transaction.animation = nil
                     }
                 }
         }
+    }
+}
+
+private struct TallyThemeModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+    let settings: ThemeSettings
+
+    func body(content: Content) -> some View {
+        content.applyResolvedTheme(
+            settings: settings,
+            reduceMotion: settings.reduceMotion || accessibilityReduceMotion
+        )
     }
 }
