@@ -4,14 +4,19 @@ struct AboutTallyView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
 
+    private let onBack: (() -> Void)?
     private let supportURL = URL(string: "https://github.com/lynxlangya/Tally/issues")!
+
+    init(onBack: (() -> Void)? = nil) {
+        self.onBack = onBack
+    }
 
     var body: some View {
         ZStack {
             Color.tallyBg.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                TallyNavHeader(title: "关于 Tally", onBack: { dismiss() })
+                TallyNavHeader(title: "关于 Tally", onBack: close)
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: TallySpacing.s6) {
@@ -31,6 +36,14 @@ struct AboutTallyView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
+        }
+    }
+
+    private func close() {
+        if let onBack {
+            onBack()
+        } else {
+            dismiss()
         }
     }
 

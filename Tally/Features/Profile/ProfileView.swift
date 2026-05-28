@@ -12,6 +12,7 @@ struct ProfileView: View {
     @StateObject private var viewModel: ProfileViewModel
     @State private var showReminderSettingsPrompt = false
     @State private var suppressReminderToggle = false
+    @State private var selectedDestination: ProfileDestination?
 
     private let reminderHour = 20
     private let reminderMinute = 0
@@ -76,6 +77,9 @@ struct ProfileView: View {
             }
         } message: {
             Text("请在系统设置中开启通知权限后再使用每日提醒。")
+        }
+        .navigationDestination(item: $selectedDestination) { destination in
+            destinationView(for: destination)
         }
     }
 
@@ -176,8 +180,8 @@ struct ProfileView: View {
     private var settingsGroup: some View {
         VStack(spacing: 0) {
             ForEach(Array(profileRows.enumerated()), id: \.element.id) { index, row in
-                NavigationLink {
-                    destinationView(for: row.destination)
+                Button {
+                    selectedDestination = row.destination
                 } label: {
                     ProfileSettingsRow(
                         icon: row.icon,
@@ -239,7 +243,9 @@ struct ProfileView: View {
         case .widget:
             WidgetPreviewView()
         case .about:
-            AboutTallyView()
+            AboutTallyView {
+                selectedDestination = nil
+            }
         }
     }
 
@@ -424,7 +430,7 @@ private struct ProfileRow: Identifiable {
     }
 }
 
-private enum ProfileDestination: Hashable {
+private enum ProfileDestination: Hashable, Identifiable {
     case categories
     case recurring
     case importExport
@@ -432,6 +438,8 @@ private enum ProfileDestination: Hashable {
     case language
     case widget
     case about
+
+    var id: Self { self }
 }
 
 private let profileRows: [ProfileRow] = [
