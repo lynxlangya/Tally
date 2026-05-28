@@ -115,14 +115,14 @@ struct CategoriesView: View {
                 existing: state.record,
                 onSave: { name, iconKey, colorHex in
                     if let record = state.record {
-                        viewModel.updateCategory(
+                        return viewModel.updateCategory(
                             id: record.id,
                             name: name,
                             iconKey: iconKey,
                             colorHex: colorHex
                         )
                     } else {
-                        viewModel.addCategory(name: name, iconKey: iconKey, colorHex: colorHex)
+                        return viewModel.addCategory(name: name, iconKey: iconKey, colorHex: colorHex)
                     }
                 },
                 onDelete: { record in

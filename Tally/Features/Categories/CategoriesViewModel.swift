@@ -31,15 +31,20 @@ final class CategoriesViewModel: ObservableObject {
         }
     }
 
-    func addCategory(name: String, iconKey: String, colorHex: UInt32) {
+    @discardableResult
+    func addCategory(name: String, iconKey: String, colorHex: UInt32) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             errorMessage = "分类名称不能为空"
-            return
+            return errorMessage
         }
         guard !isAtLimit else {
             errorMessage = "最多新增 30 个分类"
-            return
+            return errorMessage
+        }
+        guard !categories.contains(where: { !$0.isSystem && $0.name == trimmed }) else {
+            errorMessage = "分类名称已存在"
+            return errorMessage
         }
 
         let sortOrder = (categories.filter { !$0.isSystem }.map { $0.sortOrder }.max() ?? 0) + 1
@@ -55,25 +60,33 @@ final class CategoriesViewModel: ObservableObject {
         do {
             try repository.create(record)
             load(type: selectedType)
+            NotificationCenter.default.post(name: .categoryDidChange, object: nil)
+            return nil
         } catch {
             errorMessage = String(describing: error)
+            return errorMessage
         }
     }
 
-    func updateCategory(id: UUID, name: String, iconKey: String, colorHex: UInt32) {
+    @discardableResult
+    func updateCategory(id: UUID, name: String, iconKey: String, colorHex: UInt32) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             errorMessage = "分类名称不能为空"
-            return
+            return errorMessage
         }
 
         guard let existing = categories.first(where: { $0.id == id }) else {
             errorMessage = "未找到分类"
-            return
+            return errorMessage
         }
         guard !existing.isSystem else {
             errorMessage = "系统分类不可编辑"
-            return
+            return errorMessage
+        }
+        guard !categories.contains(where: { !$0.isSystem && $0.id != id && $0.name == trimmed }) else {
+            errorMessage = "分类名称已存在"
+            return errorMessage
         }
 
         let updated = CategoryRecord(
@@ -89,8 +102,11 @@ final class CategoriesViewModel: ObservableObject {
         do {
             try repository.update(updated)
             load(type: selectedType)
+            NotificationCenter.default.post(name: .categoryDidChange, object: nil)
+            return nil
         } catch {
             errorMessage = String(describing: error)
+            return errorMessage
         }
     }
 
@@ -103,7 +119,8 @@ final class CategoriesViewModel: ObservableObject {
             let destination = SystemCategoryID.uncategorized(for: category.type)
             try repository.delete(id: category.id, migrateTo: destination)
             load(type: selectedType)
-            persistOrder()
+            persistOrder(notifiesChange: false)
+            NotificationCenter.default.post(name: .categoryDidChange, object: nil)
         } catch {
             errorMessage = String(describing: error)
         }
@@ -124,7 +141,7 @@ final class CategoriesViewModel: ObservableObject {
         categories = updated
     }
 
-    func persistOrder() {
+    func persistOrder(notifiesChange: Bool = true) {
         guard !categories.isEmpty else { return }
         let visibleUserCategories = categories.filter { !$0.isSystem }
         let reorderedUserCategories = visibleUserCategories.enumerated().map { index, record in
@@ -143,6 +160,9 @@ final class CategoriesViewModel: ObservableObject {
             try reorderedUserCategories.forEach { try repository.update($0) }
             load(type: selectedType)
             errorMessage = nil
+            if notifiesChange {
+                NotificationCenter.default.post(name: .categoryDidChange, object: nil)
+            }
         } catch {
             errorMessage = String(describing: error)
             load(type: selectedType)

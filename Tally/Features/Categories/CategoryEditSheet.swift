@@ -3,25 +3,26 @@ import SwiftUI
 struct CategoryEditSheet: View {
     let type: BillType
     let existing: CategoryRecord?
-    let onSave: (String, String, UInt32) -> Void
+    let onSave: (String, String, UInt32) -> String?
     let onDelete: (CategoryRecord) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var name: String
     @State private var selectedIcon: String
     @State private var selectedColorHex: UInt32
+    @State private var saveErrorMessage: String?
 
     private enum Constants {
-        static let nameLimit = 5
-        static let previewSize: CGFloat = 72
-        static let previewRadius: CGFloat = 22
-        static let gridSpacing: CGFloat = 8
+        static let nameLimit = 8
+        static let previewSize: CGFloat = 86
+        static let previewRadius: CGFloat = 24
+        static let gridSpacing: CGFloat = 10
     }
 
     init(
         type: BillType,
         existing: CategoryRecord?,
-        onSave: @escaping (String, String, UInt32) -> Void,
+        onSave: @escaping (String, String, UInt32) -> String?,
         onDelete: @escaping (CategoryRecord) -> Void
     ) {
         self.type = type
@@ -47,6 +48,9 @@ struct CategoryEditSheet: View {
             ScrollView {
                 VStack(spacing: TallySpacing.s6) {
                     previewSection
+                    if let saveErrorMessage {
+                        ErrorBanner(message: saveErrorMessage)
+                    }
                     colorSection
                     iconSection
 
@@ -62,6 +66,15 @@ struct CategoryEditSheet: View {
             .scrollIndicators(.hidden)
         }
         .background(Color.tallySurface)
+        .onChange(of: name) { _, _ in
+            saveErrorMessage = nil
+        }
+        .onChange(of: selectedIcon) { _, _ in
+            saveErrorMessage = nil
+        }
+        .onChange(of: selectedColorHex) { _, _ in
+            saveErrorMessage = nil
+        }
     }
 
     private var header: some View {
@@ -76,7 +89,7 @@ struct CategoryEditSheet: View {
             Spacer()
 
             Text(existing == nil ? "新分类" : "编辑分类")
-                .font(TallyType.body(16, weight: .semibold))
+                .font(TallyType.display(18, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
 
             Spacer()
@@ -105,7 +118,7 @@ struct CategoryEditSheet: View {
             )
 
             TextField("分类名称", text: $name)
-                .font(TallyType.body(18, weight: .semibold))
+                .font(TallyType.display(22, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
                 .multilineTextAlignment(.center)
                 .textInputAutocapitalization(.never)
@@ -117,7 +130,7 @@ struct CategoryEditSheet: View {
                 }
                 .padding(.horizontal, TallySpacing.s3)
                 .padding(.vertical, TallySpacing.s2)
-                .frame(width: 180)
+                .frame(width: 220)
                 .overlay(alignment: .bottom) {
                     Rectangle()
                         .fill(Color.tallyLineHi)
@@ -215,8 +228,25 @@ struct CategoryEditSheet: View {
         }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        onSave(trimmed, selectedIcon, selectedColorHex)
-        dismiss()
+        if !hasChanges {
+            dismiss()
+            return
+        }
+        if let errorMessage = onSave(trimmed, selectedIcon, selectedColorHex) {
+            saveErrorMessage = errorMessage
+        } else {
+            dismiss()
+        }
+    }
+
+    private var hasChanges: Bool {
+        guard let existing else { return true }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let existingHex = existing.colorHex.flatMap { UInt32($0) }
+            ?? CategoryColorPalette.defaultHex(for: existing.id)
+        return trimmed != existing.name
+            || selectedIcon != existing.iconKey
+            || selectedColorHex != existingHex
     }
 }
 
@@ -263,12 +293,40 @@ private struct IconSwatch: View {
     let isSelected: Bool
 
     var body: some View {
-        TallyIcon(name: icon, size: 20)
-            .foregroundStyle(isSelected ? Color.tallyAccent : Color.tallyInkDim)
-            .frame(maxWidth: .infinity)
-            .aspectRatio(1, contentMode: .fit)
-            .background(isSelected ? Color.tallyAccentTint : Color.tallySurface2)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .animation(.tallyFast, value: isSelected)
+        ZStack {
+            RoundedRectangle(cornerRadius: TallyRadii.md, style: .continuous)
+                .fill(isSelected ? Color.tallyAccentTint : Color.tallySurface2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: TallyRadii.md, style: .continuous)
+                        .stroke(isSelected ? Color.tallyAccent : Color.clear, lineWidth: 1.5)
+                )
+
+            TallyIcon(name: icon, size: 22)
+                .foregroundStyle(isSelected ? Color.tallyAccent : Color.tallyInkDim)
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .animation(.tallyFast, value: isSelected)
+    }
+}
+
+private struct ErrorBanner: View {
+    let message: String
+
+    var body: some View {
+        HStack(spacing: TallySpacing.s2) {
+            Image(systemName: "exclamationmark.circle.fill")
+                .font(.system(size: 14, weight: .semibold))
+
+            Text(message)
+                .font(TallyType.body(12, weight: .semibold))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundStyle(Color.red.opacity(0.88))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, TallySpacing.s3)
+        .padding(.vertical, TallySpacing.s2)
+        .background(Color.red.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: TallyRadii.md, style: .continuous))
     }
 }

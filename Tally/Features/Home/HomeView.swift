@@ -69,6 +69,9 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .billDidChange)) { _ in
             viewModel.load()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .categoryDidChange)) { _ in
+            viewModel.load()
+        }
         .sheet(item: $editingBill) { bill in
             QuickEntryView(
                 repository: repository,

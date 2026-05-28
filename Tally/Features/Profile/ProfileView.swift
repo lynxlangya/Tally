@@ -66,6 +66,9 @@ struct ProfileView: View {
         .onReceive(NotificationCenter.default.publisher(for: .billDidChange)) { _ in
             viewModel.load()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .categoryDidChange)) { _ in
+            viewModel.load()
+        }
         .onChange(of: dailyReminderEnabled) {
             guard !suppressReminderToggle else { return }
             handleReminderToggle(dailyReminderEnabled)
