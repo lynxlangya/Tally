@@ -5,6 +5,7 @@
 //  Created by 琅邪 on 1/16/26.
 //
 
+import Foundation
 import SwiftUI
 
 @main
@@ -17,7 +18,7 @@ struct TallyApp: App {
     private let environment: AppEnvironment
 
     init() {
-        let environment = AppEnvironment.live
+        let environment = Self.resolvedEnvironment()
         self.environment = environment
         _persistenceStartupState = StateObject(wrappedValue: environment.persistenceController.startupState)
         UITabBar.appearance().isHidden = true
@@ -72,6 +73,15 @@ struct TallyApp: App {
         } catch {
             // Keep startup resilient even if recurring catch-up fails.
         }
+    }
+
+    private static func resolvedEnvironment() -> AppEnvironment {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-tallyUsePreviewData") {
+            return .preview
+        }
+        #endif
+        return .live
     }
 }
 
