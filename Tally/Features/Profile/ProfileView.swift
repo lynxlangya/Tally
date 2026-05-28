@@ -239,7 +239,7 @@ struct ProfileView: View {
         case .widget:
             WidgetPreviewView()
         case .about:
-            PlaceholderView(title: "关于 Tally")
+            AboutTallyView()
         }
     }
 
