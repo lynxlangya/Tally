@@ -82,7 +82,7 @@ final class ProfileViewModel: ObservableObject {
             nextRecurringChip = enabledRecurring.first.map { Self.nextFireFormatter.string(from: $0.nextFireDate) }
             errorMessage = nil
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "个人页数据加载失败，请稍后重试")
         }
     }
 

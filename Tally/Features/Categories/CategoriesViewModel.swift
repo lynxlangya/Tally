@@ -27,7 +27,7 @@ final class CategoriesViewModel: ObservableObject {
             userCategoryCount = fetched.filter { !$0.isSystem }.count
             errorMessage = nil
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "分类加载失败，请稍后重试")
         }
     }
 
@@ -63,7 +63,7 @@ final class CategoriesViewModel: ObservableObject {
             NotificationCenter.default.post(name: .categoryDidChange, object: nil)
             return nil
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "新增分类失败，请稍后重试")
             return errorMessage
         }
     }
@@ -105,7 +105,7 @@ final class CategoriesViewModel: ObservableObject {
             NotificationCenter.default.post(name: .categoryDidChange, object: nil)
             return nil
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "更新分类失败，请稍后重试")
             return errorMessage
         }
     }
@@ -122,7 +122,7 @@ final class CategoriesViewModel: ObservableObject {
             persistOrder(notifiesChange: false)
             NotificationCenter.default.post(name: .categoryDidChange, object: nil)
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "删除分类失败，请稍后重试")
         }
     }
 
@@ -164,7 +164,7 @@ final class CategoriesViewModel: ObservableObject {
                 NotificationCenter.default.post(name: .categoryDidChange, object: nil)
             }
         } catch {
-            errorMessage = String(describing: error)
+            errorMessage = FeatureErrorMessage.message(for: error, fallback: "保存分类排序失败，请稍后重试")
             load(type: selectedType)
         }
     }

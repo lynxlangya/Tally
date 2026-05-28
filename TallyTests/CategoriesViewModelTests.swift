@@ -19,6 +19,17 @@ final class CategoriesViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.userCategoryCount, 1)
     }
 
+    func testLoadFailureUsesFriendlyMessage() {
+        let viewModel = CategoriesViewModel(
+            repository: FailingCategoryRepository(error: RepositoryError.invalidData(field: "Category.name"))
+        )
+
+        viewModel.load(type: .expense)
+
+        XCTAssertEqual(viewModel.errorMessage, "本地数据异常，请稍后重试")
+        XCTAssertFalse(viewModel.errorMessage?.contains("Category.name") ?? true)
+    }
+
     func testDeleteUserCategoryUsesUncategorizedMigrationDestination() {
         let category = makeCategory(name: "餐饮", isSystem: false, sortOrder: 1)
         let repository = RecordingCategoryRepository(seed: [category])
@@ -184,6 +195,34 @@ final class CategoriesViewModelTests: XCTestCase {
             isSystem: isSystem,
             sortOrder: sortOrder
         )
+    }
+}
+
+private final class FailingCategoryRepository: CategoryRepository {
+    let error: Error
+
+    init(error: Error) {
+        self.error = error
+    }
+
+    func list(type: BillType) throws -> [CategoryRecord] {
+        throw error
+    }
+
+    func create(_ record: CategoryRecord) throws {
+        throw error
+    }
+
+    func update(_ record: CategoryRecord) throws {
+        throw error
+    }
+
+    func delete(id: UUID, migrateTo destinationId: UUID) throws {
+        throw error
+    }
+
+    func count(type: BillType) throws -> Int {
+        throw error
     }
 }
 
