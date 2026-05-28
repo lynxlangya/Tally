@@ -8,13 +8,14 @@ final class DIContainer {
         let trash: TrashRepository
         let importWrite: ImportWriteRepository?
 
-        static func live(context: NSManagedObjectContext) -> Repositories {
-            Repositories(
+        static func live(container: NSPersistentContainer) -> Repositories {
+            let context = container.viewContext
+            return Repositories(
                 bill: CoreDataBillRepository(context: context),
                 category: CoreDataCategoryRepository(context: context),
                 recurring: CoreDataRecurringRepository(context: context),
                 trash: CoreDataTrashRepository(context: context),
-                importWrite: CoreDataImportWriteRepository(context: context)
+                importWrite: CoreDataImportWriteRepository(container: container)
             )
         }
 
@@ -75,7 +76,7 @@ final class DIContainer {
 
     static func live(persistenceController: PersistenceController) -> DIContainer {
         let context = persistenceController.container.viewContext
-        let repos = Repositories.live(context: context)
+        let repos = Repositories.live(container: persistenceController.container)
         return DIContainer(repositories: repos, services: Services.live(context: context, repositories: repos))
     }
 }

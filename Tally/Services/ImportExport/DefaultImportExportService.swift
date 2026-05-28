@@ -116,7 +116,7 @@ struct DefaultImportExportService: ImportExportService {
         }
         let writeResult: ImportWriteResult
         do {
-            writeResult = try importWriteRepository.importBackup(
+            writeResult = try await importWriteRepository.importBackup(
                 categories: validation.categories,
                 bills: validation.bills,
                 recurringTasks: validation.recurringTasks
@@ -136,6 +136,47 @@ struct DefaultImportExportService: ImportExportService {
     func importCSV(from fileURL: URL) async throws -> ImportResult {
         let payload = try loadCSVPayload(from: fileURL)
         let validation = try validateCSVPayload(payload)
+
+        if let importWriteRepository {
+            let now = nowProvider()
+            let bills = validation.bills.map { bill in
+                let snapshot = TimePolicy.snapshot(for: bill.occurredAtLocal)
+                return BackupImportBill(
+                    id: UUID(),
+                    type: bill.type,
+                    amountCents: bill.amountCents,
+                    occurredAtUTC: snapshot.occurredAtUTC,
+                    occurredLocalDate: snapshot.occurredLocalDate,
+                    tzId: snapshot.tzId,
+                    tzOffset: snapshot.tzOffset,
+                    note: bill.note,
+                    categoryId: bill.categoryId,
+                    isFromRecurring: false,
+                    createdAt: now,
+                    updatedAt: now,
+                    deletedAt: nil,
+                    trashUntil: nil
+                )
+            }
+            do {
+                let writeResult = try await importWriteRepository.importBills(bills)
+                let result = ImportResult(
+                    importedCount: writeResult.importedCount,
+                    skippedCount: writeResult.skippedCount + validation.conflictCount,
+                    failedCount: validation.failedCount
+                )
+                refreshWidgetSnapshot()
+                return result
+            } catch {
+                let result = ImportResult(
+                    importedCount: 0,
+                    skippedCount: validation.conflictCount,
+                    failedCount: validation.failedCount + validation.bills.count
+                )
+                refreshWidgetSnapshot()
+                return result
+            }
+        }
 
         var importedCount = 0
         var writeFailedCount = 0
