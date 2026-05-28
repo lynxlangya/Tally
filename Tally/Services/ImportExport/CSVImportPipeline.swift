@@ -104,7 +104,7 @@ struct CSVImportPipeline {
                 duplicateKey(
                     amountCents: bill.amount.cents,
                     categoryId: bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type),
-                    dayKey: bill.occurredLocalDate
+                    occurredAt: bill.occurredAtUTC
                 )
             }
         )
@@ -170,8 +170,7 @@ struct CSVImportPipeline {
                     ?? SystemCategoryID.uncategorized(for: billType)
             }
 
-            let dayKey = DayKeyFormatter.dayKey(for: occurredAtLocal)
-            let key = duplicateKey(amountCents: amountCents, categoryId: categoryId, dayKey: dayKey)
+            let key = duplicateKey(amountCents: amountCents, categoryId: categoryId, occurredAt: occurredAtLocal)
             if duplicateKeys.contains(key) {
                 conflictCount += 1
                 continue
@@ -312,8 +311,9 @@ private extension CSVImportPipeline {
         "\(type.rawValue)|\(name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
     }
 
-    func duplicateKey(amountCents: Int, categoryId: UUID, dayKey: String) -> String {
-        "\(amountCents)|\(categoryId.uuidString.lowercased())|\(dayKey)"
+    func duplicateKey(amountCents: Int, categoryId: UUID, occurredAt: Date) -> String {
+        let timestampSeconds = Int64(occurredAt.timeIntervalSince1970)
+        return "\(amountCents)|\(categoryId.uuidString.lowercased())|\(timestampSeconds)"
     }
 
     func markFailure(
