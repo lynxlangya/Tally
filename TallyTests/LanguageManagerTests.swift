@@ -18,37 +18,43 @@ final class LanguageManagerTests: XCTestCase {
         super.tearDown()
     }
 
-    func testDefaultLanguageFollowsSystem() {
+    func testDefaultLanguageIsSimplifiedChinese() {
         let manager = LanguageManager(defaults: defaults)
 
-        XCTAssertEqual(manager.selectedLanguage, .system)
-        XCTAssertNil(manager.selectedLanguage.localeIdentifier)
+        XCTAssertEqual(manager.selectedLanguage, .zhHans)
+        XCTAssertEqual(manager.selectedLanguage.localeIdentifier, "zh-Hans-CN")
+    }
+
+    func testLanguageOptionsOnlyExposeSimplifiedChinese() {
+        let manager = LanguageManager(defaults: defaults)
+
+        XCTAssertEqual(manager.languageOptions, [.zhHans])
     }
 
     func testLanguageSelectionPersistsAcrossManagers() {
         var manager = LanguageManager(defaults: defaults)
 
-        manager.setLanguage(.english)
+        manager.setLanguage(.zhHans)
         manager = LanguageManager(defaults: defaults)
 
-        XCTAssertEqual(manager.selectedLanguage, .english)
-        XCTAssertEqual(manager.selectedLanguage.localeIdentifier, "en-US")
+        XCTAssertEqual(manager.selectedLanguage, .zhHans)
+        XCTAssertEqual(defaults.string(forKey: "language.selected"), "zhHans")
     }
 
-    func testResetRestoresSystemLanguage() {
+    func testResetRestoresDefaultLanguage() {
         let manager = LanguageManager(defaults: defaults)
 
-        manager.setLanguage(.japanese)
-        manager.resetToSystem()
+        manager.resetToDefault()
 
-        XCTAssertEqual(manager.selectedLanguage, .system)
+        XCTAssertEqual(manager.selectedLanguage, .zhHans)
     }
 
-    func testInvalidStoredLanguageFallsBackToSystem() {
-        defaults.set("esperanto", forKey: "language.selected")
+    func testLegacyStoredLanguageFallsBackToSimplifiedChinese() {
+        defaults.set("english", forKey: "language.selected")
 
         let manager = LanguageManager(defaults: defaults)
 
-        XCTAssertEqual(manager.selectedLanguage, .system)
+        XCTAssertEqual(manager.selectedLanguage, .zhHans)
+        XCTAssertEqual(defaults.string(forKey: "language.selected"), "zhHans")
     }
 }
