@@ -1,5 +1,5 @@
+import Foundation
 import SwiftUI
-import WidgetKit
 
 enum WidgetTheme {
     static let background = Color("tallyBg")
@@ -214,16 +214,5 @@ struct WidgetSparkline: View {
         path.addLine(to: CGPoint(x: 0, y: size.height))
         path.closeSubpath()
         return path
-    }
-}
-
-extension View {
-    @ViewBuilder
-    func joWidgetBackground() -> some View {
-        if #available(iOS 17.0, *) {
-            self.containerBackground(WidgetTheme.background, for: .widget)
-        } else {
-            self.background(WidgetTheme.background)
-        }
     }
 }

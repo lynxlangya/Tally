@@ -3,373 +3,347 @@ import SwiftUI
 struct WidgetPreviewView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
+    @State private var snapshot = WidgetPreviewSnapshot.sample
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: LegacySpacing.lg) {
+        ZStack {
+            Color.tallyBg.ignoresSafeArea()
+
+            VStack(spacing: 0) {
                 header
+                    .padding(.horizontal, TallySpacing.s6)
+                    .padding(.top, TallySpacing.s4)
+                    .padding(.bottom, TallySpacing.s6)
 
-                VStack(alignment: .leading, spacing: LegacySpacing.sm) {
-                    Text("小组件预览")
-                        .font(LegacyTypography.title)
-                        .foregroundStyle(LegacyColors.textPrimary)
-                    Text("在桌面长按空白处，点击左上角“+”号，搜索 记一笔 即可添加小组件。")
-                        .font(LegacyTypography.body)
-                        .foregroundStyle(LegacyColors.textSecondary)
-                }
-                .padding(.bottom, LegacySpacing.md)
-
-                VStack(alignment: .leading, spacing: LegacySpacing.lg) {
-                    SectionLabel(text: "小组件 · 快速记账")
-                    HStack {
-                        Spacer()
-                        ZStack {
-                            GlowOrb()
-                                .frame(width: 160, height: 160)
-                            SmallWidgetPreview()
-                                .frame(width: 140, height: 140)
-                        }
-                        Spacer()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: TallySpacing.s8) {
+                        intro
+                        widgetGallery
+                        addPath
                     }
+                    .padding(.horizontal, TallySpacing.s6)
+                    .padding(.bottom, TallySpacing.s9)
                 }
-                .padding(.vertical, LegacySpacing.sm)
-
-                VStack(alignment: .leading, spacing: LegacySpacing.lg) {
-                    SectionLabel(text: "中号组件 · 概览与趋势")
-                    ZStack {
-                        GlowOrb()
-                            .frame(height: 150)
-                            .opacity(0.6)
-                        MediumWidgetPreview()
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .padding(.vertical, LegacySpacing.sm)
-
-                VStack(alignment: .leading, spacing: LegacySpacing.md) {
-                    SectionLabel(text: "如何添加小组件？")
-                    InstructionRow(text: "回到手机主屏幕，长按任意空白区域直到图标开始抖动。")
-                    InstructionRow(text: "点击左上角的“+”按钮。")
-                    InstructionRow(text: "在搜索框输入 记一笔 并选择喜欢的样式。")
-                }
-                .padding(.vertical, LegacySpacing.sm)
+                .scrollIndicators(.hidden)
             }
-            .padding(.horizontal, LegacySpacing.lg)
-            .padding(.top, LegacySpacing.lg)
-            .padding(.bottom, LegacySpacing.xl)
         }
-        .background(WidgetPreviewBackground().ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
+            snapshot = WidgetPreviewSnapshot.current()
         }
     }
 
     private var header: some View {
-        LegacyHeaderBar(
-            title: "桌面小组件",
-            titleFont: LegacyTypography.headline,
-            titleColor: LegacyColors.profileRowTitle
-        ) {
-            dismiss()
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.tallyInk)
+                    .frame(width: 36, height: 36)
+                    .background(Color.tallySurface2)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("返回")
+
+            Spacer()
+
+            Text("桌面小组件")
+                .font(TallyType.display(18, weight: .semibold))
+                .foregroundStyle(Color.tallyInk)
+
+            Spacer()
+
+            Color.clear
+                .frame(width: 36, height: 36)
+        }
+    }
+
+    private var intro: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s4) {
+            Eyebrow("widget kit", color: .tallyAccent)
+
+            HStack(alignment: .bottom, spacing: TallySpacing.s4) {
+                VStack(alignment: .leading, spacing: TallySpacing.s2) {
+                    Text("两种桌面入口")
+                        .font(TallyType.display(32, weight: .semibold))
+                        .foregroundStyle(Color.tallyInk)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+
+                    Text("一个负责快速记账，一个负责扫一眼本月趋势。")
+                        .font(TallyType.body(14, weight: .medium))
+                        .foregroundStyle(Color.tallyInkDim)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: TallySpacing.s2)
+
+                WidgetCountBadge(count: 2)
+            }
+        }
+    }
+
+    private var widgetGallery: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s7) {
+            WidgetShowcase(
+                eyebrow: "small",
+                title: "今日入口",
+                subtitle: "轻触后打开记一笔",
+                width: 158,
+                height: 158
+            ) {
+                QuickEntryWidgetCard(model: snapshot.quickEntry)
+            }
+
+            WidgetShowcase(
+                eyebrow: "medium",
+                title: "月度趋势",
+                subtitle: "轻触后回到账本首页",
+                width: 338,
+                height: 158
+            ) {
+                SummaryTrendWidgetCard(model: snapshot.summary)
+            }
+        }
+    }
+
+    private var addPath: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s4) {
+            SectionHeader(title: "添加路径", trailing: "主屏幕")
+
+            VStack(spacing: 0) {
+                AddStepRow(index: 1, title: "长按桌面空白处", detail: "进入主屏幕编辑")
+                DividerLine()
+                    .padding(.leading, 54)
+                AddStepRow(index: 2, title: "点击左上角 +", detail: "搜索 Tally")
+                DividerLine()
+                    .padding(.leading, 54)
+                AddStepRow(index: 3, title: "选择尺寸", detail: "Small 或 Medium")
+            }
+            .background(Color.tallySurface)
+            .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous)
+                    .stroke(Color.tallyLine, lineWidth: 0.5)
+            )
         }
     }
 }
 
-private struct SmallWidgetPreview: View {
+private struct WidgetShowcase<Content: View>: View {
+    let eyebrow: String
+    let title: String
+    let subtitle: String
+    let width: CGFloat
+    let height: CGFloat
+    let content: () -> Content
+
+    init(
+        eyebrow: String,
+        title: String,
+        subtitle: String,
+        width: CGFloat,
+        height: CGFloat,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.eyebrow = eyebrow
+        self.title = title
+        self.subtitle = subtitle
+        self.width = width
+        self.height = height
+        self.content = content
+    }
+
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            LegacyColors.surface.opacity(0.95),
-                            LegacyColors.surface.opacity(0.74)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(LegacyColors.cardBorder.opacity(0.25), lineWidth: 0.7)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.12),
-                                    Color.clear,
-                                    Color.black.opacity(0.22)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                        .blendMode(.overlay)
-                )
-                .shadow(color: LegacyColors.accent.opacity(0.1), radius: 10, x: 0, y: 6)
-                .rotation3DEffect(.degrees(4), axis: (x: 1, y: -0.2, z: 0))
+        VStack(alignment: .leading, spacing: TallySpacing.s4) {
+            SectionHeader(title: title, trailing: eyebrow)
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(LegacyColors.accent.opacity(0.2))
-                        .frame(width: 20, height: 20)
-                        .overlay(
-                            Image(systemName: "square.and.pencil")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(LegacyColors.accent)
-                        )
-                    Text("今日支出")
-                        .font(LegacyTypography.caption)
-                        .foregroundStyle(LegacyColors.textSecondary)
-                }
+            Text(subtitle)
+                .font(TallyType.body(12, weight: .medium))
+                .foregroundStyle(Color.tallyInkFaint)
 
-                Text("¥88.5")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(LegacyColors.textPrimary)
-
-                Spacer().frame(height: 2)
-
-                Capsule()
-                    .fill(LegacyColors.accent)
-                    .frame(width: 26, height: 4)
-
+            HStack {
                 Spacer(minLength: 0)
-
-                HStack {
-                    Spacer()
-                    Circle()
-                        .fill(LegacyColors.accent)
-                        .frame(width: 28, height: 28)
-                        .overlay(
-                            Image(systemName: "plus")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(LegacyColors.accentForeground)
-                        )
+                WidgetDeviceFrame(width: width, height: height) {
+                    content()
                 }
+                Spacer(minLength: 0)
             }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 12)
         }
-        .frame(height: 140)
     }
 }
 
-private struct MediumWidgetPreview: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            LegacyColors.surface.opacity(0.95),
-                            LegacyColors.surface.opacity(0.68)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(LegacyColors.cardBorder.opacity(0.25), lineWidth: 0.7)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.12),
-                                    Color.clear,
-                                    Color.black.opacity(0.22)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                        .blendMode(.overlay)
-                )
-                .shadow(color: LegacyColors.accent.opacity(0.1), radius: 12, x: 0, y: 7)
-                .rotation3DEffect(.degrees(3), axis: (x: 1, y: -0.15, z: 0))
+private struct WidgetDeviceFrame<Content: View>: View {
+    let width: CGFloat
+    let height: CGFloat
+    let content: () -> Content
 
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("本月支出")
-                            .font(LegacyTypography.caption)
-                            .foregroundStyle(LegacyColors.textSecondary)
-                        Text("¥2,340.00")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(LegacyColors.textPrimary)
-                    }
-                    Spacer()
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(LegacyColors.profileRowBackground)
-                            .frame(width: 26, height: 26)
-                            .overlay(
-                                Image(systemName: "chart.line.uptrend.xyaxis")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(LegacyColors.textSecondary)
-                            )
-                        Circle()
-                            .fill(LegacyColors.accent)
-                            .frame(width: 26, height: 26)
-                            .overlay(
-                                Image(systemName: "plus")
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(LegacyColors.accentForeground)
-                            )
-                    }
-                }
-
-                WidgetLinePreview()
-                    .frame(height: 42)
-
-                HStack {
-                    ForEach([1, 5, 10, 15, 20, 25, 30], id: \.self) { day in
-                        Text("\(day)")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(LegacyColors.textSecondary.opacity(0.7))
-                        if day != 30 { Spacer(minLength: 0) }
-                    }
-                }
-            }
-            .padding(16)
-        }
-        .frame(height: 140)
+    init(width: CGFloat, height: CGFloat, @ViewBuilder content: @escaping () -> Content) {
+        self.width = width
+        self.height = height
+        self.content = content
     }
-}
 
-private struct WidgetLinePreview: View {
     var body: some View {
         GeometryReader { proxy in
-            let width = proxy.size.width
-            let height = proxy.size.height
-            let points: [CGPoint] = [
-                CGPoint(x: 0, y: height * 0.9),
-                CGPoint(x: width * 0.35, y: height * 0.9),
-                CGPoint(x: width * 0.55, y: height * 0.4),
-                CGPoint(x: width * 0.7, y: height * 0.15),
-                CGPoint(x: width, y: height * 0.8)
-            ]
+            let availableWidth = max(proxy.size.width, 1)
+            let scale = min(1, availableWidth / width)
 
-            let linePath = Path { path in
-                path.move(to: points[0])
-                for index in 1..<points.count {
-                    let prev = points[index - 1]
-                    let current = points[index]
-                    let mid = CGPoint(x: (prev.x + current.x) / 2, y: (prev.y + current.y) / 2)
-                    path.addQuadCurve(to: mid, control: prev)
-                    if index == points.count - 1 {
-                        path.addQuadCurve(to: current, control: current)
-                    }
-                }
+            framedContent
+                .scaleEffect(scale, anchor: .top)
+                .frame(width: width * scale, height: height * scale, alignment: .top)
+                .frame(maxWidth: .infinity, alignment: .top)
+                .padding(.vertical, TallySpacing.s2)
+        }
+        .frame(height: height + TallySpacing.s4)
+    }
+
+    private var framedContent: some View {
+        content()
+            .frame(width: width, height: height)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(Color.tallyInk.opacity(0.05), lineWidth: 1)
+                    .padding(-1)
+            )
+            .shadow(color: Color.tallyInk.opacity(0.10), radius: 24, x: 0, y: 16)
+            .shadow(color: Color.tallyAccent.opacity(0.16), radius: 32, x: 0, y: 18)
+    }
+}
+
+private struct WidgetCountBadge: View {
+    let count: Int
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text("\(count)")
+                .font(TallyType.num(24, weight: .semibold))
+                .foregroundStyle(Color.tallyInk)
+            Text("款")
+                .font(TallyType.body(11, weight: .semibold))
+                .foregroundStyle(Color.tallyInkFaint)
+        }
+        .frame(width: 58, height: 58)
+        .background(Color.tallySurface)
+        .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous)
+                .stroke(Color.tallyLine, lineWidth: 0.5)
+        )
+    }
+}
+
+private struct SectionHeader: View {
+    let title: String
+    let trailing: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title)
+                .font(TallyType.body(15, weight: .semibold))
+                .foregroundStyle(Color.tallyInk)
+
+            Spacer()
+
+            Text(trailing)
+                .font(TallyType.body(11, weight: .semibold))
+                .tracking(11 * 0.06)
+                .textCase(.uppercase)
+                .foregroundStyle(Color.tallyInkFaint)
+        }
+    }
+}
+
+private struct AddStepRow: View {
+    let index: Int
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(spacing: TallySpacing.s3) {
+            Text("\(index)")
+                .font(TallyType.num(13, weight: .semibold))
+                .foregroundStyle(Color.tallyAccentInk)
+                .frame(width: 30, height: 30)
+                .background(Color.tallyAccent)
+                .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(TallyType.body(14, weight: .semibold))
+                    .foregroundStyle(Color.tallyInk)
+                Text(detail)
+                    .font(TallyType.body(12, weight: .medium))
+                    .foregroundStyle(Color.tallyInkFaint)
             }
 
-            linePath
-                .stroke(LegacyColors.accent, style: StrokeStyle(lineWidth: 3.5, lineCap: .round, lineJoin: .round))
-                .shadow(color: LegacyColors.accent.opacity(0.4), radius: 6, x: 0, y: 4)
-
-            let fillPath = Path { path in
-                path.addPath(linePath)
-                path.addLine(to: CGPoint(x: width, y: height))
-                path.addLine(to: CGPoint(x: 0, y: height))
-                path.closeSubpath()
-            }
-
-            fillPath
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            LegacyColors.accent.opacity(0.25),
-                            LegacyColors.accent.opacity(0.0)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+            Spacer(minLength: 0)
         }
+        .padding(.horizontal, TallySpacing.s4)
+        .frame(height: 64)
     }
 }
 
-private struct SectionLabel: View {
-    let text: String
-
+private struct DividerLine: View {
     var body: some View {
-        HStack(spacing: 8) {
-            Capsule()
-                .fill(LegacyColors.accent.opacity(0.6))
-                .frame(width: 14, height: 4)
-            Text(text)
-                .font(LegacyTypography.caption)
-                .foregroundStyle(LegacyColors.textSecondary)
-        }
+        Rectangle()
+            .fill(Color.tallyLine)
+            .frame(height: 0.5)
     }
 }
 
-private struct GlowOrb: View {
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(LegacyColors.accent.opacity(0.25))
-                .blur(radius: 28)
-            Circle()
-                .fill(LegacyColors.accent.opacity(0.12))
-                .blur(radius: 50)
-        }
+private enum WidgetPreviewSnapshot {
+    static func current() -> WidgetSnapshot {
+        let live = WidgetDataStore.loadSnapshot()
+        return live.hasDisplayData ? live : sample
+    }
+
+    static let sample = WidgetSnapshot(
+        updatedAt: Date(timeIntervalSinceReferenceDate: 800_000_000),
+        quickEntry: QuickEntryWidgetModel(
+            todayExpenseCents: 42600,
+            todayEntryCount: 4,
+            yesterdayExpenseCents: 51200
+        ),
+        summary: SummaryTrendWidgetModel(
+            monthExpenseCents: 642188,
+            monthIncomeCents: 960000,
+            monthBalanceCents: 317812,
+            sparkline: [0.10, 0.24, 0.18, 0.40, 0.30, 0.52, 0.34],
+            trend7: [0.16, 0.22, 0.18, 0.42, 0.34, 0.60, 0.38],
+            monthNumber: 5,
+            average7Cents: 91884
+        )
+    )
+}
+
+private extension WidgetSnapshot {
+    var hasDisplayData: Bool {
+        quickEntry.todayExpenseCents > 0
+            || quickEntry.todayEntryCount > 0
+            || summary.monthExpenseCents > 0
+            || summary.monthIncomeCents > 0
+            || summary.monthBalanceCents != 0
     }
 }
 
-private struct WidgetPreviewBackground: View {
-    var body: some View {
-        ZStack {
-            LegacyColors.background
-            RadialGradient(
-                colors: [
-                    LegacyColors.accent.opacity(0.12),
-                    .clear
-                ],
-                center: .topTrailing,
-                startRadius: 40,
-                endRadius: 220
-            )
-            RadialGradient(
-                colors: [
-                    LegacyColors.accent.opacity(0.08),
-                    .clear
-                ],
-                center: .bottomLeading,
-                startRadius: 30,
-                endRadius: 240
-            )
-        }
-    }
-}
-
-private struct InstructionRow: View {
-    let text: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Circle()
-                .fill(LegacyColors.textSecondary.opacity(0.5))
-                .frame(width: 6, height: 6)
-                .padding(.top, 6)
-            Text(text)
-                .font(LegacyTypography.body)
-                .foregroundStyle(LegacyColors.textSecondary)
-        }
-    }
-}
-
-#Preview {
+#Preview("Widget Preview Light") {
     NavigationStack {
         WidgetPreviewView()
     }
     .environment(\.appEnvironment, .preview)
+    .preferredColorScheme(.light)
+}
+
+#Preview("Widget Preview Dark") {
+    NavigationStack {
+        WidgetPreviewView()
+    }
+    .environment(\.appEnvironment, .preview)
+    .preferredColorScheme(.dark)
 }
