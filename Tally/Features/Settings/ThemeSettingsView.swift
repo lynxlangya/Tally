@@ -97,7 +97,7 @@ struct ThemeSettingsView: View {
             DividerLine()
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(MoneyFormatter.currencySymbol(locale: LanguageManager.shared.currentLocale))
+                Text(MoneyFormatter.currencySymbol())
                     .font(numberFont(size: 34, weight: .regular))
                     .foregroundStyle(Color.tallyInkFaint)
                 Text(primaryAmountText)

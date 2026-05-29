@@ -62,9 +62,6 @@
     "−%@" : {
 
     },
-    "¥" : {
-
-    },
     "0.00" : {
 
     },
@@ -2737,6 +2734,91 @@
         }
       }
     },
+    "money_symbol" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Money Symbol"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金额符号"
+          }
+        }
+      }
+    },
+    "money_symbol_dollar" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dollar Symbol"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "美元符号"
+          }
+        }
+      }
+    },
+    "money_symbol_dollar_subtitle" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show amounts with $"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金额前显示 $"
+          }
+        }
+      }
+    },
+    "money_symbol_yuan" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yuan Symbol"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "人民币符号"
+          }
+        }
+      }
+    },
+    "money_symbol_yuan_subtitle" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show amounts with ¥"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "金额前显示 ¥"
+          }
+        }
+      }
+    },
     "month" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4092,7 +4174,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Custom"
+            "value" : "C"
           }
         },
         "zh-Hans" : {
@@ -4109,7 +4191,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Month"
+            "value" : "M"
           }
         },
         "zh-Hans" : {
@@ -4126,7 +4208,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Week"
+            "value" : "W"
           }
         },
         "zh-Hans" : {
@@ -4143,7 +4225,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Year"
+            "value" : "Y"
           }
         },
         "zh-Hans" : {

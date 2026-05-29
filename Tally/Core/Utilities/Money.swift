@@ -14,7 +14,11 @@ struct Money: Equatable, Hashable, Codable {
 }
 
 extension MoneyFormatter {
-    static func string(from money: Money) -> String {
-        string(fromCents: money.cents)
+    static func string(
+        from money: Money,
+        locale: Locale = TallyLocalization.defaultLocale,
+        symbol: MoneyDisplaySymbol = MoneyDisplaySymbolStore.current
+    ) -> String {
+        string(fromCents: money.cents, locale: locale, symbol: symbol)
     }
 }

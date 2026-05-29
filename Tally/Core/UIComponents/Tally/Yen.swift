@@ -10,7 +10,7 @@ struct Yen: View {
     }
 
     var body: some View {
-        Text("¥")
+        Text(MoneyFormatter.currencySymbol())
             .font(TallyType.num(fontSize * 0.62, weight: .light))
             .foregroundStyle(color.opacity(0.55))
             .baselineOffset(-fontSize * 0.06)

@@ -69,6 +69,7 @@ enum WidgetSnapshotService {
 
         let sparkline = buildMonthSparkline(from: monthExpenseByDay, now: now)
         let trend7 = normalize(values: trend7Raw)
+        let currencySymbol = MoneyFormatter.currencySymbol()
 
         return WidgetSnapshot(
             updatedAt: now,
@@ -76,7 +77,7 @@ enum WidgetSnapshotService {
                 todayExpenseCents: todayExpense,
                 todayEntryCount: todayEntryCount,
                 yesterdayExpenseCents: hasYesterdayExpense ? yesterdayExpense : nil,
-                currencySymbol: "¥"
+                currencySymbol: currencySymbol
             ),
             summary: SummaryTrendWidgetModel(
                 monthExpenseCents: monthExpense,
@@ -85,7 +86,8 @@ enum WidgetSnapshotService {
                 sparkline: sparkline,
                 trend7: trend7,
                 monthNumber: calendar.component(.month, from: now),
-                average7Cents: average7
+                average7Cents: average7,
+                currencySymbol: currencySymbol
             )
         )
     }

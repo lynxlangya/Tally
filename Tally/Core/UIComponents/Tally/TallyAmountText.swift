@@ -25,7 +25,7 @@ struct TallyAmountText: View {
     let weight: Font.Weight
     let color: Color
     let dim: Bool
-    let showYen: Bool
+    let showSymbol: Bool
     let locale: Locale
 
     init(
@@ -35,7 +35,7 @@ struct TallyAmountText: View {
         weight: Font.Weight = .medium,
         color: Color = .tallyInk,
         dim: Bool = false,
-        showYen: Bool = true,
+        showSymbol: Bool = true,
         locale: Locale = LanguageManager.shared.currentLocale
     ) {
         self.cents = cents
@@ -44,7 +44,7 @@ struct TallyAmountText: View {
         self.weight = weight
         self.color = color
         self.dim = dim
-        self.showYen = showYen
+        self.showSymbol = showSymbol
         self.locale = locale
     }
 
@@ -56,7 +56,7 @@ struct TallyAmountText: View {
             weight: weight,
             color: dim ? .tallyInkDim : color,
             dim: dim,
-            showYen: showYen,
+            showSymbol: showSymbol,
             locale: locale
         )
     }
@@ -68,7 +68,7 @@ struct TallyAmountText: View {
         weight: Font.Weight = .medium,
         color: Color = .tallyInk,
         dim: Bool = false,
-        showYen: Bool = true,
+        showSymbol: Bool = true,
         locale: Locale = LanguageManager.shared.currentLocale
     ) -> Text {
         let parts = amountParts(cents: cents, locale: locale)
@@ -82,8 +82,8 @@ struct TallyAmountText: View {
                 .foregroundColor(resolvedColor)
         }
 
-        if showYen {
-            text = text + Text(MoneyFormatter.currencySymbol(locale: locale))
+        if showSymbol {
+            text = text + Text(MoneyFormatter.currencySymbol())
                 .font(TallyType.num(decimalSize, weight: .light))
                 .foregroundColor(resolvedColor.opacity(0.55))
                 .baselineOffset(-size * 0.06)

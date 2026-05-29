@@ -48,6 +48,11 @@ enum L10nKey: String {
     case languageSystemCode = "language_system_code"
     case languageSystemNative = "language_system_native"
     case languageSystemSubtitle = "language_system_subtitle"
+    case moneySymbol = "money_symbol"
+    case moneySymbolDollar = "money_symbol_dollar"
+    case moneySymbolDollarSubtitle = "money_symbol_dollar_subtitle"
+    case moneySymbolYuan = "money_symbol_yuan"
+    case moneySymbolYuanSubtitle = "money_symbol_yuan_subtitle"
     case monthlyExpense = "monthly_expense"
     case month = "month"
     case more = "more"
@@ -204,6 +209,11 @@ enum TallyLocalization {
             "end_date": "End Date",
             "year_to_date": "Year to date",
             "full_year": "Full year",
+            L10nKey.moneySymbol.rawValue: "Money Symbol",
+            L10nKey.moneySymbolDollar.rawValue: "Dollar Symbol",
+            L10nKey.moneySymbolDollarSubtitle.rawValue: "Show amounts with $",
+            L10nKey.moneySymbolYuan.rawValue: "Yuan Symbol",
+            L10nKey.moneySymbolYuanSubtitle.rawValue: "Show amounts with ¥",
             "peak_empty_format": "Peak - %@",
             "peak_format": "Peak %@ %@",
             "summary_total_type": "%@ %@",
@@ -622,6 +632,11 @@ enum TallyLocalization {
             L10nKey.languageSystemCode.rawValue: "SYS",
             L10nKey.languageSystemNative.rawValue: "System",
             L10nKey.languageSystemSubtitle.rawValue: "Use device language",
+            L10nKey.moneySymbol.rawValue: "Money Symbol",
+            L10nKey.moneySymbolDollar.rawValue: "Dollar Symbol",
+            L10nKey.moneySymbolDollarSubtitle.rawValue: "Show amounts with $",
+            L10nKey.moneySymbolYuan.rawValue: "Yuan Symbol",
+            L10nKey.moneySymbolYuanSubtitle.rawValue: "Show amounts with ¥",
             L10nKey.monthlyExpense.rawValue: "Monthly Expense",
             L10nKey.month.rawValue: "Month",
             L10nKey.more.rawValue: "More",
@@ -645,10 +660,10 @@ enum TallyLocalization {
             L10nKey.trendWeek.rawValue: "This Week %@",
             L10nKey.trendYear.rawValue: "Full Year %@",
             L10nKey.themeSettings.rawValue: "Theme",
-            L10nKey.timeRangeCustom.rawValue: "Custom",
-            L10nKey.timeRangeMonth.rawValue: "Month",
-            L10nKey.timeRangeWeek.rawValue: "Week",
-            L10nKey.timeRangeYear.rawValue: "Year",
+            L10nKey.timeRangeCustom.rawValue: "C",
+            L10nKey.timeRangeMonth.rawValue: "M",
+            L10nKey.timeRangeWeek.rawValue: "W",
+            L10nKey.timeRangeYear.rawValue: "Y",
             L10nKey.today.rawValue: "Today",
             L10nKey.todayShort.rawValue: "Now",
             L10nKey.transactionCount.rawValue: "%d records",
@@ -706,6 +721,11 @@ enum TallyLocalization {
         L10nKey.languageSystemCode.rawValue: "系",
         L10nKey.languageSystemNative.rawValue: "System",
         L10nKey.languageSystemSubtitle.rawValue: "使用设备语言",
+        L10nKey.moneySymbol.rawValue: "金额符号",
+        L10nKey.moneySymbolDollar.rawValue: "美元符号",
+        L10nKey.moneySymbolDollarSubtitle.rawValue: "金额前显示 $",
+        L10nKey.moneySymbolYuan.rawValue: "人民币符号",
+        L10nKey.moneySymbolYuanSubtitle.rawValue: "金额前显示 ¥",
         L10nKey.monthlyExpense.rawValue: "本月支出",
         L10nKey.month.rawValue: "月份",
         L10nKey.more.rawValue: "更多",

@@ -75,21 +75,34 @@ enum AppLanguage: String, CaseIterable, Identifiable, Codable {
 final class LanguageManager: ObservableObject {
     static let shared = LanguageManager()
     static let defaultLanguage: AppLanguage = .system
+    static let defaultMoneyDisplaySymbol = MoneyDisplaySymbol.default
 
     @Published private(set) var selectedLanguage: AppLanguage
+    @Published private(set) var selectedMoneyDisplaySymbol: MoneyDisplaySymbol
     let languageOptions = AppLanguage.allCases
+    let moneyDisplaySymbolOptions = MoneyDisplaySymbol.allCases
 
     private let defaults: UserDefaults
     private let systemLocaleProvider: () -> Locale
+    private let syncsSharedStores: Bool
 
-    init(defaults: UserDefaults = .standard, systemLocaleProvider: @escaping () -> Locale = { Locale.autoupdatingCurrent }) {
+    init(
+        defaults: UserDefaults = .standard,
+        systemLocaleProvider: @escaping () -> Locale = { Locale.autoupdatingCurrent },
+        syncsSharedStores: Bool? = nil
+    ) {
         self.defaults = defaults
         self.systemLocaleProvider = systemLocaleProvider
+        let shouldSyncSharedStores = syncsSharedStores ?? (defaults === UserDefaults.standard)
+        self.syncsSharedStores = shouldSyncSharedStores
         let storedValue = defaults.string(forKey: Keys.selectedLanguage)
+        let storedMoneySymbol = defaults.string(forKey: Keys.selectedMoneyDisplaySymbol)
+            ?? (shouldSyncSharedStores ? MoneyDisplaySymbolStore.loadSelectedSymbol() : nil)
         selectedLanguage = AppLanguage(rawValue: storedValue ?? "") ?? Self.defaultLanguage
+        selectedMoneyDisplaySymbol = MoneyDisplaySymbol(rawValue: storedMoneySymbol ?? "") ?? Self.defaultMoneyDisplaySymbol
 
-        if storedValue != selectedLanguage.rawValue {
-            persist()
+        if storedValue != selectedLanguage.rawValue || storedMoneySymbol != selectedMoneyDisplaySymbol.rawValue {
+            persistAll()
         }
     }
 
@@ -106,19 +119,38 @@ final class LanguageManager: ObservableObject {
     func setLanguage(_ language: AppLanguage) {
         guard language != selectedLanguage else { return }
         selectedLanguage = language
-        persist()
+        persistLanguage()
+    }
+
+    func setMoneyDisplaySymbol(_ symbol: MoneyDisplaySymbol) {
+        guard symbol != selectedMoneyDisplaySymbol else { return }
+        selectedMoneyDisplaySymbol = symbol
+        persistMoneyDisplaySymbol()
     }
 
     func resetToDefault() {
         setLanguage(Self.defaultLanguage)
     }
 
-    private func persist() {
+    private func persistAll() {
+        persistLanguage()
+        persistMoneyDisplaySymbol()
+    }
+
+    private func persistLanguage() {
         defaults.set(selectedLanguage.rawValue, forKey: Keys.selectedLanguage)
         TallyLanguageStore.saveSelectedLanguage(selectedLanguage.rawValue)
+    }
+
+    private func persistMoneyDisplaySymbol() {
+        defaults.set(selectedMoneyDisplaySymbol.rawValue, forKey: Keys.selectedMoneyDisplaySymbol)
+        if syncsSharedStores {
+            MoneyDisplaySymbolStore.saveSelectedSymbol(selectedMoneyDisplaySymbol.rawValue)
+        }
     }
 }
 
 private enum Keys {
     static let selectedLanguage = "language.selected"
+    static let selectedMoneyDisplaySymbol = "money.symbol.selected"
 }

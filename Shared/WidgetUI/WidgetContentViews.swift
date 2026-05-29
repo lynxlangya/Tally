@@ -30,6 +30,7 @@ struct QuickEntryWidgetCard: View {
                     size: 26,
                     weight: .semibold,
                     color: WidgetTheme.textPrimary,
+                    currencySymbol: model.currencySymbol,
                     locale: locale
                 )
                 .lineLimit(1)
@@ -125,6 +126,7 @@ struct SummaryTrendWidgetCard: View {
                     size: 22,
                     weight: .semibold,
                     color: WidgetTheme.textPrimary,
+                    currencySymbol: model.currencySymbol,
                     locale: locale
                 )
                 .lineLimit(1)
@@ -134,8 +136,8 @@ struct SummaryTrendWidgetCard: View {
             Spacer(minLength: 10)
 
             HStack(spacing: 8) {
-                WidgetMiniCell(title: TallyLocalization.text(.income, locale: locale), cents: model.monthIncomeCents, locale: locale)
-                WidgetMiniCell(title: TallyLocalization.text(.balance, locale: locale), cents: model.monthBalanceCents, locale: locale)
+                WidgetMiniCell(title: TallyLocalization.text(.income, locale: locale), cents: model.monthIncomeCents, currencySymbol: model.currencySymbol, locale: locale)
+                WidgetMiniCell(title: TallyLocalization.text(.balance, locale: locale), cents: model.monthBalanceCents, currencySymbol: model.currencySymbol, locale: locale)
             }
         }
     }
@@ -149,7 +151,7 @@ struct SummaryTrendWidgetCard: View {
 
                 Spacer(minLength: 6)
 
-                Text(WidgetTheme.compactMoney(cents: model.average7Cents, locale: locale))
+                Text(WidgetTheme.compactMoney(cents: model.average7Cents, currencySymbol: model.currencySymbol, locale: locale))
                     .font(.system(size: 9, weight: .semibold, design: .rounded))
                     .foregroundStyle(WidgetTheme.textSecondary)
                     .lineLimit(1)
@@ -203,6 +205,7 @@ struct SummaryTrendWidgetCard: View {
 private struct WidgetMiniCell: View {
     let title: String
     let cents: Int
+    let currencySymbol: String
     let locale: Locale
 
     var body: some View {
@@ -211,7 +214,7 @@ private struct WidgetMiniCell: View {
                 .font(.system(size: 9, weight: .medium))
                 .foregroundStyle(WidgetTheme.textFaint)
                 .lineLimit(1)
-            Text(WidgetTheme.compactMoney(cents: cents, locale: locale))
+            Text(WidgetTheme.compactMoney(cents: cents, currencySymbol: currencySymbol, locale: locale))
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(WidgetTheme.textSecondary)
                 .lineLimit(1)

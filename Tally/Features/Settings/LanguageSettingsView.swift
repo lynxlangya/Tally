@@ -11,6 +11,10 @@ struct LanguageSettingsView: View {
         languageManager.selectedLanguage
     }
 
+    private var selectedMoneySymbol: MoneyDisplaySymbol {
+        languageManager.selectedMoneyDisplaySymbol
+    }
+
     private var accent: Color {
         themeManager.settings.accent.color
     }
@@ -29,6 +33,7 @@ struct LanguageSettingsView: View {
                     VStack(spacing: TallySpacing.s7) {
                         previewCard
                         languageSection
+                        moneySymbolSection
                         formatPreviewSection
                     }
                     .padding(.horizontal, TallySpacing.s6)
@@ -186,6 +191,39 @@ struct LanguageSettingsView: View {
         }
     }
 
+    private var moneySymbolSection: some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s4) {
+            LanguageSectionTitle(
+                title: TallyLocalization.text(.moneySymbol, locale: languageManager.currentLocale),
+                trailing: selectedMoneySymbol.symbol
+            )
+
+            VStack(spacing: 0) {
+                ForEach(Array(languageManager.moneyDisplaySymbolOptions.enumerated()), id: \.element.id) { index, symbol in
+                    MoneySymbolOptionRow(
+                        symbol: symbol,
+                        locale: languageManager.currentLocale,
+                        isSelected: selectedMoneySymbol == symbol,
+                        accent: accent
+                    ) {
+                        select(symbol)
+                    }
+
+                    if index < languageManager.moneyDisplaySymbolOptions.count - 1 {
+                        LanguageDividerLine()
+                            .padding(.leading, 72)
+                    }
+                }
+            }
+            .background(Color.tallySurface)
+            .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous)
+                    .stroke(Color.tallyLine, lineWidth: 0.5)
+            )
+        }
+    }
+
     private var formattedDate: String {
         let formatter = DateFormatter()
         formatter.locale = languageManager.currentLocale
@@ -202,7 +240,11 @@ struct LanguageSettingsView: View {
     }
 
     private var formattedAmount: String {
-        MoneyFormatter.string(fromCents: 642_188, locale: languageManager.currentLocale)
+        MoneyFormatter.string(
+            fromCents: 642_188,
+            locale: languageManager.currentLocale,
+            symbol: selectedMoneySymbol
+        )
     }
 
     private var previewDate: Date {
@@ -219,6 +261,20 @@ struct LanguageSettingsView: View {
         } else {
             withAnimation(.tallyBase) {
                 languageManager.setLanguage(language)
+            }
+        }
+    }
+
+    private func select(_ symbol: MoneyDisplaySymbol) {
+        if themeManager.settings.hapticFeedback {
+            UISelectionFeedbackGenerator().selectionChanged()
+        }
+
+        if themeManager.settings.reduceMotion {
+            languageManager.setMoneyDisplaySymbol(symbol)
+        } else {
+            withAnimation(.tallyBase) {
+                languageManager.setMoneyDisplaySymbol(symbol)
             }
         }
     }
@@ -296,6 +352,48 @@ private struct LanguageOptionRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(language.displayTitle(locale: locale))，\(language.displaySubtitle(locale: locale))")
+        .languageSelectedAccessibility(isSelected)
+    }
+}
+
+private struct MoneySymbolOptionRow: View {
+    let symbol: MoneyDisplaySymbol
+    let locale: Locale
+    let isSelected: Bool
+    let accent: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: TallySpacing.s4) {
+                LanguageCodeTile(
+                    code: symbol.symbol,
+                    accent: accent,
+                    isCompact: true
+                )
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(symbol.displayTitle(locale: locale))
+                        .font(TallyType.body(15, weight: .semibold))
+                        .foregroundStyle(Color.tallyInk)
+                        .lineLimit(1)
+
+                    Text(symbol.displaySubtitle(locale: locale))
+                        .font(TallyType.body(12, weight: .medium))
+                        .foregroundStyle(Color.tallyInkFaint)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+
+                LanguageRadio(isSelected: isSelected, accent: accent)
+            }
+            .padding(.horizontal, TallySpacing.s4)
+            .frame(height: 68)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(symbol.displayTitle(locale: locale))，\(symbol.displaySubtitle(locale: locale))")
         .languageSelectedAccessibility(isSelected)
     }
 }

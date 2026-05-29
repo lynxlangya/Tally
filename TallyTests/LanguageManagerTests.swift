@@ -32,6 +32,12 @@ final class LanguageManagerTests: XCTestCase {
         XCTAssertEqual(manager.languageOptions, [.system, .zhHans, .en])
     }
 
+    func testMoneySymbolOptionsExposeYuanAndDollar() {
+        let manager = LanguageManager(defaults: defaults)
+
+        XCTAssertEqual(manager.moneyDisplaySymbolOptions, [.yuan, .dollar])
+    }
+
     func testLanguageSelectionPersistsAcrossManagers() {
         var manager = LanguageManager(defaults: defaults)
 
@@ -41,6 +47,16 @@ final class LanguageManagerTests: XCTestCase {
         XCTAssertEqual(manager.selectedLanguage, .en)
         XCTAssertTrue(manager.currentLocale.identifier.lowercased().hasPrefix("en"))
         XCTAssertEqual(defaults.string(forKey: "language.selected"), "en")
+    }
+
+    func testMoneySymbolSelectionPersistsAcrossManagers() {
+        var manager = LanguageManager(defaults: defaults)
+
+        manager.setMoneyDisplaySymbol(.dollar)
+        manager = LanguageManager(defaults: defaults)
+
+        XCTAssertEqual(manager.selectedMoneyDisplaySymbol, .dollar)
+        XCTAssertEqual(defaults.string(forKey: "money.symbol.selected"), "dollar")
     }
 
     func testResetRestoresDefaultLanguage() {
@@ -86,7 +102,8 @@ final class LanguageManagerTests: XCTestCase {
         XCTAssertEqual(TallyLocalization.monthDayTitle(for: date, locale: zhLocale), "5月1日")
         XCTAssertEqual(TallyLocalization.monthDayTitle(for: date, locale: enLocale), "May 1")
         XCTAssertEqual(MoneyFormatter.string(fromCents: 642_188, locale: zhLocale), "¥6,421.88")
-        XCTAssertEqual(MoneyFormatter.string(fromCents: 642_188, locale: enLocale), "CN¥6,421.88")
+        XCTAssertEqual(MoneyFormatter.string(fromCents: 642_188, locale: enLocale, symbol: .yuan), "¥6,421.88")
+        XCTAssertEqual(MoneyFormatter.string(fromCents: 642_188, locale: enLocale, symbol: .dollar), "$6,421.88")
     }
 
     private func fixedDate(year: Int, month: Int, day: Int) -> Date {

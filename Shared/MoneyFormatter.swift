@@ -6,16 +6,6 @@ enum MoneyFormatter {
         let decimal: String
     }
 
-    private static func currencyFormatter(locale: Locale) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "CNY"
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        formatter.locale = locale
-        return formatter
-    }
-
     private static func integerFormatter(locale: Locale) -> NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -45,22 +35,32 @@ enum MoneyFormatter {
         return formatter
     }
 
-    static func string(fromCents cents: Int, locale: Locale = TallyLocalization.defaultLocale) -> String {
+    static func string(
+        fromCents cents: Int,
+        locale: Locale = TallyLocalization.defaultLocale,
+        symbol: MoneyDisplaySymbol = MoneyDisplaySymbolStore.current
+    ) -> String {
         precondition(cents >= 0, "Money cannot be negative.")
-        let amount = Decimal(cents) / Decimal(100)
-        let number = NSDecimalNumber(decimal: amount)
-        return currencyFormatter(locale: locale).string(from: number) ?? "CNY \(number)"
+        let parts = parts(fromCents: cents, locale: locale)
+        return "\(currencySymbol(symbol: symbol))\(parts.integer).\(parts.decimal)"
     }
 
-    static func wholeYuanString(fromCents cents: Int, locale: Locale = TallyLocalization.defaultLocale) -> String {
+    static func wholeYuanString(
+        fromCents cents: Int,
+        locale: Locale = TallyLocalization.defaultLocale,
+        symbol: MoneyDisplaySymbol = MoneyDisplaySymbolStore.current
+    ) -> String {
         precondition(cents >= 0, "Money cannot be negative.")
         let yuan = cents / 100
         let amount = integerFormatter(locale: locale).string(from: NSNumber(value: yuan)) ?? "\(yuan)"
-        let symbol = currencySymbol(locale: locale)
-        return TallyLocalization.supportedLanguageCode(for: locale) == "en" ? "\(symbol)\(amount)" : "\(symbol)\(amount)"
+        return "\(currencySymbol(symbol: symbol))\(amount)"
     }
 
-    static func compactString(fromCents cents: Int, locale: Locale = TallyLocalization.defaultLocale) -> String {
+    static func compactString(
+        fromCents cents: Int,
+        locale: Locale = TallyLocalization.defaultLocale,
+        symbol: MoneyDisplaySymbol = MoneyDisplaySymbolStore.current
+    ) -> String {
         let sign = cents < 0 ? "-" : ""
         let absCents = abs(cents)
         let yuan = absCents / 100
@@ -73,12 +73,12 @@ enum MoneyFormatter {
                 let thousandValue = Decimal(yuan) / Decimal(1_000)
                 let thousandNumber = NSDecimalNumber(decimal: thousandValue)
                 let thousandAmount = compactWanFormatter(locale: locale).string(from: thousandNumber) ?? "\(thousandNumber)"
-                return "\(sign)\(currencySymbol(locale: locale))\(thousandAmount)k"
+                return "\(sign)\(currencySymbol(symbol: symbol))\(thousandAmount)k"
             }
-            return "\(sign)\(currencySymbol(locale: locale))\(amount)万"
+            return "\(sign)\(currencySymbol(symbol: symbol))\(amount)万"
         }
 
-        return "\(sign)\(wholeYuanString(fromCents: absCents, locale: locale))"
+        return "\(sign)\(wholeYuanString(fromCents: absCents, locale: locale, symbol: symbol))"
     }
 
     static func parts(fromCents cents: Int, locale: Locale = TallyLocalization.defaultLocale) -> Parts {
@@ -90,11 +90,11 @@ enum MoneyFormatter {
         return Parts(integer: integer, decimal: decimal)
     }
 
-    static func currencySymbol(locale: Locale = TallyLocalization.defaultLocale) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.currencyCode = "CNY"
-        formatter.locale = locale
-        return formatter.currencySymbol ?? "¥"
+    static func currencySymbol(symbol: MoneyDisplaySymbol = MoneyDisplaySymbolStore.current) -> String {
+        symbol.symbol
+    }
+
+    static func displaySymbol(from symbolText: String) -> MoneyDisplaySymbol {
+        MoneyDisplaySymbol.allCases.first { $0.symbol == symbolText } ?? .default
     }
 }

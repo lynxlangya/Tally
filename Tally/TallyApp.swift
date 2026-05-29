@@ -46,6 +46,10 @@ struct TallyApp: App {
                     WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.quickEntry)
                     WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.summaryTrend)
                 }
+                .onChange(of: languageManager.selectedMoneyDisplaySymbol) { _, _ in
+                    guard persistenceStartupState.status.isReady else { return }
+                    WidgetSnapshotService.refresh(using: environment.container.repositories.bill)
+                }
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active, persistenceStartupState.status.isReady else { return }

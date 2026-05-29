@@ -18,7 +18,8 @@ final class WidgetSnapshotTests: XCTestCase {
                 sparkline: [0.1, 0.4, 1.0],
                 trend7: [0, 0.2, 0.4, 0.1, 1.0, 0.6, 0.3],
                 monthNumber: 5,
-                average7Cents: 7_700
+                average7Cents: 7_700,
+                currencySymbol: "$"
             )
         )
 
@@ -27,9 +28,11 @@ final class WidgetSnapshotTests: XCTestCase {
 
         XCTAssertEqual(decoded.quickEntry.todayEntryCount, 4)
         XCTAssertEqual(decoded.quickEntry.yesterdayExpenseCents, 24_600)
+        XCTAssertEqual(decoded.quickEntry.currencySymbol, "¥")
         XCTAssertEqual(decoded.summary.trend7, [0, 0.2, 0.4, 0.1, 1.0, 0.6, 0.3])
         XCTAssertEqual(decoded.summary.monthNumber, 5)
         XCTAssertEqual(decoded.summary.average7Cents, 7_700)
+        XCTAssertEqual(decoded.summary.currencySymbol, "$")
     }
 
     func testWidgetSnapshotDecodesLegacyPayloadWithDefaults() throws {
@@ -53,8 +56,10 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(decoded.quickEntry.todayExpenseCents, 12_300)
         XCTAssertEqual(decoded.quickEntry.todayEntryCount, 0)
         XCTAssertNil(decoded.quickEntry.yesterdayExpenseCents)
+        XCTAssertEqual(decoded.quickEntry.currencySymbol, "¥")
         XCTAssertEqual(decoded.summary.trend7, [0.1, 0.4, 1.0])
         XCTAssertEqual(decoded.summary.average7Cents, 0)
+        XCTAssertEqual(decoded.summary.currencySymbol, MoneyFormatter.currencySymbol())
     }
 
     func testWidgetSnapshotRefreshIncludesPreviousMonthForSevenDayTrend() throws {
@@ -73,11 +78,13 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.quickEntry.todayExpenseCents, 3_000)
         XCTAssertEqual(snapshot.quickEntry.todayEntryCount, 1)
         XCTAssertEqual(snapshot.quickEntry.yesterdayExpenseCents, 2_000)
+        XCTAssertEqual(snapshot.quickEntry.currencySymbol, MoneyFormatter.currencySymbol())
         XCTAssertEqual(snapshot.summary.monthExpenseCents, 3_000)
         XCTAssertEqual(snapshot.summary.monthIncomeCents, 5_000)
         XCTAssertEqual(snapshot.summary.monthBalanceCents, 2_000)
         XCTAssertEqual(snapshot.summary.monthNumber, 5)
         XCTAssertEqual(snapshot.summary.average7Cents, 857)
+        XCTAssertEqual(snapshot.summary.currencySymbol, MoneyFormatter.currencySymbol())
         XCTAssertEqual(snapshot.summary.trend7, [0, 0, 0, 0, 1.0 / 3.0, 2.0 / 3.0, 1.0])
     }
 }
