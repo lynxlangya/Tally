@@ -2,7 +2,7 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
-Tally 是一个 iOS / iPadOS 单币种（CNY）记账 App，SwiftUI + Core Data + WidgetKit。Xcode 26.5、iOS deployment target 26.2、Swift 5.0。Bundle ID `com.langya.Tally`，App Group `group.com.langya.Tally`，URL Scheme `tally://`。中文沟通（review 文档、任务、注释均为中文）。
+Tally 是一个 iOS / iPadOS 单币种（CNY）记账 App，SwiftUI + Core Data + WidgetKit。Xcode 26.5、iOS deployment target 26.2、Swift 5.0。Bundle ID `com.langya.Tally`，App Group `group.com.langya.Tally`，URL Scheme `tally://`。设置页可切换 `¥` / `$` 金额显示符号，但不改变业务币种 CNY。中文沟通（review 文档、任务、注释均为中文）。
 
 ## 常用命令
 
@@ -44,7 +44,7 @@ xcodebuild -project Tally.xcodeproj -scheme TallyTests \
 
 ## 关键口径（写代码前对齐）
 
-- **金额**：唯一类型是 `Money(cents: Int)`，**不允许负数**（构造时 precondition）。展示统一走 `MoneyFormatter`（locale `zh_CN`，currency `CNY`，2 位小数）；UI 上不要 `String(format:)` 自己拼。
+- **金额**：唯一业务类型是 `Money(cents: Int)`，**不允许负数**（构造时 precondition），业务币种固定为 CNY。展示统一走 `MoneyFormatter`；金额显示符号由 `MoneyDisplaySymbolStore` 读取设置页的 `¥` / `$` 偏好，只影响 UI 文案，不代表多币种。UI 上不要 `String(format:)` 自己拼，也不要直接用系统 currency formatter 重新引入 `CN¥`。
 - **时间**：写入账单时必须用 `TimePolicy.snapshot(for: localDate)` 同时落 4 个字段——`occurredAtUTC` / `tzId` / `tzOffset` / `occurredLocalDate`。**分组、筛选、月度汇总一律以 `occurredLocalDate` 为准**（避免跨时区漂移），展示时间走 `tzId` + `tzOffset` 还原。`DayKeyFormatter`（`yyyy-MM-dd`，`en_US_POSIX`，每个时区缓存一个 `DateFormatter` 在 Thread dictionary）是唯一日期 key 生成入口。
 - **枚举**：`BillType` / `ExportFormat` / `ThemeMode` 用 raw string，禁止散字符串魔法值。
 - **"未分类"系统分类**：UUID 写死在 `SystemCategories`，`isSystem=true`，删除自定义分类时 `CategoryRepository.delete(id:migrateTo:)` 把账单迁过去；不要让它被 UI 删掉。
@@ -55,7 +55,7 @@ xcodebuild -project Tally.xcodeproj -scheme TallyTests \
 
 ## Widget
 
-`TallyWidgets` 是 WidgetKit extension，包含 `QuickEntryWidget`（点击通过 `tally://quickEntry` 拉起记账）与 `SummaryTrendWidget`（月度收支 + 7 日 sparkline）。数据由 App 进程通过 [Shared/WidgetSupport/WidgetDataStore.swift](Shared/WidgetSupport/WidgetDataStore.swift) 写入 App Group UserDefaults，Widget 进程读。两者通过 `WidgetKind.quickEntry` / `WidgetKind.summaryTrend` 字符串绑定。
+`TallyWidgets` 是 WidgetKit extension，包含 `QuickEntryWidget`（点击通过 `tally://quickEntry` 拉起记账）与 `SummaryTrendWidget`（月度收支 + 7 日 sparkline）。数据由 App 进程通过 [Shared/WidgetSupport/WidgetDataStore.swift](Shared/WidgetSupport/WidgetDataStore.swift) 写入 App Group UserDefaults，Widget 进程读；快照同时携带当前金额显示符号。两者通过 `WidgetKind.quickEntry` / `WidgetKind.summaryTrend` 字符串绑定。
 
 ## 测试
 
