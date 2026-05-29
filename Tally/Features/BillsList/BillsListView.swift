@@ -7,7 +7,7 @@ struct BillsListView: View {
     @StateObject private var viewModel: BillsListViewModel
     @State private var selectedCategory: CategorySheetTarget?
     @State private var editingBill: BillRecord?
-    @State private var showsTimePicker = false
+    @State private var showsJumpPicker = false
 
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
@@ -119,9 +119,9 @@ struct BillsListView: View {
                 editingBill: bill
             )
         }
-        .sheet(isPresented: $showsTimePicker) {
-            StatsDatePickerSheet(selection: $viewModel.anchorDate)
-                .presentationDetents([.height(BillsListLayout.timePickerSheetHeight)])
+        .sheet(isPresented: $showsJumpPicker) {
+            BillsListPeriodJumpSheet(viewModel: viewModel)
+                .presentationDetents([.height(viewModel.timeRange == .custom ? BillsListLayout.customRangeSheetHeight : BillsListLayout.jumpSheetHeight)])
                 .presentationDragIndicator(.hidden)
                 .presentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
                 .presentationBackground(Color.tallySurface)
@@ -129,11 +129,11 @@ struct BillsListView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center) {
+        HStack(alignment: .center, spacing: TallySpacing.s4) {
             VStack(alignment: .leading, spacing: TallySpacing.s1) {
                 Eyebrow("账本")
-                Text(viewModel.timeTitle)
-                    .font(TallyType.display(28, weight: .semibold))
+                Text("账本")
+                    .font(TallyType.display(30, weight: .semibold))
                     .foregroundStyle(Color.tallyInk)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
@@ -141,43 +141,31 @@ struct BillsListView: View {
 
             Spacer()
 
-            Button {
-            } label: {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(Color.tallyInkDim)
-                    .frame(width: 36, height: 36)
-                    .background(Color.tallySurface2)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("搜索")
+            Segmented(
+                value: $viewModel.selectedType,
+                options: [(BillType.expense, "支出"), (BillType.income, "收入")],
+                size: .sm
+            )
         }
         .padding(.horizontal, BillsListLayout.horizontalPadding)
     }
 
     private var rangeBar: some View {
-        HStack(spacing: TallySpacing.s3) {
+        VStack(spacing: TallySpacing.s3) {
             Segmented(
                 value: $viewModel.timeRange,
                 options: BillsListViewModel.TimeRange.allCases.map { ($0, $0.title) },
                 size: .sm
             )
 
-            if viewModel.timeRange == .custom {
-                Button {
-                    showsTimePicker = true
-                } label: {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(themeColors.accent)
-                        .frame(width: 34, height: 34)
-                        .background(themeColors.accentTint)
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("选择自定时间")
-            }
+            BillsListPeriodNavigator(
+                title: viewModel.timeTitle,
+                showsArrows: viewModel.timeRange != .custom,
+                canGoNext: viewModel.canGoNext,
+                onPrevious: { viewModel.goPrevious() },
+                onNext: { viewModel.goNext() },
+                onTitleTap: { showsJumpPicker = true }
+            )
         }
         .padding(.horizontal, BillsListLayout.horizontalPadding)
     }

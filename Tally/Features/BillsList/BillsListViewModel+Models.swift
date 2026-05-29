@@ -4,7 +4,6 @@ extension BillsListViewModel {
     enum TimeRange: String, CaseIterable, Identifiable {
         case week
         case month
-        case quarter
         case year
         case custom
 
@@ -14,20 +13,13 @@ extension BillsListViewModel {
             switch self {
             case .week: return "周"
             case .month: return "月"
-            case .quarter: return "季"
             case .year: return "年"
             case .custom: return "自定"
             }
         }
 
         var summaryPrefix: String {
-            switch self {
-            case .week: return "本周"
-            case .month: return "本月"
-            case .quarter: return "本季"
-            case .year: return "本年"
-            case .custom: return "自定"
-            }
+            "合计"
         }
     }
 

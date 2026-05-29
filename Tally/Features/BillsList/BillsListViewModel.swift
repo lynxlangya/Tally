@@ -54,6 +54,7 @@ final class BillsListViewModel: ObservableObject {
     private var currentBillsById: [UUID: BillRecord] = [:]
     private var didLoad = false
     private var isBatchingFilterUpdates = false
+    private let nowProvider: () -> Date
 
     private let calendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
@@ -72,32 +73,32 @@ final class BillsListViewModel: ObservableObject {
         return formatter
     }()
 
-    init(repository: BillRepository, categoryRepository: CategoryRepository) {
+    init(
+        repository: BillRepository,
+        categoryRepository: CategoryRepository,
+        nowProvider: @escaping () -> Date = Date.init
+    ) {
         self.billRepository = repository
         self.categoryRepository = categoryRepository
+        self.nowProvider = nowProvider
     }
 
     var timeTitle: String {
         let normalized = normalizedAnchorDate
         switch timeRange {
         case .week:
-            let year = calendar.component(.yearForWeekOfYear, from: normalized)
-            let week = calendar.component(.weekOfYear, from: normalized)
-            return "\(year) 年第 \(week) 周"
+            let range = dateRange(for: normalized)
+            return "\(shortDateTitle(for: range.start))–\(shortDateTitle(for: range.end))"
         case .month:
             let year = calendar.component(.year, from: normalized)
             let month = calendar.component(.month, from: normalized)
-            return "\(year) · \(month) 月"
-        case .quarter:
-            let year = calendar.component(.year, from: normalized)
-            let quarter = ((calendar.component(.month, from: normalized) - 1) / 3) + 1
-            return "\(year) · Q\(quarter)"
+            return "\(year)年\(month)月"
         case .year:
             let year = calendar.component(.year, from: normalized)
-            return "\(year) · 全年"
+            return "\(year)年"
         case .custom:
-            let range = dayKeyRange(for: normalized)
-            return "\(range.start) 至 \(range.end)"
+            let range = dateRange(for: normalized)
+            return "\(shortDateTitle(for: range.start))–\(shortDateTitle(for: range.end))"
         }
     }
 
@@ -116,6 +117,23 @@ final class BillsListViewModel: ObservableObject {
 
     var categoryRanking: [RankingItem] {
         rankingItems
+    }
+
+    var canGoNext: Bool {
+        guard timeRange != .custom else { return false }
+
+        let anchor = normalizedAnchorDate
+        let now = normalizedDate(nowProvider())
+        switch timeRange {
+        case .week:
+            return !calendar.isDate(anchor, equalTo: now, toGranularity: .weekOfYear) && anchor < now
+        case .month:
+            return !calendar.isDate(anchor, equalTo: now, toGranularity: .month) && anchor < now
+        case .year:
+            return !calendar.isDate(anchor, equalTo: now, toGranularity: .year) && anchor < now
+        case .custom:
+            return false
+        }
     }
 
     func toggleRankSort() {
@@ -155,6 +173,21 @@ final class BillsListViewModel: ObservableObject {
         }
     }
 
+    func goPrevious() {
+        guard timeRange != .custom else { return }
+        updateFilters(anchorDate: shiftedAnchor(by: -1))
+    }
+
+    func goNext() {
+        guard canGoNext else { return }
+        let nextAnchor = shiftedAnchor(by: 1)
+        updateFilters(anchorDate: min(nextAnchor, normalizedDate(nowProvider())))
+    }
+
+    func jump(to date: Date) {
+        updateFilters(anchorDate: normalizedDate(date))
+    }
+
     func load() {
         do {
             let expenseCategories = try categoryRepository.list(type: .expense)
@@ -172,8 +205,12 @@ final class BillsListViewModel: ObservableObject {
     }
 
     private var normalizedAnchorDate: Date {
-        let dayKey = DayKeyFormatter.dayKey(for: anchorDate)
-        return DayKeyFormatter.date(from: dayKey, timeZone: calendar.timeZone) ?? anchorDate
+        normalizedDate(anchorDate)
+    }
+
+    private func normalizedDate(_ date: Date) -> Date {
+        let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
+        return DayKeyFormatter.date(from: dayKey, timeZone: calendar.timeZone) ?? date
     }
 
     private func applyFiltersIfReady() {
@@ -253,11 +290,11 @@ final class BillsListViewModel: ObservableObject {
     private func updateAvailableYears() {
         do {
             let years = try billRepository.listYears()
-            let currentYear = calendar.component(.year, from: Date())
+            let currentYear = calendar.component(.year, from: nowProvider())
             let uniqueYears = Array(Set(years + [currentYear])).sorted()
             availableYears = uniqueYears.isEmpty ? [currentYear] : uniqueYears
         } catch {
-            let currentYear = calendar.component(.year, from: Date())
+            let currentYear = calendar.component(.year, from: nowProvider())
             availableYears = [currentYear]
         }
     }
@@ -297,21 +334,19 @@ final class BillsListViewModel: ObservableObject {
     }
 
     private func dayKeyRange(for anchor: Date) -> (start: String, end: String) {
+        let range = dateRange(for: anchor)
+        let startKey = DayKeyFormatter.dayKey(for: range.start, timeZone: calendar.timeZone)
+        let endKey = DayKeyFormatter.dayKey(for: range.end, timeZone: calendar.timeZone)
+        return (startKey, endKey)
+    }
+
+    private func dateRange(for anchor: Date) -> (start: Date, end: Date) {
         let interval: DateInterval
         switch timeRange {
         case .week:
             interval = calendar.dateInterval(of: .weekOfYear, for: anchor) ?? DateInterval(start: anchor, end: anchor)
         case .month:
             interval = calendar.dateInterval(of: .month, for: anchor) ?? DateInterval(start: anchor, end: anchor)
-        case .quarter:
-            let month = calendar.component(.month, from: anchor)
-            let quarterStartMonth = ((month - 1) / 3) * 3 + 1
-            var components = calendar.dateComponents([.year], from: anchor)
-            components.month = quarterStartMonth
-            components.day = 1
-            let start = calendar.date(from: components) ?? anchor
-            let end = calendar.date(byAdding: .month, value: 3, to: start) ?? start
-            interval = DateInterval(start: start, end: end)
         case .year:
             interval = calendar.dateInterval(of: .year, for: anchor) ?? DateInterval(start: anchor, end: anchor)
         case .custom:
@@ -321,9 +356,7 @@ final class BillsListViewModel: ObservableObject {
         }
 
         let endDate = calendar.date(byAdding: .day, value: -1, to: interval.end) ?? interval.end
-        let startKey = DayKeyFormatter.dayKey(for: interval.start, timeZone: calendar.timeZone)
-        let endKey = DayKeyFormatter.dayKey(for: endDate, timeZone: calendar.timeZone)
-        return (startKey, endKey)
+        return (interval.start, endDate)
     }
 
     private func computeSummaryChange(currentTotal: Int) -> SummaryChange? {
@@ -333,8 +366,6 @@ final class BillsListViewModel: ObservableObject {
             previousAnchor = calendar.date(byAdding: .weekOfYear, value: -1, to: normalizedAnchorDate) ?? normalizedAnchorDate
         case .month:
             previousAnchor = calendar.date(byAdding: .month, value: -1, to: normalizedAnchorDate) ?? normalizedAnchorDate
-        case .quarter:
-            previousAnchor = calendar.date(byAdding: .month, value: -3, to: normalizedAnchorDate) ?? normalizedAnchorDate
         case .year:
             previousAnchor = calendar.date(byAdding: .year, value: -1, to: normalizedAnchorDate) ?? normalizedAnchorDate
         case .custom:
@@ -353,6 +384,23 @@ final class BillsListViewModel: ObservableObject {
         let percent = abs(delta) * 100
         let percentText = String(format: "%.0f%%", percent)
         return SummaryChange(percentText: percentText, isPositive: delta >= 0)
+    }
+
+    private func shiftedAnchor(by value: Int) -> Date {
+        switch timeRange {
+        case .week:
+            return calendar.date(byAdding: .weekOfYear, value: value, to: normalizedAnchorDate) ?? normalizedAnchorDate
+        case .month:
+            return calendar.date(byAdding: .month, value: value, to: normalizedAnchorDate) ?? normalizedAnchorDate
+        case .year:
+            return calendar.date(byAdding: .year, value: value, to: normalizedAnchorDate) ?? normalizedAnchorDate
+        case .custom:
+            return normalizedAnchorDate
+        }
+    }
+
+    private func shortDateTitle(for date: Date) -> String {
+        "\(calendar.component(.month, from: date))月\(calendar.component(.day, from: date))日"
     }
 
     private func makeRowItem(for bill: BillRecord) -> RowItem {

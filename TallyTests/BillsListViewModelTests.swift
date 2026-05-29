@@ -51,9 +51,9 @@ final class BillsListViewModelTests: XCTestCase {
         XCTAssertEqual(result.5, 2)
     }
 
-    func testQuarterAndYearRangesProduceSensibleTrendPointCounts() async throws {
+    func testYearRangeProducesMonthlyTrendPointCounts() async throws {
         let categoryId = UUID()
-        let result = await MainActor.run { () -> (Int, Int, Int, String, String) in
+        let result = await MainActor.run { () -> (Int, String) in
             let viewModel = BillsListViewModel(
                 repository: MockBillRepository(seed: [
                     makeBill(type: .expense, cents: 1_000, date: fixedDate(year: 2026, month: 1, day: 3), categoryId: categoryId),
@@ -65,48 +65,114 @@ final class BillsListViewModelTests: XCTestCase {
                     makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
                 ])
             )
-            viewModel.anchorDate = fixedDate(year: 2026, month: 2, day: 10)
-            viewModel.timeRange = .quarter
-            viewModel.selectedType = .expense
-            viewModel.load()
-            let quarterCount = viewModel.trend30Cents.count
-            let quarterLastBucket = viewModel.trend30Cents.last ?? 0
-            let quarterTitle = viewModel.timeTitle
-
             viewModel.anchorDate = fixedDate(year: 2026, month: 8, day: 10)
             viewModel.timeRange = .year
+            viewModel.selectedType = .expense
+            viewModel.load()
             let yearCount = viewModel.trend30Cents.count
             let yearTitle = viewModel.timeTitle
-            return (quarterCount, quarterLastBucket, yearCount, quarterTitle, yearTitle)
+            return (yearCount, yearTitle)
         }
 
-        XCTAssertEqual(result.0, 13)
-        XCTAssertEqual(result.1, 2_000)
-        XCTAssertEqual(result.2, 12)
-        XCTAssertEqual(result.3, "2026 · Q1")
-        XCTAssertEqual(result.4, "2026 · 全年")
+        XCTAssertEqual(result.0, 12)
+        XCTAssertEqual(result.1, "2026年")
     }
 
-    func testQuarterTrendIncludesFinalCalendarDay() async throws {
+    func testCanGoNextIsFalseForCurrentPeriodAndTrueForPastPeriod() async throws {
         let categoryId = UUID()
-        let result = await MainActor.run { () -> [Int] in
+        let result = await MainActor.run { () -> (Bool, Bool, Bool) in
             let viewModel = BillsListViewModel(
                 repository: MockBillRepository(seed: [
-                    makeBill(type: .expense, cents: 4_000, date: fixedDate(year: 2026, month: 9, day: 30), categoryId: categoryId)
+                    makeBill(type: .expense, cents: 4_000, date: fixedDate(year: 2026, month: 5, day: 20), categoryId: categoryId)
                 ]),
                 categoryRepository: MockCategoryRepository(seed: [
                     makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
-                ])
+                ]),
+                nowProvider: { self.fixedDate(year: 2026, month: 5, day: 20) }
             )
-            viewModel.anchorDate = fixedDate(year: 2026, month: 8, day: 10)
-            viewModel.timeRange = .quarter
-            viewModel.selectedType = .expense
+            viewModel.anchorDate = fixedDate(year: 2026, month: 5, day: 20)
+            viewModel.timeRange = .month
             viewModel.load()
-            return viewModel.trend30Cents
+            let currentMonthCanGoNext = viewModel.canGoNext
+
+            viewModel.anchorDate = fixedDate(year: 2026, month: 4, day: 10)
+            let pastMonthCanGoNext = viewModel.canGoNext
+
+            viewModel.timeRange = .custom
+            let customCanGoNext = viewModel.canGoNext
+            return (currentMonthCanGoNext, pastMonthCanGoNext, customCanGoNext)
         }
 
-        XCTAssertEqual(result.count, 13)
-        XCTAssertEqual(result.last, 4_000)
+        XCTAssertFalse(result.0)
+        XCTAssertTrue(result.1)
+        XCTAssertFalse(result.2)
+    }
+
+    func testGoPreviousAndGoNextMoveMonthRangeWithoutFutureNavigation() async throws {
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> (String, [String], Bool, String, [String], Bool) in
+            let viewModel = BillsListViewModel(
+                repository: MockBillRepository(seed: [
+                    makeBill(type: .expense, cents: 1_000, date: fixedDate(year: 2026, month: 4, day: 1), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 2_000, date: fixedDate(year: 2026, month: 4, day: 30), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 3_000, date: fixedDate(year: 2026, month: 5, day: 20), categoryId: categoryId)
+                ]),
+                categoryRepository: MockCategoryRepository(seed: [
+                    makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
+                ]),
+                nowProvider: { self.fixedDate(year: 2026, month: 5, day: 20) }
+            )
+            viewModel.anchorDate = fixedDate(year: 2026, month: 5, day: 20)
+            viewModel.timeRange = .month
+            viewModel.selectedType = .expense
+            viewModel.load()
+
+            viewModel.goPrevious()
+            let previousTitle = viewModel.timeTitle
+            let previousKeys = viewModel.dayKeys
+            let previousCanGoNext = viewModel.canGoNext
+
+            viewModel.goNext()
+            let currentTitle = viewModel.timeTitle
+            let currentKeys = viewModel.dayKeys
+            let currentCanGoNext = viewModel.canGoNext
+
+            return (previousTitle, previousKeys, previousCanGoNext, currentTitle, currentKeys, currentCanGoNext)
+        }
+
+        XCTAssertEqual(result.0, "2026年4月")
+        XCTAssertEqual(result.1, ["2026-04-30", "2026-04-01"])
+        XCTAssertTrue(result.2)
+        XCTAssertEqual(result.3, "2026年5月")
+        XCTAssertEqual(result.4, ["2026-05-20"])
+        XCTAssertFalse(result.5)
+    }
+
+    func testCrossYearWeekUsesOccurredLocalDateBoundaries() async throws {
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> (String, [String], [Int]) in
+            let viewModel = BillsListViewModel(
+                repository: MockBillRepository(seed: [
+                    makeBill(type: .expense, cents: 900, date: fixedDate(year: 2025, month: 12, day: 28), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 1_000, date: fixedDate(year: 2025, month: 12, day: 29), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 2_000, date: fixedDate(year: 2026, month: 1, day: 4), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 3_000, date: fixedDate(year: 2026, month: 1, day: 5), categoryId: categoryId)
+                ]),
+                categoryRepository: MockCategoryRepository(seed: [
+                    makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
+                ]),
+                nowProvider: { self.fixedDate(year: 2026, month: 1, day: 5) }
+            )
+            viewModel.anchorDate = fixedDate(year: 2026, month: 1, day: 1)
+            viewModel.timeRange = .week
+            viewModel.selectedType = .expense
+            viewModel.load()
+            return (viewModel.timeTitle, viewModel.dayKeys, viewModel.trend30Cents)
+        }
+
+        XCTAssertEqual(result.0, "12月29日–1月4日")
+        XCTAssertEqual(result.1, ["2026-01-04", "2025-12-29"])
+        XCTAssertEqual(result.2, [1_000, 0, 0, 0, 0, 0, 2_000])
     }
 
     func testCustomRangeUsesTrailingThirtyDaysAndKeepsAllBillRows() async throws {

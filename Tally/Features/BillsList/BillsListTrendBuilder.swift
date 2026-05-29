@@ -51,28 +51,6 @@ struct BillsListTrendBuilder {
             let lastDay = dayRange.count
             axisLabels = ["\(month)/1", "\(month)/15", "\(month)/\(lastDay)"]
             pointLabels = dates.map(shortDateText)
-        case .quarter:
-            let start = quarterStart(for: anchorDate)
-            let end = calendar.date(byAdding: .month, value: 3, to: start) ?? start
-            let weekStarts = (0..<13).map { offset in
-                calendar.date(byAdding: .weekOfYear, value: offset, to: start) ?? start
-            }
-            totals = weekStarts.enumerated().map { index, weekStart in
-                let nextWeekStart = weekStarts.indices.contains(index + 1) ? weekStarts[index + 1] : end
-                let bucketEnd = min(nextWeekStart, end)
-                let endDate = calendar.date(byAdding: .day, value: -1, to: bucketEnd) ?? weekStart
-                let startKey = DayKeyFormatter.dayKey(for: weekStart, timeZone: calendar.timeZone)
-                let endKey = DayKeyFormatter.dayKey(for: endDate, timeZone: calendar.timeZone)
-                return dayTotals
-                    .filter { $0.key >= startKey && $0.key <= endKey }
-                    .reduce(0) { $0 + $1.value }
-            }
-            axisLabels = [
-                shortDateText(for: weekStarts.first ?? start),
-                shortDateText(for: weekStarts[min(6, weekStarts.count - 1)]),
-                shortDateText(for: weekStarts.last ?? start)
-            ]
-            pointLabels = weekStarts.map(shortDateText)
         case .year:
             let year = calendar.component(.year, from: anchorDate)
             totals = (1...12).map { month in
@@ -119,15 +97,6 @@ struct BillsListTrendBuilder {
 
     private func startOfMonth(for date: Date) -> Date {
         let components = calendar.dateComponents([.year, .month], from: date)
-        return calendar.date(from: components) ?? date
-    }
-
-    private func quarterStart(for date: Date) -> Date {
-        let month = calendar.component(.month, from: date)
-        let quarterStartMonth = ((month - 1) / 3) * 3 + 1
-        var components = calendar.dateComponents([.year], from: date)
-        components.month = quarterStartMonth
-        components.day = 1
         return calendar.date(from: components) ?? date
     }
 
