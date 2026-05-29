@@ -136,6 +136,19 @@ final class BillsListViewModel: ObservableObject {
         rankingItems
     }
 
+    var trendTitle: String {
+        switch timeRange {
+        case .week:
+            return "周度支出"
+        case .month:
+            return "月度支出"
+        case .year:
+            return "年度支出"
+        case .custom:
+            return "区间支出"
+        }
+    }
+
     var canGoNext: Bool {
         guard timeRange != .custom else { return false }
 

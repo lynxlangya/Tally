@@ -20,7 +20,6 @@ enum BillsListLayout {
     static let detailSheetDismissThreshold: CGFloat = 90
     static let detailRowVerticalPadding: CGFloat = 14
     static let detailDividerOpacity: CGFloat = 0.06
-    static let timePickerSheetHeight: CGFloat = 248
     static let jumpSheetHeight: CGFloat = 318
     static let customRangeSheetHeight: CGFloat = 382
     static let periodNavigatorHeight: CGFloat = 42

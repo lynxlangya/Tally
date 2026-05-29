@@ -37,10 +37,15 @@ struct BillsListView: View {
                     rangeBar
                         .padding(.top, TallySpacing.s5)
 
-                    StatsSummaryCard(summary: viewModel.summary)
+                    StatsSummaryCard(
+                        summary: viewModel.summary,
+                        change: viewModel.summaryChange,
+                        selectedType: viewModel.selectedType
+                    )
                         .padding(.top, TallySpacing.s3)
 
                     StatsTrendCard(
+                        title: viewModel.trendTitle,
                         valuesCents: viewModel.trend30Cents,
                         normalized: viewModel.trendPoints,
                         peak: viewModel.trendPeak,
@@ -177,6 +182,8 @@ private struct CategorySheetTarget: Identifiable {
 
 private struct StatsSummaryCard: View {
     let summary: BillsListViewModel.Summary
+    let change: BillsListViewModel.SummaryChange?
+    let selectedType: BillType
 
     @Environment(\.tallyThemeColors) private var themeColors
 
@@ -208,6 +215,31 @@ private struct StatsSummaryCard: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.78)
             }
+
+            if let change {
+                Rectangle()
+                    .fill(Color.tallyLine)
+                    .frame(height: 0.5)
+
+                HStack(spacing: TallySpacing.s2) {
+                    Text("环比上一期")
+                        .font(TallyType.body(11, weight: .medium))
+                        .foregroundStyle(Color.tallyInkFaint)
+
+                    Spacer()
+
+                    Image(systemName: change.isPositive ? "arrow.up.right" : "arrow.down.right")
+                        .font(.system(size: 10, weight: .bold))
+
+                    Text(change.percentText)
+                        .font(TallyType.num(12, weight: .semibold))
+                }
+                .foregroundStyle(changeColor(for: change))
+                .padding(.horizontal, TallySpacing.s3)
+                .frame(height: 28)
+                .background(changeColor(for: change).opacity(0.10))
+                .clipShape(Capsule(style: .continuous))
+            }
         }
         .padding(20)
         .background(Color.tallySurface)
@@ -233,9 +265,16 @@ private struct StatsSummaryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: alignment == .leading ? .leading : .trailing)
     }
+
+    private func changeColor(for change: BillsListViewModel.SummaryChange) -> Color {
+        let isExpense = selectedType == .expense
+        let isWorse = isExpense ? change.isPositive : !change.isPositive
+        return isWorse ? .catRose : themeColors.accent
+    }
 }
 
 private struct StatsTrendCard: View {
+    let title: String
     let valuesCents: [Int]
     let normalized: [Double]
     let peak: BillsListViewModel.TrendPeak?
@@ -246,7 +285,7 @@ private struct StatsTrendCard: View {
     var body: some View {
         VStack(spacing: TallySpacing.s3) {
             HStack(alignment: .firstTextBaseline) {
-                Eyebrow("30 日支出")
+                Eyebrow(title)
                 Spacer()
                 Text(peakText)
                     .font(TallyType.num(11, weight: .medium))
@@ -488,43 +527,6 @@ private struct DenseBillRowButtonStyle: ButtonStyle {
         configuration.label
             .background(configuration.isPressed ? Color.tallySurface2 : Color.clear)
             .animation(.tallyFast, value: configuration.isPressed)
-    }
-}
-
-private struct StatsDatePickerSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.tallyThemeColors) private var themeColors
-    @Binding var selection: Date
-
-    var body: some View {
-        VStack(spacing: TallySpacing.s4) {
-            HStack {
-                Text("选择时间")
-                    .font(TallyType.body(17, weight: .semibold))
-                    .foregroundStyle(Color.tallyInk)
-
-                Spacer()
-
-                Button("完成") {
-                    dismiss()
-                }
-                .font(TallyType.body(14, weight: .semibold))
-                .foregroundStyle(themeColors.accent)
-                .buttonStyle(.plain)
-            }
-
-            DatePicker("选择时间", selection: $selection, displayedComponents: [.date])
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-                .tint(themeColors.accent)
-                .environment(\.locale, Locale(identifier: "zh_CN"))
-                .frame(maxWidth: .infinity)
-                .frame(height: 180)
-                .clipped()
-        }
-        .padding(.horizontal, TallySpacing.s5)
-        .padding(.bottom, TallySpacing.s5)
-        .background(Color.tallySurface.ignoresSafeArea())
     }
 }
 
