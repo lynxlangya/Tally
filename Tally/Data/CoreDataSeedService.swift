@@ -3,6 +3,7 @@ import CoreData
 struct CoreDataSeedService: SeedService {
     static let colorMigrationFlagKey = "tally.color.migration.v1"
     static let iconMigrationFlagKey = "tally.icon.migration.phosphor.v1"
+    static let presetIconMigrationFlagKey = "tally.icon.presets.v2"
 
     private let context: NSManagedObjectContext
 
@@ -109,7 +110,18 @@ struct CoreDataSeedService: SeedService {
         "dollarsign.circle.fill": "currency-cny",
         "chart.line.uptrend.xyaxis": "coins",
         "percent": "coins",
-        "envelope.fill": "gift"
+        "envelope.fill": "hand-heart"
+    ]
+
+    static var iconKeyByPresetCategoryID: [UUID: String] {
+        Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.iconKey) })
+    }
+
+    private static let staleIconKeyByPresetCategoryID: [UUID: String] = [
+        UUID(uuidString: "00000000-0000-0000-0000-000000000005")!: "coffee",
+        UUID(uuidString: "00000000-0000-0000-0000-000000000019")!: "tag",
+        UUID(uuidString: "00000000-0000-0000-0000-000000000036")!: "coins",
+        UUID(uuidString: "00000000-0000-0000-0000-000000000039")!: "gift"
     ]
 
     private enum BrandSwatch {
@@ -166,7 +178,7 @@ struct CoreDataSeedService: SeedService {
         // Expense presets (20)
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!, type: .expense, name: "晚餐", iconKey: "fork-knife", colorHex: 0xF97316, isSystem: false, sortOrder: 1),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, type: .expense, name: "午餐", iconKey: "bowl-food", colorHex: 0x3B82F6, isSystem: false, sortOrder: 2),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000005")!, type: .expense, name: "早餐", iconKey: "coffee", colorHex: 0x13EC37, isSystem: false, sortOrder: 3),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000005")!, type: .expense, name: "早餐", iconKey: "cooking-pot", colorHex: 0x13EC37, isSystem: false, sortOrder: 3),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000006")!, type: .expense, name: "咖啡", iconKey: "coffee", colorHex: 0xA855F7, isSystem: false, sortOrder: 4),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000007")!, type: .expense, name: "房租", iconKey: "house", colorHex: 0x6366F1, isSystem: false, sortOrder: 5),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000008")!, type: .expense, name: "水电", iconKey: "lightbulb", colorHex: 0xEAB308, isSystem: false, sortOrder: 6),
@@ -180,7 +192,7 @@ struct CoreDataSeedService: SeedService {
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000016")!, type: .expense, name: "服饰", iconKey: "t-shirt", colorHex: 0xF43F5E, isSystem: false, sortOrder: 14),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000017")!, type: .expense, name: "通讯", iconKey: "phone", colorHex: 0x06B6D4, isSystem: false, sortOrder: 15),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000018")!, type: .expense, name: "娱乐", iconKey: "film-slate", colorHex: 0x8B5CF6, isSystem: false, sortOrder: 16),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000019")!, type: .expense, name: "其他", iconKey: "tag", colorHex: 0x6366F1, isSystem: false, sortOrder: 17),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000019")!, type: .expense, name: "其他", iconKey: "wrench", colorHex: 0x6366F1, isSystem: false, sortOrder: 17),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000020")!, type: .expense, name: "交通", iconKey: "bus", colorHex: 0x3B82F6, isSystem: false, sortOrder: 18),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000021")!, type: .expense, name: "购物", iconKey: "shopping-cart", colorHex: 0x13EC37, isSystem: false, sortOrder: 19),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000022")!, type: .expense, name: "日用", iconKey: "shopping-bag", colorHex: 0x22C55E, isSystem: false, sortOrder: 20),
@@ -189,10 +201,10 @@ struct CoreDataSeedService: SeedService {
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000033")!, type: .income, name: "工资", iconKey: "credit-card", colorHex: 0x3B82F6, isSystem: false, sortOrder: 1),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000034")!, type: .income, name: "基金", iconKey: "coins", colorHex: 0x13EC37, isSystem: false, sortOrder: 2),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000035")!, type: .income, name: "黄金", iconKey: "money-wavy", colorHex: 0xEAB308, isSystem: false, sortOrder: 3),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000036")!, type: .income, name: "股票", iconKey: "coins", colorHex: 0x22C55E, isSystem: false, sortOrder: 4),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000036")!, type: .income, name: "股票", iconKey: "bank", colorHex: 0x22C55E, isSystem: false, sortOrder: 4),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000037")!, type: .income, name: "兼职", iconKey: "briefcase", colorHex: 0xEC4899, isSystem: false, sortOrder: 5),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000038")!, type: .income, name: "礼金", iconKey: "gift", colorHex: 0xF472B6, isSystem: false, sortOrder: 6),
-        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000039")!, type: .income, name: "红包", iconKey: "gift", colorHex: 0xF43F5E, isSystem: false, sortOrder: 7),
+        SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000039")!, type: .income, name: "红包", iconKey: "hand-heart", colorHex: 0xF43F5E, isSystem: false, sortOrder: 7),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000040")!, type: .income, name: "投资", iconKey: "wallet", colorHex: 0x8B5CF6, isSystem: false, sortOrder: 8),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000041")!, type: .income, name: "退款", iconKey: "repeat", colorHex: 0x14B8A6, isSystem: false, sortOrder: 9),
         SeedCategory(id: UUID(uuidString: "00000000-0000-0000-0000-000000000042")!, type: .income, name: "其他", iconKey: "currency-cny", colorHex: 0x6366F1, isSystem: false, sortOrder: 10)
@@ -212,6 +224,10 @@ struct CoreDataSeedService: SeedService {
 
     func migrateLegacyIconKeys(userDefaults: UserDefaults = .standard) throws {
         try Self.migrateLegacyIconKeys(in: context, userDefaults: userDefaults)
+    }
+
+    func migratePresetIconKeys(userDefaults: UserDefaults = .standard) throws {
+        try Self.migratePresetIconKeys(in: context, userDefaults: userDefaults)
     }
 
     static func migrateLegacyCategoryColors(
@@ -262,6 +278,33 @@ struct CoreDataSeedService: SeedService {
             try context.save()
         }
         userDefaults.set(true, forKey: iconMigrationFlagKey)
+    }
+
+    static func migratePresetIconKeys(
+        in context: NSManagedObjectContext,
+        userDefaults: UserDefaults = .standard
+    ) throws {
+        guard !userDefaults.bool(forKey: presetIconMigrationFlagKey) else { return }
+
+        let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
+        let categories = try context.fetch(request)
+        for category in categories {
+            guard
+                let id = category.value(forKey: "id") as? UUID,
+                let currentIconKey = category.value(forKey: "iconKey") as? String,
+                let staleIconKey = staleIconKeyByPresetCategoryID[id],
+                currentIconKey == staleIconKey,
+                let iconKey = iconKeyByPresetCategoryID[id]
+            else {
+                continue
+            }
+            category.setValue(iconKey, forKey: "iconKey")
+        }
+
+        if context.hasChanges {
+            try context.save()
+        }
+        userDefaults.set(true, forKey: presetIconMigrationFlagKey)
     }
 
     func seedPreviewBill() throws {

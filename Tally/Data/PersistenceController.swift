@@ -105,6 +105,7 @@ struct PersistenceController {
                         try seedService.seedIfNeeded()
                         try seedService.migrateLegacyCategoryColors()
                         try seedService.migrateLegacyIconKeys()
+                        try seedService.migratePresetIconKeys()
                     }
                     startupState.markReady()
                 } catch {

@@ -37,6 +37,48 @@ final class IconMigrationTests: XCTestCase {
         XCTAssertEqual(try iconKey(id: categoryID, in: context), "fork.knife")
     }
 
+    @MainActor
+    func testPresetIconMigrationUpdatesOnlyKnownStalePresetIcons() throws {
+        let context = try makeContext()
+        let defaults = try makeDefaults()
+        let breakfastID = UUID(uuidString: "00000000-0000-0000-0000-000000000005")!
+        let coffeeID = UUID(uuidString: "00000000-0000-0000-0000-000000000006")!
+        let customID = UUID()
+
+        try insertCategory(id: breakfastID, name: "早餐", iconKey: "coffee", in: context)
+        try insertCategory(id: coffeeID, name: "咖啡", iconKey: "coffee", in: context)
+        try insertCategory(id: customID, name: "我的早餐", iconKey: "coffee", in: context)
+
+        try CoreDataSeedService.migratePresetIconKeys(in: context, userDefaults: defaults)
+
+        XCTAssertEqual(try iconKey(id: breakfastID, in: context), "cooking-pot")
+        XCTAssertEqual(try iconKey(id: coffeeID, in: context), "coffee")
+        XCTAssertEqual(try iconKey(id: customID, in: context), "coffee")
+        XCTAssertTrue(defaults.bool(forKey: CoreDataSeedService.presetIconMigrationFlagKey))
+    }
+
+    @MainActor
+    func testDefaultPresetIconsAreUniqueWithinEachBillType() throws {
+        let context = try makeContext()
+
+        try CoreDataSeedService(context: context).seedIfNeeded()
+
+        let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
+        let categories = try context.fetch(request)
+        for type in [BillType.expense, .income] {
+            let icons = categories.compactMap { category -> String? in
+                guard
+                    category.value(forKey: "type") as? String == type.rawValue
+                else {
+                    return nil
+                }
+                return category.value(forKey: "iconKey") as? String
+            }
+
+            XCTAssertEqual(icons.count, Set(icons).count, "\(type.rawValue) preset icons should be unique")
+        }
+    }
+
     func testCategoryAndUtilityIconCatalogsMatchPhosphorAssetSet() {
         XCTAssertEqual(TallyIcon.Catalog.all.count, 88)
         XCTAssertEqual(Set(TallyIcon.Catalog.all).count, 88)
@@ -87,11 +129,16 @@ private extension IconMigrationTests {
         return defaults
     }
 
-    func insertCategory(id: UUID, iconKey: String, in context: NSManagedObjectContext) throws {
+    func insertCategory(
+        id: UUID,
+        name: String = "测试",
+        iconKey: String,
+        in context: NSManagedObjectContext
+    ) throws {
         let object = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context)
         object.setValue(id, forKey: "id")
         object.setValue(BillType.expense.rawValue, forKey: "type")
-        object.setValue("测试", forKey: "name")
+        object.setValue(name, forKey: "name")
         object.setValue(iconKey, forKey: "iconKey")
         object.setValue(Int64(0xB8553E), forKey: "colorHex")
         object.setValue(false, forKey: "isSystem")
