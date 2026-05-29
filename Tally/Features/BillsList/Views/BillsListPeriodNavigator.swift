@@ -35,7 +35,7 @@ struct BillsListPeriodNavigator: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("选择期间")
+            .accessibilityLabel(TallyLocalization.text("choose_period", locale: LanguageManager.shared.currentLocale))
 
             if showsArrows {
                 navButton(systemName: "chevron.right", enabled: canGoNext, action: onNext)

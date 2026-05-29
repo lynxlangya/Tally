@@ -19,7 +19,7 @@ struct ImportExportView: View {
             Color.tallyBg.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                TallyNavHeader(title: "导入与导出", onBack: { dismiss() })
+                TallyNavHeader(title: TallyLocalization.text(.importExport, locale: LanguageManager.shared.currentLocale), onBack: { dismiss() })
 
                 ScrollView {
                     VStack(spacing: TallySpacing.s6) {
@@ -88,13 +88,13 @@ struct ImportExportView: View {
             Alert(
                 title: Text(dialog.title),
                 message: Text(dialog.message),
-                dismissButton: .default(Text("知道了")) {
+                dismissButton: .default(Text(TallyLocalization.text(.gotIt, locale: LanguageManager.shared.currentLocale))) {
                     viewModel.dismissImportResultDialog()
                 }
             )
         }
         .confirmationDialog(
-            "导入预检",
+            TallyLocalization.text("import_preflight", locale: LanguageManager.shared.currentLocale),
             isPresented: Binding(
                 get: { viewModel.backupImportPreview != nil },
                 set: { newValue in
@@ -105,17 +105,17 @@ struct ImportExportView: View {
             ),
             titleVisibility: .visible
         ) {
-            Button("确认导入") {
+            Button(TallyLocalization.text("confirm_import", locale: LanguageManager.shared.currentLocale)) {
                 viewModel.confirmImportBackup()
             }
-            Button("取消", role: .cancel) {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale), role: .cancel) {
                 viewModel.dismissImportBackupPreview()
             }
         } message: {
             Text(viewModel.backupImportPreviewMessage)
         }
         .confirmationDialog(
-            "导入预检",
+            TallyLocalization.text("import_preflight", locale: LanguageManager.shared.currentLocale),
             isPresented: Binding(
                 get: { viewModel.csvImportPreview != nil },
                 set: { newValue in
@@ -126,10 +126,10 @@ struct ImportExportView: View {
             ),
             titleVisibility: .visible
         ) {
-            Button("确认导入") {
+            Button(TallyLocalization.text("confirm_import", locale: LanguageManager.shared.currentLocale)) {
                 viewModel.confirmImportCSV()
             }
-            Button("取消", role: .cancel) {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale), role: .cancel) {
                 viewModel.dismissImportCSVPreview()
             }
         } message: {
@@ -139,13 +139,13 @@ struct ImportExportView: View {
 
     private var currentDataBlock: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s2) {
-            Eyebrow("当前数据")
+            Eyebrow(TallyLocalization.text("current_data", locale: LanguageManager.shared.currentLocale))
 
             HStack(alignment: .firstTextBaseline, spacing: TallySpacing.s2) {
                 Text("\(viewModel.currentRecordCount)")
                     .font(TallyType.num(32, weight: .semibold))
                     .foregroundStyle(Color.tallyInk)
-                Text("条记录")
+                Text(TallyLocalization.text("records_unit", locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(13, weight: .medium))
                     .foregroundStyle(Color.tallyInkDim)
             }
@@ -162,7 +162,7 @@ struct ImportExportView: View {
 
     private var exportScopePicker: some View {
         HStack(spacing: TallySpacing.s3) {
-            Text("导出范围")
+            Text(TallyLocalization.text("export_scope", locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(12, weight: .medium))
                 .foregroundStyle(Color.tallyInkFaint)
 
@@ -193,11 +193,11 @@ struct ImportExportView: View {
 
     private var recentLogCard: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s3) {
-            Eyebrow("最近记录")
+            Eyebrow(TallyLocalization.text("recent_records", locale: LanguageManager.shared.currentLocale))
 
             VStack(spacing: 0) {
                 if recentLogs.isEmpty {
-                    Text("还没有导入导出记录。")
+                    Text(TallyLocalization.text("no_import_export_logs", locale: LanguageManager.shared.currentLocale))
                         .font(TallyType.body(12, weight: .medium))
                         .foregroundStyle(Color.tallyInkFaint)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -225,29 +225,29 @@ struct ImportExportView: View {
         [
             .init(
                 kind: .exportCSV,
-                title: "导出 CSV",
-                subtitle: "用于表格分析与二次处理",
+                title: TallyLocalization.text("export_csv", locale: LanguageManager.shared.currentLocale),
+                subtitle: TallyLocalization.text("export_csv_subtitle", locale: LanguageManager.shared.currentLocale),
                 icon: "square.and.arrow.up",
                 style: .primary
             ),
             .init(
                 kind: .exportBackup,
-                title: "导出备份 JSON",
-                subtitle: "完整备份账单与类别数据",
+                title: TallyLocalization.text("export_backup_json", locale: LanguageManager.shared.currentLocale),
+                subtitle: TallyLocalization.text("export_backup_json_subtitle", locale: LanguageManager.shared.currentLocale),
                 icon: "square.and.arrow.up",
                 style: .neutral
             ),
             .init(
                 kind: .importBackup,
-                title: "导入备份",
-                subtitle: "从备份文件恢复数据",
+                title: TallyLocalization.text("import_backup", locale: LanguageManager.shared.currentLocale),
+                subtitle: TallyLocalization.text("import_backup_subtitle", locale: LanguageManager.shared.currentLocale),
                 icon: "square.and.arrow.down",
                 style: .neutral
             ),
             .init(
                 kind: .importCSV,
-                title: "导入 CSV",
-                subtitle: "从标准 CSV 导入账单",
+                title: TallyLocalization.text("import_csv", locale: LanguageManager.shared.currentLocale),
+                subtitle: TallyLocalization.text("import_csv_subtitle", locale: LanguageManager.shared.currentLocale),
                 icon: "square.and.arrow.down",
                 style: .neutral
             )
@@ -359,24 +359,33 @@ private struct ImportExportLogRow: View {
     }
 
     private var metaText: String {
-        "\(Self.dateFormatter.string(from: log.createdAt)) · \(Self.timeFormatter.string(from: log.createdAt)) · \(log.count) 条 · \(log.errors) 错误"
+        let locale = LanguageManager.shared.currentLocale
+        return TallyLocalization.format(
+            "import_export_log_meta",
+            locale: locale,
+            Self.dateText(log.createdAt, locale: locale),
+            Self.timeText(log.createdAt, locale: locale),
+            log.count,
+            log.errors
+        )
     }
 
-    private static let dateFormatter: DateFormatter = {
+    private static func dateText(_ date: Date, locale: Locale) -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "yyyy/M/d"
-        return formatter
-    }()
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("yMd")
+        return formatter.string(from: date)
+    }
 
-    private static let timeFormatter: DateFormatter = {
+    private static func timeText(_ date: Date, locale: Locale) -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
+        formatter.locale = locale
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter.string(from: date)
+    }
 }
 
 private struct ImportExportActionItem: Identifiable {

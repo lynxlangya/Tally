@@ -4,6 +4,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @Environment(\.appEnvironment) private var environment
+    @ObservedObject private var languageManager = LanguageManager.shared
 
     var body: some View {
         VStack(spacing: LegacySpacing.lg) {
@@ -40,7 +41,7 @@ struct SettingsView: View {
 
     private var header: some View {
         LegacyHeaderBar(
-            title: "通用设置",
+            title: TallyLocalization.text(.settings, locale: LanguageManager.shared.currentLocale),
             titleFont: LegacyTypography.headline,
             titleColor: LegacyColors.profileRowTitle
         ) {
@@ -72,6 +73,18 @@ struct SettingsView: View {
             WidgetPreviewView()
         }
     }
+
+    private var settingItems: [SettingsItem] {
+        let locale = languageManager.currentLocale
+        return [
+            SettingsItem(title: TallyLocalization.text(.accountSettings, locale: locale), subtitle: nil, systemImage: "person.fill", destination: .account),
+            SettingsItem(title: TallyLocalization.text(.importExport, locale: locale), subtitle: nil, systemImage: "arrow.up.arrow.down.circle.fill", destination: .importExport),
+            SettingsItem(title: TallyLocalization.text(.recurring, locale: locale), subtitle: nil, systemImage: "clock.fill", destination: .recurring),
+            SettingsItem(title: TallyLocalization.text(.widget, locale: locale), subtitle: nil, systemImage: "square.grid.2x2.fill", destination: .widget),
+            SettingsItem(title: TallyLocalization.text(.themeSettings, locale: locale), subtitle: nil, systemImage: "paintpalette.fill", destination: .theme),
+            SettingsItem(title: TallyLocalization.text(.language, locale: locale), subtitle: nil, systemImage: "globe", destination: .language)
+        ]
+    }
 }
 
 private struct SettingsItem: Identifiable {
@@ -93,29 +106,20 @@ private enum SettingsDestination: String {
     var title: String {
         switch self {
         case .account:
-            return "账号设置"
+            return TallyLocalization.text(.accountSettings, locale: LanguageManager.shared.currentLocale)
         case .importExport:
-            return "导入导出"
+            return TallyLocalization.text(.importExport, locale: LanguageManager.shared.currentLocale)
         case .recurring:
-            return "定时记账"
+            return TallyLocalization.text(.recurring, locale: LanguageManager.shared.currentLocale)
         case .widget:
-            return "桌面小组件"
+            return TallyLocalization.text(.widget, locale: LanguageManager.shared.currentLocale)
         case .theme:
-            return "主题设置"
+            return TallyLocalization.text(.themeSettings, locale: LanguageManager.shared.currentLocale)
         case .language:
-            return "语言设置"
+            return TallyLocalization.text(.language, locale: LanguageManager.shared.currentLocale)
         }
     }
 }
-
-private let settingItems: [SettingsItem] = [
-    SettingsItem(title: "账号设置", subtitle: nil, systemImage: "person.fill", destination: .account),
-    SettingsItem(title: "导入导出", subtitle: nil, systemImage: "arrow.up.arrow.down.circle.fill", destination: .importExport),
-    SettingsItem(title: "定时记账", subtitle: nil, systemImage: "clock.fill", destination: .recurring),
-    SettingsItem(title: "桌面小组件", subtitle: nil, systemImage: "square.grid.2x2.fill", destination: .widget),
-    SettingsItem(title: "主题设置", subtitle: nil, systemImage: "paintpalette.fill", destination: .theme),
-    SettingsItem(title: "语言设置", subtitle: nil, systemImage: "globe", destination: .language)
-]
 
 #Preview {
     NavigationStack {

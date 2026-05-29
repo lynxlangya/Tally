@@ -59,13 +59,13 @@ final class ProfileViewModel: ObservableObject {
             )
             let countsByDay = Dictionary(grouping: weekBills.filter { $0.deletedAt == nil }, by: \.occurredLocalDate)
                 .mapValues(\.count)
-            streakDays = zip(weekRange.dates, weekRange.dayKeys).enumerated().map { index, pair in
+            streakDays = zip(weekRange.dates, weekRange.dayKeys).enumerated().map { _, pair in
                 let date = pair.0
                 let dayKey = pair.1
                 let count = countsByDay[dayKey] ?? 0
                 return StreakDay(
                     id: dayKey,
-                    label: Self.weekdayLabels[index],
+                    label: TallyLocalization.weekdayTitle(for: date, locale: LanguageManager.shared.currentLocale),
                     count: count,
                     isRecorded: count > 0,
                     isFuture: date > weekRange.todayStart
@@ -79,10 +79,15 @@ final class ProfileViewModel: ObservableObject {
                 .filter(\.isEnabled)
                 .sorted { $0.nextFireDate < $1.nextFireDate }
             enabledRecurringCount = enabledRecurring.count
-            nextRecurringChip = enabledRecurring.first.map { Self.nextFireFormatter.string(from: $0.nextFireDate) }
+            nextRecurringChip = enabledRecurring.first.map {
+                TallyLocalization.monthDayTitle(for: $0.nextFireDate, locale: LanguageManager.shared.currentLocale)
+            }
             errorMessage = nil
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "个人页数据加载失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("profile_load_failed", locale: LanguageManager.shared.currentLocale)
+            )
         }
     }
 
@@ -95,11 +100,12 @@ final class ProfileViewModel: ObservableObject {
     }
 
     var categorySubtitle: String {
-        "支出 \(expenseCategoryCount) · 收入 \(incomeCategoryCount)"
+        let locale = LanguageManager.shared.currentLocale
+        return "\(TallyLocalization.text(.expense, locale: locale)) \(expenseCategoryCount) · \(TallyLocalization.text(.income, locale: locale)) \(incomeCategoryCount)"
     }
 
     var recurringSubtitle: String {
-        "\(enabledRecurringCount) 条已启用"
+        TallyLocalization.format(.enabledRecurringCount, locale: LanguageManager.shared.currentLocale, enabledRecurringCount)
     }
 
     private func currentWeekRange() -> (dates: [Date], dayKeys: [String], todayStart: Date) {
@@ -119,13 +125,4 @@ final class ProfileViewModel: ObservableObject {
         return calendar
     }
 
-    private static let weekdayLabels = ["一", "二", "三", "四", "五", "六", "日"]
-
-    private static let nextFireFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日"
-        return formatter
-    }()
 }

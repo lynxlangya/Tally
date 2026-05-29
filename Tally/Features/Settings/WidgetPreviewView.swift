@@ -47,11 +47,11 @@ struct WidgetPreviewView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("返回")
+            .accessibilityLabel(TallyLocalization.text("back", locale: LanguageManager.shared.currentLocale))
 
             Spacer()
 
-            Text("桌面小组件")
+            Text(TallyLocalization.text(.widget, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.display(18, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
 
@@ -68,13 +68,13 @@ struct WidgetPreviewView: View {
 
             HStack(alignment: .bottom, spacing: TallySpacing.s4) {
                 VStack(alignment: .leading, spacing: TallySpacing.s2) {
-                    Text("两种桌面入口")
+                    Text(TallyLocalization.text("widget_intro_title", locale: LanguageManager.shared.currentLocale))
                         .font(TallyType.display(32, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                         .lineLimit(1)
                         .minimumScaleFactor(0.74)
 
-                    Text("一个负责快速记账，一个负责扫一眼本月趋势。")
+                    Text(TallyLocalization.text("widget_intro_subtitle", locale: LanguageManager.shared.currentLocale))
                         .font(TallyType.body(14, weight: .medium))
                         .foregroundStyle(Color.tallyInkDim)
                         .fixedSize(horizontal: false, vertical: true)
@@ -91,8 +91,8 @@ struct WidgetPreviewView: View {
         VStack(alignment: .leading, spacing: TallySpacing.s7) {
             WidgetShowcase(
                 eyebrow: "small",
-                title: "今日入口",
-                subtitle: "轻触后打开记一笔",
+                title: TallyLocalization.text("widget_quick_entry_title", locale: LanguageManager.shared.currentLocale),
+                subtitle: TallyLocalization.text("widget_quick_entry_subtitle", locale: LanguageManager.shared.currentLocale),
                 width: 158,
                 height: 158
             ) {
@@ -101,8 +101,8 @@ struct WidgetPreviewView: View {
 
             WidgetShowcase(
                 eyebrow: "medium",
-                title: "月度趋势",
-                subtitle: "轻触后回到账本首页",
+                title: TallyLocalization.text("widget_summary_title", locale: LanguageManager.shared.currentLocale),
+                subtitle: TallyLocalization.text("widget_summary_subtitle", locale: LanguageManager.shared.currentLocale),
                 width: 338,
                 height: 158
             ) {
@@ -113,16 +113,31 @@ struct WidgetPreviewView: View {
 
     private var addPath: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            SectionHeader(title: "添加路径", trailing: "主屏幕")
+            SectionHeader(
+                title: TallyLocalization.text("widget_add_path", locale: LanguageManager.shared.currentLocale),
+                trailing: TallyLocalization.text("widget_home_screen", locale: LanguageManager.shared.currentLocale)
+            )
 
             VStack(spacing: 0) {
-                AddStepRow(index: 1, title: "长按桌面空白处", detail: "进入主屏幕编辑")
+                AddStepRow(
+                    index: 1,
+                    title: TallyLocalization.text("widget_step_hold", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("widget_step_hold_detail", locale: LanguageManager.shared.currentLocale)
+                )
                 DividerLine()
                     .padding(.leading, 54)
-                AddStepRow(index: 2, title: "点击左上角 +", detail: "搜索 Tally")
+                AddStepRow(
+                    index: 2,
+                    title: TallyLocalization.text("widget_step_plus", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("widget_step_plus_detail", locale: LanguageManager.shared.currentLocale)
+                )
                 DividerLine()
                     .padding(.leading, 54)
-                AddStepRow(index: 3, title: "选择尺寸", detail: "Small 或 Medium")
+                AddStepRow(
+                    index: 3,
+                    title: TallyLocalization.text("widget_step_size", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("widget_step_size_detail", locale: LanguageManager.shared.currentLocale)
+                )
             }
             .background(Color.tallySurface)
             .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
@@ -224,7 +239,7 @@ private struct WidgetCountBadge: View {
             Text("\(count)")
                 .font(TallyType.num(24, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
-            Text("款")
+            Text(TallyLocalization.text("widget_count_unit", locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(11, weight: .semibold))
                 .foregroundStyle(Color.tallyInkFaint)
         }

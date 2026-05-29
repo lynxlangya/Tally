@@ -55,7 +55,7 @@ struct TallyFAB: View {
                     state = true
                 }
         )
-        .accessibilityLabel(Text("记一笔"))
+        .accessibilityLabel(Text(TallyLocalization.text(.quickEntry, locale: LanguageManager.shared.currentLocale)))
         .accessibilityIdentifier("shell.quickEntry")
     }
 }

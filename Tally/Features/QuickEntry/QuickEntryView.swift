@@ -121,7 +121,7 @@ struct QuickEntryView: View {
 
     private var header: some View {
         HStack {
-            Button("取消") {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale)) {
                 dismiss()
             }
             .font(TallyType.body(14, weight: .regular))
@@ -145,7 +145,7 @@ struct QuickEntryView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("更多")
+            .accessibilityLabel(TallyLocalization.text(.more, locale: LanguageManager.shared.currentLocale))
         }
         .padding(.horizontal, QuickEntryLayout.headerHorizontalPadding)
         .padding(.top, TallySpacing.s1)
@@ -216,7 +216,7 @@ struct QuickEntryView: View {
                     strokeWidth: 2.5
                 )
 
-                Text("记一笔")
+                Text(TallyLocalization.text(.quickEntry, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(16, weight: .semibold))
                     .tracking(0.64)
             }
@@ -235,7 +235,7 @@ struct QuickEntryView: View {
     }
 
     private var dateText: String {
-        Self.dateFormatter.string(from: viewModel.selectedDate)
+        TallyLocalization.monthDayTitle(for: viewModel.selectedDate, locale: LanguageManager.shared.currentLocale)
     }
 
     private var selectedCategoryForDisplay: CategoryRecord {
@@ -245,7 +245,7 @@ struct QuickEntryView: View {
         return CategoryRecord(
             id: SystemCategoryID.uncategorized(for: viewModel.selectedType),
             type: viewModel.selectedType,
-            name: "未分类",
+            name: TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale),
             iconKey: "tag",
             colorHex: Int(CategoryColorPalette.defaultHex(for: SystemCategoryID.uncategorized(for: viewModel.selectedType))),
             isSystem: true,
@@ -273,12 +273,6 @@ struct QuickEntryView: View {
         return Color(hex: hex)
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M/d"
-        return formatter
-    }()
 }
 
 private struct BillTypeToggle: View {
@@ -286,8 +280,8 @@ private struct BillTypeToggle: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            toggleButton(type: .expense, title: "支出")
-            toggleButton(type: .income, title: "收入")
+            toggleButton(type: .expense, title: TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale))
+            toggleButton(type: .income, title: TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale))
         }
         .padding(3)
         .background(Color.tallySurface2)
@@ -350,7 +344,7 @@ private struct HeroAmount: View {
         .lineLimit(1)
         .minimumScaleFactor(0.72)
         .frame(maxWidth: .infinity)
-        .accessibilityLabel((type == .expense ? "支出" : "收入") + text)
+        .accessibilityLabel((type == .expense ? TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale) : TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale)) + text)
     }
 
     private var signColor: Color {
@@ -412,7 +406,7 @@ private struct TallyNoteField: UIViewRepresentable {
         textField.backgroundColor = .clear
         textField.textColor = UIColor(Color.tallyInk)
         textField.attributedPlaceholder = NSAttributedString(
-            string: "添加备注",
+            string: TallyLocalization.text(.note, locale: LanguageManager.shared.currentLocale),
             attributes: [
                 .foregroundColor: UIColor(Color.tallyInkFaint),
                 .font: UIFont.systemFont(ofSize: 13, weight: .regular)
@@ -431,6 +425,13 @@ private struct TallyNoteField: UIViewRepresentable {
             uiView.text = text
         }
         uiView.textColor = UIColor(Color.tallyInk)
+        uiView.attributedPlaceholder = NSAttributedString(
+            string: TallyLocalization.text(.note, locale: LanguageManager.shared.currentLocale),
+            attributes: [
+                .foregroundColor: UIColor(Color.tallyInkFaint),
+                .font: UIFont.systemFont(ofSize: 13, weight: .regular)
+            ]
+        )
     }
 
     func makeCoordinator() -> Coordinator {
@@ -474,7 +475,7 @@ private struct QuickEntryDatePickerSheet: View {
     var body: some View {
         VStack(spacing: TallySpacing.s4) {
             HStack {
-                Text("选择时间")
+            Text(TallyLocalization.text(.date, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(17, weight: .semibold))
                     .foregroundStyle(Color.tallyInk)
 
@@ -483,7 +484,7 @@ private struct QuickEntryDatePickerSheet: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("完成")
+                    Text(TallyLocalization.text(.done, locale: LanguageManager.shared.currentLocale))
                         .font(TallyType.body(14, weight: .semibold))
                         .foregroundStyle(themeColors.accent)
                 }
@@ -491,14 +492,14 @@ private struct QuickEntryDatePickerSheet: View {
             }
 
             DatePicker(
-                "选择时间",
+                TallyLocalization.text("choose_time", locale: LanguageManager.shared.currentLocale),
                 selection: $selection,
                 displayedComponents: [.date]
             )
             .datePickerStyle(.wheel)
             .labelsHidden()
             .tint(themeColors.accent)
-            .environment(\.locale, Locale(identifier: "zh_CN"))
+            .environment(\.locale, LanguageManager.shared.currentLocale)
             .frame(maxWidth: .infinity)
             .frame(height: 180)
             .clipped()

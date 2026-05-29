@@ -79,7 +79,7 @@ struct CategoryEditSheet: View {
 
     private var header: some View {
         HStack {
-            Button("取消") {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale)) {
                 dismiss()
             }
             .font(TallyType.body(14, weight: .medium))
@@ -88,13 +88,13 @@ struct CategoryEditSheet: View {
 
             Spacer()
 
-            Text(existing == nil ? "新分类" : "编辑分类")
+            Text(TallyLocalization.text(existing == nil ? "new_category" : "edit_category", locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.display(18, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
 
             Spacer()
 
-            Button("完成") {
+            Button(TallyLocalization.text(.done, locale: LanguageManager.shared.currentLocale)) {
                 saveAndDismiss()
             }
             .font(TallyType.body(14, weight: .semibold))
@@ -117,7 +117,7 @@ struct CategoryEditSheet: View {
                 filled: .solid
             )
 
-            TextField("分类名称", text: $name)
+            TextField(TallyLocalization.text("category_name", locale: LanguageManager.shared.currentLocale), text: $name)
                 .font(TallyType.display(22, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
                 .multilineTextAlignment(.center)
@@ -145,7 +145,7 @@ struct CategoryEditSheet: View {
 
     private var colorSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s3) {
-            Eyebrow("颜色")
+            Eyebrow(TallyLocalization.text("color", locale: LanguageManager.shared.currentLocale))
 
             LazyVGrid(columns: colorColumns, spacing: Constants.gridSpacing) {
                 ForEach(CategoryColorPalette.hexValues.indices, id: \.self) { index in
@@ -164,7 +164,7 @@ struct CategoryEditSheet: View {
 
     private var iconSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s3) {
-            Eyebrow("图标")
+            Eyebrow(TallyLocalization.text("icon", locale: LanguageManager.shared.currentLocale))
 
             LazyVGrid(columns: iconColumns, spacing: Constants.gridSpacing) {
                 ForEach(CategoryIconCatalog.sheetIcons, id: \.self) { icon in
@@ -186,7 +186,7 @@ struct CategoryEditSheet: View {
             dismiss()
             onDelete(record)
         } label: {
-            Label("删除分类", systemImage: "trash")
+            Label(TallyLocalization.text(.delete, locale: LanguageManager.shared.currentLocale), systemImage: "trash")
                 .font(TallyType.body(14, weight: .semibold))
                 .foregroundStyle(Color.red.opacity(0.88))
                 .frame(maxWidth: .infinity)

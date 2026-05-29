@@ -59,7 +59,7 @@ struct TallyNavHeader: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(Text("返回"))
+            .accessibilityLabel(Text(TallyLocalization.text("back", locale: LanguageManager.shared.currentLocale)))
         } else {
             Color.clear
         }

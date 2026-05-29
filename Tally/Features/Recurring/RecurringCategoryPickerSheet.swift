@@ -18,8 +18,8 @@ struct RecurringCategoryPickerSheet: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: LegacySpacing.lg) {
-                    section(title: "支出", items: expenseCategories)
-                    section(title: "收入", items: incomeCategories)
+                    section(title: TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale), items: expenseCategories)
+                    section(title: TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale), items: incomeCategories)
                 }
                 .padding(.bottom, LegacySpacing.lg)
             }
@@ -36,7 +36,7 @@ struct RecurringCategoryPickerSheet: View {
                 dismiss()
             }
             Spacer()
-            Text("选择类别")
+            Text(TallyLocalization.text(.categories, locale: LanguageManager.shared.currentLocale))
                 .font(LegacyTypography.headline)
                 .foregroundStyle(LegacyColors.textPrimary)
             Spacer()

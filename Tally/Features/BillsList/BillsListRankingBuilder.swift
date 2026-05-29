@@ -35,7 +35,7 @@ struct BillsListRankingBuilder {
 
         return sorted.prefix(6).map { (id, value) in
             let category = categoriesById[id]
-            let name = category?.name ?? "未分类"
+            let name = category?.name ?? TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale)
             let iconName = category?.iconKey ?? "tag"
             let iconHex = category?.colorHex.map { UInt32($0) }
             let percent = Double(value.amount) / Double(totalCents)

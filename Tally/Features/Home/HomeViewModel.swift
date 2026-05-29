@@ -77,7 +77,7 @@ final class HomeViewModel: ObservableObject {
             if loadedBills.isEmpty && groups.isEmpty {
                 summary = Summary(monthTitle: monthTitle(for: nowProvider()), expenseCents: 0, incomeCents: 0)
             }
-            errorMessage = "账单加载失败，请稍后重试"
+            errorMessage = TallyLocalization.text(.billLoadFailed, locale: LanguageManager.shared.currentLocale)
         }
     }
 
@@ -117,15 +117,12 @@ final class HomeViewModel: ObservableObject {
             guard let date = calendar.date(byAdding: .day, value: offset - 6, to: today) else {
                 return nil
             }
-            let weekday = max(1, calendar.component(.weekday, from: date)) - 1
-            return chineseWeekdayText(at: weekday)
+            return TallyLocalization.weekdayTitle(for: date, locale: LanguageManager.shared.currentLocale)
         }
     }
 
     var currentWeekdayText: String {
-        let calendar = Calendar.current
-        let weekday = max(1, calendar.component(.weekday, from: nowProvider())) - 1
-        return chineseWeekdayText(at: weekday)
+        TallyLocalization.weekdayTitle(for: nowProvider(), locale: LanguageManager.shared.currentLocale)
     }
 
     func bill(for id: UUID) -> BillRecord? {
@@ -140,7 +137,7 @@ final class HomeViewModel: ObservableObject {
             NotificationCenter.default.post(name: .billDidChange, object: nil)
             load()
         } catch {
-            errorMessage = "删除账单失败，请稍后重试"
+            errorMessage = TallyLocalization.text(.billDeleteFailed, locale: LanguageManager.shared.currentLocale)
         }
     }
 
@@ -240,24 +237,20 @@ final class HomeViewModel: ObservableObject {
             return (category.name, category.iconKey, Color(hex: hex))
         }
         let hex = CategoryColorPalette.defaultHex(for: fallbackId)
-        return ("未分类", "tag", Color(hex: hex))
+        return (TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale), "tag", Color(hex: hex))
     }
 
     private func dayTitle(for dayKey: String, todayKey: String, yesterdayKey: String) -> String {
-        if dayKey == todayKey { return "今天" }
-        if dayKey == yesterdayKey { return "昨天" }
-        let parts = dayKey.split(separator: "-")
-        if parts.count == 3, let month = Int(parts[1]), let day = Int(parts[2]) {
-            return "\(month)月\(day)日"
+        if dayKey == todayKey { return TallyLocalization.text(.today, locale: LanguageManager.shared.currentLocale) }
+        if dayKey == yesterdayKey { return TallyLocalization.text(.yesterday, locale: LanguageManager.shared.currentLocale) }
+        if let date = DayKeyFormatter.date(from: dayKey, timeZone: .autoupdatingCurrent) {
+            return TallyLocalization.monthDayTitle(for: date, locale: LanguageManager.shared.currentLocale)
         }
         return dayKey
     }
 
     private func monthTitle(for date: Date) -> String {
-        let components = Calendar.current.dateComponents(in: .current, from: date)
-        let year = components.year ?? 0
-        let month = components.month ?? 0
-        return "\(year)年\(month)月"
+        TallyLocalization.monthYearTitle(for: date, locale: LanguageManager.shared.currentLocale)
     }
 
     private func currentMonthKey() -> String {
@@ -273,9 +266,4 @@ final class HomeViewModel: ObservableObject {
         return min(max(day, 1), max(daysInMonth, 1))
     }
 
-    private func chineseWeekdayText(at zeroBasedWeekday: Int) -> String {
-        let symbols = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
-        guard symbols.indices.contains(zeroBasedWeekday) else { return "" }
-        return symbols[zeroBasedWeekday]
-    }
 }

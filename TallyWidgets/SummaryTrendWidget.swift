@@ -26,8 +26,8 @@ struct SummaryTrendWidget: Widget {
         StaticConfiguration(kind: Self.kind, provider: SummaryTrendProvider()) { entry in
             SummaryTrendWidgetView(model: entry.snapshot.summary)
         }
-        .configurationDisplayName("本月概览")
-        .description("查看本月结余与趋势")
+        .configurationDisplayName(TallyLocalization.text("summary_trend_widget_name", locale: TallyLocalization.widgetLocale))
+        .description(TallyLocalization.text("summary_trend_widget_description", locale: TallyLocalization.widgetLocale))
         .supportedFamilies([.systemMedium])
         .contentMarginsDisabled()
     }

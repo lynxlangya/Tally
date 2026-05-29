@@ -14,6 +14,7 @@ struct BillsListTrendBuilder {
     let customStart: Date
     let customEnd: Date
     let calendar: Calendar
+    let locale: Locale
 
     func build(for bills: [BillRecord]) -> BillsListTrendModel {
         let totals: [Int]
@@ -37,7 +38,7 @@ struct BillsListTrendBuilder {
                 let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
                 return dayTotals[dayKey, default: 0]
             }
-            axisLabels = ["一", "二", "三", "四", "五", "六", "日"]
+            axisLabels = dates.map { TallyLocalization.weekdayTitle(for: $0, locale: locale) }
             pointLabels = dates.map(shortDateText)
         case .month:
             let start = startOfMonth(for: anchorDate)
@@ -49,9 +50,12 @@ struct BillsListTrendBuilder {
                 let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
                 return dayTotals[dayKey, default: 0]
             }
-            let month = calendar.component(.month, from: anchorDate)
             let lastDay = dayRange.count
-            axisLabels = ["\(month)/1", "\(month)/15", "\(month)/\(lastDay)"]
+            axisLabels = [
+                shortDateText(for: start),
+                shortDateText(for: calendar.date(byAdding: .day, value: min(14, lastDay - 1), to: start) ?? start),
+                shortDateText(for: calendar.date(byAdding: .day, value: lastDay - 1, to: start) ?? start)
+            ]
             pointLabels = dates.map(shortDateText)
         case .year:
             let year = calendar.component(.year, from: anchorDate)
@@ -59,8 +63,14 @@ struct BillsListTrendBuilder {
                 let prefix = String(format: "%04d-%02d", year, month)
                 return monthTotals[prefix, default: 0]
             }
-            axisLabels = ["1月", "6月", "12月"]
-            pointLabels = (1...12).map { "\($0)月" }
+            axisLabels = [1, 6, 12].compactMap { month in
+                calendar.date(from: DateComponents(year: year, month: month, day: 1))
+            }
+            .map(monthText)
+            pointLabels = (1...12).compactMap { month in
+                calendar.date(from: DateComponents(year: year, month: month, day: 1))
+            }
+            .map(monthText)
         case .custom:
             let custom = buildCustomBuckets(dayTotals: dayTotals, monthTotals: monthTotals)
             totals = custom.totals
@@ -169,11 +179,11 @@ struct BillsListTrendBuilder {
     }
 
     private func shortDateText(for date: Date) -> String {
-        "\(calendar.component(.month, from: date))/\(calendar.component(.day, from: date))"
+        TallyLocalization.monthDayTitle(for: date, locale: locale)
     }
 
     private func monthText(for date: Date) -> String {
-        "\(calendar.component(.month, from: date))月"
+        TallyLocalization.monthTitle(for: date, locale: locale)
     }
 
     private func makePeak(values: [Int], labels: [String]) -> BillsListViewModel.TrendPeak? {

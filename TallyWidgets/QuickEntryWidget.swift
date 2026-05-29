@@ -31,8 +31,8 @@ struct QuickEntryWidget: Widget {
         StaticConfiguration(kind: Self.kind, provider: QuickEntryProvider()) { entry in
             QuickEntryWidgetView(model: entry.snapshot.quickEntry)
         }
-        .configurationDisplayName("快速记账")
-        .description("查看今日支出并快速记账")
+        .configurationDisplayName(TallyLocalization.text("quick_entry_widget_name", locale: TallyLocalization.widgetLocale))
+        .description(TallyLocalization.text("quick_entry_widget_description", locale: TallyLocalization.widgetLocale))
         .supportedFamilies([.systemSmall])
         .contentMarginsDisabled()
     }

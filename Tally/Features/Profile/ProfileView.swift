@@ -73,13 +73,13 @@ struct ProfileView: View {
             guard !suppressReminderToggle else { return }
             handleReminderToggle(dailyReminderEnabled)
         }
-        .alert("通知权限未开启", isPresented: $showReminderSettingsPrompt) {
-            Button("取消", role: .cancel) { }
-            Button("打开设置") {
+        .alert(TallyLocalization.text("notification_permission_title", locale: languageManager.currentLocale), isPresented: $showReminderSettingsPrompt) {
+            Button(TallyLocalization.text(.cancel, locale: languageManager.currentLocale), role: .cancel) { }
+            Button(TallyLocalization.text("open_settings", locale: languageManager.currentLocale)) {
                 openAppSettings()
             }
         } message: {
-            Text("请在系统设置中开启通知权限后再使用每日提醒。")
+            Text(TallyLocalization.text("notification_permission_message", locale: languageManager.currentLocale))
         }
         .navigationDestination(item: $selectedDestination) { destination in
             destinationView(for: destination)
@@ -99,7 +99,7 @@ struct ProfileView: View {
                     .minimumScaleFactor(0.72)
 
                 HStack(spacing: 10) {
-                    Text("\(viewModel.billCount) 笔")
+                    Text(TallyLocalization.format(.billCount, locale: languageManager.currentLocale, viewModel.billCount))
                         .font(TallyType.num(12, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
 
@@ -107,7 +107,7 @@ struct ProfileView: View {
                         .fill(Color.tallyInkGhost)
                         .frame(width: 3, height: 3)
 
-                    Text("已记 \(viewModel.recordedDayCount) 天")
+                    Text(TallyLocalization.format(.billRecordedDays, locale: languageManager.currentLocale, viewModel.recordedDayCount))
                         .font(TallyType.body(12, weight: .medium))
                         .foregroundStyle(Color.tallyInkDim)
                 }
@@ -144,9 +144,9 @@ struct ProfileView: View {
     private var streakCard: some View {
         VStack(spacing: TallySpacing.s3) {
             HStack(alignment: .firstTextBaseline) {
-                Eyebrow("本周")
+                Eyebrow(TallyLocalization.text(.week, locale: languageManager.currentLocale))
                 Spacer()
-                Text("已记 \(viewModel.weeklyRecordedCount) / 7 天")
+                Text(TallyLocalization.format("recorded_week_progress", locale: languageManager.currentLocale, viewModel.weeklyRecordedCount))
                     .font(TallyType.body(11, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
             }
@@ -208,10 +208,10 @@ struct ProfileView: View {
     private var reminderControl: some View {
         Toggle(isOn: $dailyReminderEnabled) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("每日提醒")
+                Text(TallyLocalization.text(.dailyReminder, locale: languageManager.currentLocale))
                     .font(TallyType.body(14, weight: .medium))
                     .foregroundStyle(Color.tallyInk)
-                Text("每天 20:00 提醒")
+                Text(TallyLocalization.text("daily_reminder_time", locale: languageManager.currentLocale))
                     .font(TallyType.body(11, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
             }
@@ -266,9 +266,9 @@ struct ProfileView: View {
         case .about:
             return versionSubtitle
         case .theme:
-            return "\(themeManager.settings.appearance.profileTitle) · \(themeManager.settings.accent.name)"
+            return "\(themeManager.settings.appearance.profileTitle) · \(themeManager.settings.accent.localizedName)"
         case .language:
-            return languageManager.selectedLanguage.title
+            return languageManager.selectedLanguage.nativeName
         default:
             return row.subtitle
         }
@@ -283,6 +283,54 @@ struct ProfileView: View {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         let normalized = version?.trimmingCharacters(in: .whitespacesAndNewlines)
         return "v\((normalized?.isEmpty == false ? normalized : nil) ?? "1.0")"
+    }
+
+    private var profileRows: [ProfileRow] {
+        let locale = languageManager.currentLocale
+        return [
+            ProfileRow(
+                icon: "shopping-cart",
+                title: TallyLocalization.text("category_management", locale: locale),
+                subtitle: "0",
+                destination: .categories
+            ),
+            ProfileRow(
+                icon: "repeat",
+                title: TallyLocalization.text(.recurring, locale: locale),
+                subtitle: "0",
+                destination: .recurring
+            ),
+            ProfileRow(
+                icon: "file-text",
+                title: TallyLocalization.text(.importExport, locale: locale),
+                subtitle: TallyLocalization.text("language_backup_subtitle", locale: locale),
+                destination: .importExport
+            ),
+            ProfileRow(
+                icon: "leaf",
+                title: TallyLocalization.text("theme_appearance", locale: locale),
+                subtitle: themeManager.settings.appearance.profileTitle,
+                destination: .theme
+            ),
+            ProfileRow(
+                icon: "globe",
+                title: TallyLocalization.text(.language, locale: locale),
+                subtitle: languageManager.selectedLanguage.nativeName,
+                destination: .language
+            ),
+            ProfileRow(
+                icon: "bell",
+                title: TallyLocalization.text(.widget, locale: locale),
+                subtitle: TallyLocalization.text("widget_profile_subtitle", locale: locale),
+                destination: .widget
+            ),
+            ProfileRow(
+                icon: "info",
+                title: TallyLocalization.text("about_tally", locale: locale),
+                subtitle: "v1.0",
+                destination: .about
+            )
+        ]
     }
 
     private func streakBarHeight(for day: ProfileViewModel.StreakDay) -> CGFloat {
@@ -444,16 +492,6 @@ private enum ProfileDestination: Hashable, Identifiable {
 
     var id: Self { self }
 }
-
-private let profileRows: [ProfileRow] = [
-    ProfileRow(icon: "shopping-cart", title: "分类管理", subtitle: "支出 0 · 收入 0", destination: .categories),
-    ProfileRow(icon: "repeat", title: "定时记账", subtitle: "0 条已启用", destination: .recurring),
-    ProfileRow(icon: "file-text", title: "导入与导出", subtitle: "CSV · JSON 备份", destination: .importExport),
-    ProfileRow(icon: "leaf", title: "主题与外观", subtitle: "深色 · 朱砂", destination: .theme),
-    ProfileRow(icon: "globe", title: "语言", subtitle: "简体中文", destination: .language),
-    ProfileRow(icon: "bell", title: "Widget", subtitle: "快捷记账 · 月度趋势", destination: .widget),
-    ProfileRow(icon: "info", title: "关于 Tally", subtitle: "v1.0", destination: .about)
-]
 
 #Preview {
     NavigationStack {

@@ -126,15 +126,15 @@ final class QuickEntryViewModel: ObservableObject {
 
     func save() -> Bool {
         guard let category = selectedCategory else {
-            errorMessage = "请选择分类"
+            errorMessage = TallyLocalization.text("select_category", locale: LanguageManager.shared.currentLocale)
             return false
         }
         guard let cents = cents(from: amountText) else {
-            errorMessage = "金额输入有误"
+            errorMessage = TallyLocalization.text("amount_invalid", locale: LanguageManager.shared.currentLocale)
             return false
         }
         guard cents > 0 else {
-            errorMessage = "金额需大于 0"
+            errorMessage = TallyLocalization.text("amount_positive_required", locale: LanguageManager.shared.currentLocale)
             return false
         }
 
@@ -186,7 +186,10 @@ final class QuickEntryViewModel: ObservableObject {
             errorMessage = nil
             return true
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "保存账单失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("bill_save_failed", locale: LanguageManager.shared.currentLocale)
+            )
             return false
         }
     }
@@ -202,7 +205,10 @@ final class QuickEntryViewModel: ObservableObject {
             errorMessage = nil
         } catch {
             categories = []
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "分类加载失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("category_load_failed", locale: LanguageManager.shared.currentLocale)
+            )
         }
     }
 
@@ -227,7 +233,7 @@ final class QuickEntryViewModel: ObservableObject {
             selectedCategory = CategoryRecord(
                 id: categoryId,
                 type: bill.type,
-                name: "未分类",
+                name: TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale),
                 iconKey: "tag",
                 colorHex: Int(CategoryColorPalette.defaultHex(for: categoryId)),
                 isSystem: true,

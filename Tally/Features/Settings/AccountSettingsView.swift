@@ -41,7 +41,7 @@ struct AccountSettingsView: View {
 
     private var header: some View {
         LegacyHeaderBar(
-            title: "账号设置",
+            title: TallyLocalization.text(.accountSettings, locale: LanguageManager.shared.currentLocale),
             titleFont: LegacyTypography.headline,
             titleColor: LegacyColors.profileRowTitle
         ) {
@@ -71,7 +71,7 @@ struct AccountSettingsView: View {
             }
 
             PhotosPicker(selection: $avatarItem, matching: .images) {
-                Text("更换头像")
+                Text(TallyLocalization.text("change_avatar", locale: LanguageManager.shared.currentLocale))
                     .font(LegacyTypography.caption)
                     .foregroundStyle(LegacyColors.accent)
             }
@@ -81,13 +81,13 @@ struct AccountSettingsView: View {
 
     private var nameSection: some View {
         VStack(alignment: .leading, spacing: LegacySpacing.sm) {
-            Text("名称")
+            Text(TallyLocalization.text("name", locale: LanguageManager.shared.currentLocale))
                 .font(LegacyTypography.caption)
                 .foregroundStyle(LegacyColors.textSecondary)
 
             LegacyLimitedTextField(
                 text: $profileName,
-                placeholder: "输入名称",
+                placeholder: TallyLocalization.text("enter_name", locale: LanguageManager.shared.currentLocale),
                 maxLength: 12,
                 font: UIFont.systemFont(ofSize: 17, weight: .medium),
                 textColor: UIColor(LegacyColors.textPrimary),

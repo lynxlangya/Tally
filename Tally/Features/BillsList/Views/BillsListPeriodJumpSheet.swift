@@ -50,7 +50,7 @@ struct BillsListPeriodJumpSheet: View {
 
     private var header: some View {
         HStack {
-            Button("取消") {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale)) {
                 dismiss()
             }
             .font(TallyType.body(18, weight: .medium))
@@ -65,7 +65,7 @@ struct BillsListPeriodJumpSheet: View {
 
             Spacer()
 
-            Button("完成") {
+            Button(TallyLocalization.text(.done, locale: LanguageManager.shared.currentLocale)) {
                 applySelection()
                 dismiss()
             }
@@ -105,7 +105,7 @@ struct BillsListPeriodJumpSheet: View {
                 onSelect: { selectedDate = $0 }
             )
 
-            Text("点任意一天，跳到该周")
+            Text(TallyLocalization.text("jump_to_week_hint", locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(14, weight: .medium))
                 .foregroundStyle(Color.tallyInkFaint)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -120,7 +120,7 @@ struct BillsListPeriodJumpSheet: View {
                     clampSelectedMonth()
                 }
 
-                Text(verbatim: "\(selectedYear) 年")
+                Text(yearText(selectedYear))
                     .font(TallyType.display(24, weight: .semibold))
                     .foregroundStyle(Color.tallyInk)
                     .frame(minWidth: 132)
@@ -138,7 +138,7 @@ struct BillsListPeriodJumpSheet: View {
                         guard enabled else { return }
                         selectedMonth = month
                     } label: {
-                        Text("\(month)月")
+                        Text(monthText(year: selectedYear, month: month))
                             .font(TallyType.body(18, weight: .semibold))
                             .foregroundStyle(monthTextColor(month: month, enabled: enabled))
                             .frame(maxWidth: .infinity)
@@ -166,13 +166,13 @@ struct BillsListPeriodJumpSheet: View {
                         selectedYear = year
                     } label: {
                         HStack {
-                            Text(verbatim: "\(year) 年")
+                            Text(yearText(year))
                                 .font(TallyType.display(26, weight: .semibold))
                                 .foregroundStyle(active ? themeColors.accentInk : Color.tallyInk)
 
                             Spacer()
 
-                            Text(year == currentYear ? "至今" : "全年")
+                            Text(TallyLocalization.text(year == currentYear ? "year_to_date" : "full_year", locale: LanguageManager.shared.currentLocale))
                                 .font(TallyType.body(14, weight: .medium))
                                 .foregroundStyle(active ? themeColors.accentInk.opacity(0.82) : Color.tallyInkDim)
                         }
@@ -223,7 +223,7 @@ struct BillsListPeriodJumpSheet: View {
                 onSelect: selectCustomDate
             )
 
-            Text("结束日不会晚于今天；起止选反时会自动调整。")
+            Text(TallyLocalization.text("custom_range_hint", locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(14, weight: .medium))
                 .foregroundStyle(Color.tallyInkFaint)
         }
@@ -231,13 +231,13 @@ struct BillsListPeriodJumpSheet: View {
 
     private var customBoundPicker: some View {
         HStack(spacing: TallySpacing.s3) {
-            customBoundButton(.start, title: "起始日", date: customStart)
+            customBoundButton(.start, title: TallyLocalization.text("start_date", locale: LanguageManager.shared.currentLocale), date: customStart)
 
             Image(systemName: "arrow.right")
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Color.tallyInkFaint)
 
-            customBoundButton(.end, title: "结束日", date: customEnd)
+            customBoundButton(.end, title: TallyLocalization.text("end_date", locale: LanguageManager.shared.currentLocale), date: customEnd)
         }
     }
 
@@ -274,13 +274,13 @@ struct BillsListPeriodJumpSheet: View {
     private var sheetTitle: String {
         switch viewModel.timeRange {
         case .week:
-            return "选择周"
+            return viewModel.timeRange.title
         case .month:
-            return "选择月份"
+            return viewModel.timeRange.title
         case .year:
-            return "选择年份"
+            return viewModel.timeRange.title
         case .custom:
-            return "自定区间"
+            return viewModel.timeRange.title
         }
     }
 
@@ -417,11 +417,27 @@ struct BillsListPeriodJumpSheet: View {
     }
 
     private func monthHeaderText(for date: Date) -> String {
-        "\(calendar.component(.year, from: date))年 \(calendar.component(.month, from: date))月"
+        TallyLocalization.monthYearTitle(for: date, locale: LanguageManager.shared.currentLocale)
     }
 
     private func longDateText(for date: Date) -> String {
-        "\(calendar.component(.year, from: date))年\(calendar.component(.month, from: date))月\(calendar.component(.day, from: date))日"
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = LanguageManager.shared.currentLocale
+        formatter.timeZone = .autoupdatingCurrent
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    private func yearText(_ year: Int) -> String {
+        let date = calendar.date(from: DateComponents(year: year, month: 1, day: 1)) ?? viewModel.latestSelectableDate
+        return TallyLocalization.yearTitle(for: date, locale: LanguageManager.shared.currentLocale)
+    }
+
+    private func monthText(year: Int, month: Int) -> String {
+        let date = calendar.date(from: DateComponents(year: year, month: month, day: 1)) ?? viewModel.latestSelectableDate
+        return TallyLocalization.monthTitle(for: date, locale: LanguageManager.shared.currentLocale)
     }
 }
 
@@ -458,7 +474,14 @@ private struct BillsListCalendarGrid: View {
 
     private let calendar = BillsListCalendarMetrics.calendar
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
-    private let weekdays = ["一", "二", "三", "四", "五", "六", "日"]
+    private var weekdays: [String] {
+        let locale = LanguageManager.shared.currentLocale
+        let start = DateComponents(calendar: calendar, year: 2026, month: 5, day: 4).date ?? Date()
+        return (0..<7).compactMap { offset in
+            guard let date = calendar.date(byAdding: .day, value: offset, to: start) else { return nil }
+            return TallyLocalization.weekdayTitle(for: date, locale: locale)
+        }
+    }
 
     var body: some View {
         VStack(spacing: TallySpacing.s3) {

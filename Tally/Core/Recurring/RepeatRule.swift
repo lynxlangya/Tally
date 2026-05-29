@@ -10,17 +10,18 @@ enum RepeatRule: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        let locale = LanguageManager.shared.currentLocale
         switch self {
         case .daily:
-            return "每天"
+            return TallyLocalization.text("repeat_rule_daily_title", locale: locale)
         case .weeklyMonday:
-            return "每周（周一）"
+            return TallyLocalization.text("repeat_rule_weekly_monday_title", locale: locale)
         case .weeklySunday:
-            return "每周（周日）"
+            return TallyLocalization.text("repeat_rule_weekly_sunday_title", locale: locale)
         case .monthlyFirst:
-            return "每月（月初）"
+            return TallyLocalization.text("repeat_rule_monthly_first_title", locale: locale)
         case .monthlyLast:
-            return "每月（月末）"
+            return TallyLocalization.text("repeat_rule_monthly_last_title", locale: locale)
         }
     }
 }

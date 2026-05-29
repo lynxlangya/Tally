@@ -51,14 +51,17 @@ struct CategoriesView: View {
 
             VStack(spacing: 0) {
                 TallyNavHeader(
-                    title: "分类",
+                    title: TallyLocalization.text(.categories, locale: LanguageManager.shared.currentLocale),
                     onBack: { dismiss() },
                     trailing: AnyView(addButton)
                 )
 
                 Segmented(
                     value: $selectedType,
-                    options: [(BillType.expense, "支出"), (BillType.income, "收入")],
+                    options: [
+                        (BillType.expense, TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale)),
+                        (BillType.income, TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale))
+                    ],
                     size: .md
                 )
                 .padding(.horizontal, TallySpacing.s6)
@@ -131,13 +134,13 @@ struct CategoriesView: View {
             )
         }
         .alert(viewModel.maxUserCategoriesMessage, isPresented: $showsLimitAlert) {
-            Button("知道了", role: .cancel) {}
+            Button(TallyLocalization.text(.gotIt, locale: LanguageManager.shared.currentLocale), role: .cancel) {}
         }
-        .alert("该类别下所有账单归类到未分类，是否继续？", isPresented: deleteAlertBinding) {
-            Button("取消", role: .cancel) {
+        .alert(TallyLocalization.text(.deleteCategoryConfirm, locale: LanguageManager.shared.currentLocale), isPresented: deleteAlertBinding) {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale), role: .cancel) {
                 pendingDelete = nil
             }
-            Button("继续", role: .destructive) {
+            Button(TallyLocalization.text(.continueAction, locale: LanguageManager.shared.currentLocale), role: .destructive) {
                 if let record = pendingDelete {
                     viewModel.deleteCategory(record)
                 }
@@ -158,7 +161,7 @@ struct CategoriesView: View {
                 .clipShape(Circle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("新分类")
+        .accessibilityLabel(TallyLocalization.text(.newCategory, locale: LanguageManager.shared.currentLocale))
     }
 
     private var gridColumns: [GridItem] {

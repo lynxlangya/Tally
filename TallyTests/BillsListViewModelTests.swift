@@ -46,7 +46,11 @@ final class BillsListViewModelTests: XCTestCase {
         XCTAssertEqual(result.2.map(\.title), ["餐饮", "旅行"])
         XCTAssertEqual(result.2.map(\.count), [2, 1])
         XCTAssertEqual(result.2.first?.iconColorHex, 0xB8553E)
-        XCTAssertEqual(result.3, ["5/1", "5/15", "5/31"])
+        XCTAssertEqual(result.3, [
+            monthDayText(year: 2026, month: 5, day: 1),
+            monthDayText(year: 2026, month: 5, day: 15),
+            monthDayText(year: 2026, month: 5, day: 31)
+        ])
         XCTAssertEqual(result.4, 4)
         XCTAssertEqual(result.5, 2)
     }
@@ -75,7 +79,7 @@ final class BillsListViewModelTests: XCTestCase {
         }
 
         XCTAssertEqual(result.0, 12)
-        XCTAssertEqual(result.1, "2026年")
+        XCTAssertEqual(result.1, yearText(2026))
     }
 
     func testCanGoNextIsFalseForCurrentPeriodAndTrueForPastPeriod() async throws {
@@ -140,10 +144,10 @@ final class BillsListViewModelTests: XCTestCase {
             return (previousTitle, previousKeys, previousCanGoNext, currentTitle, currentKeys, currentCanGoNext)
         }
 
-        XCTAssertEqual(result.0, "2026年4月")
+        XCTAssertEqual(result.0, monthYearText(year: 2026, month: 4))
         XCTAssertEqual(result.1, ["2026-04-30", "2026-04-01"])
         XCTAssertTrue(result.2)
-        XCTAssertEqual(result.3, "2026年5月")
+        XCTAssertEqual(result.3, monthYearText(year: 2026, month: 5))
         XCTAssertEqual(result.4, ["2026-05-20"])
         XCTAssertFalse(result.5)
     }
@@ -170,7 +174,7 @@ final class BillsListViewModelTests: XCTestCase {
             return (viewModel.timeTitle, viewModel.dayKeys, viewModel.trend30Cents)
         }
 
-        XCTAssertEqual(result.0, "12月29日–1月4日")
+        XCTAssertEqual(result.0, "\(monthDayText(year: 2025, month: 12, day: 29))–\(monthDayText(year: 2026, month: 1, day: 4))")
         XCTAssertEqual(result.1, ["2026-01-04", "2025-12-29"])
         XCTAssertEqual(result.2, [1_000, 0, 0, 0, 0, 0, 2_000])
     }
@@ -204,7 +208,11 @@ final class BillsListViewModelTests: XCTestCase {
         XCTAssertEqual(result.0.count, 20)
         XCTAssertEqual(result.0.first, 1_000)
         XCTAssertEqual(result.0.last, 2_000)
-        XCTAssertEqual(result.1, ["5/1", "5/11", "5/20"])
+        XCTAssertEqual(result.1, [
+            monthDayText(year: 2026, month: 5, day: 1),
+            monthDayText(year: 2026, month: 5, day: 11),
+            monthDayText(year: 2026, month: 5, day: 20)
+        ])
         XCTAssertEqual(result.2, ["2026-05-20", "2026-05-01"])
     }
 
@@ -231,7 +239,7 @@ final class BillsListViewModelTests: XCTestCase {
             return (viewModel.timeTitle, viewModel.dayKeys)
         }
 
-        XCTAssertEqual(result.0, "5月18日–5月20日")
+        XCTAssertEqual(result.0, "\(monthDayText(year: 2026, month: 5, day: 18))–\(monthDayText(year: 2026, month: 5, day: 20))")
         XCTAssertEqual(result.1, ["2026-05-20", "2026-05-18"])
     }
 
@@ -339,6 +347,27 @@ final class BillsListViewModelTests: XCTestCase {
             second: 0
         )
         return calendar.date(from: components) ?? Date(timeIntervalSince1970: 0)
+    }
+
+    private func monthDayText(year: Int, month: Int, day: Int) -> String {
+        TallyLocalization.monthDayTitle(
+            for: fixedDate(year: year, month: month, day: day),
+            locale: LanguageManager.shared.currentLocale
+        )
+    }
+
+    private func monthYearText(year: Int, month: Int) -> String {
+        TallyLocalization.monthYearTitle(
+            for: fixedDate(year: year, month: month, day: 1),
+            locale: LanguageManager.shared.currentLocale
+        )
+    }
+
+    private func yearText(_ year: Int) -> String {
+        TallyLocalization.yearTitle(
+            for: fixedDate(year: year, month: 1, day: 1),
+            locale: LanguageManager.shared.currentLocale
+        )
     }
 }
 

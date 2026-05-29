@@ -8,6 +8,7 @@
 import Foundation
 import os
 import SwiftUI
+import WidgetKit
 
 private let recurringLogger = Logger(subsystem: "com.langya.Tally", category: "recurring")
 
@@ -40,6 +41,10 @@ struct TallyApp: App {
                 .onChange(of: persistenceStartupState.status) { _, status in
                     guard status.isReady else { return }
                     runInitialStartupJobsIfReady()
+                }
+                .onChange(of: languageManager.selectedLanguage) { _, _ in
+                    WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.quickEntry)
+                    WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.summaryTrend)
                 }
         }
         .onChange(of: scenePhase) { _, newPhase in
@@ -104,6 +109,7 @@ struct TallyApp: App {
 }
 
 private struct PersistenceStartupStatusView: View {
+    @ObservedObject private var languageManager = LanguageManager.shared
     let issue: PersistenceStartupIssue?
 
     init(issue: PersistenceStartupIssue? = nil) {
@@ -123,11 +129,11 @@ private struct PersistenceStartupStatusView: View {
                     .clipShape(Circle())
 
                 VStack(spacing: TallySpacing.s2) {
-                    Text(issue?.title ?? "正在准备账本")
+                    Text(issue?.title ?? TallyLocalization.text("preparing_ledger", locale: languageManager.currentLocale))
                         .font(TallyType.display(22, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
 
-                    Text(issue?.message ?? "正在打开本地数据，请稍候。")
+                    Text(issue?.message ?? TallyLocalization.text("opening_local_data", locale: languageManager.currentLocale))
                         .font(TallyType.body(15))
                         .foregroundStyle(Color.tallyInkDim)
                         .multilineTextAlignment(.center)

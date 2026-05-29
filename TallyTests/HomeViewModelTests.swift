@@ -63,7 +63,7 @@ final class HomeViewModelTests: XCTestCase {
         }
 
         XCTAssertEqual(result.0, 1)
-        XCTAssertEqual(result.1, "账单加载失败，请稍后重试")
+        XCTAssertEqual(result.1, TallyLocalization.text(.billLoadFailed, locale: LanguageManager.shared.currentLocale))
     }
 
     func testDeleteFailureSurfacesErrorAndKeepsRows() async throws {
@@ -90,7 +90,7 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(result.0, 1)
         XCTAssertEqual(result.1, 1)
-        XCTAssertEqual(result.2, "删除账单失败，请稍后重试")
+        XCTAssertEqual(result.2, TallyLocalization.text(.billDeleteFailed, locale: LanguageManager.shared.currentLocale))
     }
 
     func testGroupsSortByOccurredLocalDateDescending() async throws {
@@ -205,7 +205,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(result, [100, 0, 0, 0, 0, 0, 300])
     }
 
-    func testTrend7LabelsUseChineseWeekdayNames() async throws {
+    func testTrend7LabelsUseLocalizedWeekdayNames() async throws {
         let now = fixedDate(year: 2026, month: 4, day: 10, hour: 9, minute: 0)
         let categoryId = UUID()
         let result = await MainActor.run { () -> ([String], String) in
@@ -214,8 +214,15 @@ final class HomeViewModelTests: XCTestCase {
             return (viewModel.trend7Labels, viewModel.currentWeekdayText)
         }
 
-        XCTAssertEqual(result.0, ["周六", "周日", "周一", "周二", "周三", "周四", "周五"])
-        XCTAssertEqual(result.1, "周五")
+        let locale = LanguageManager.shared.currentLocale
+        let expectedLabels = (4...10).map { day in
+            TallyLocalization.weekdayTitle(
+                for: fixedDate(year: 2026, month: 4, day: day, hour: 9, minute: 0),
+                locale: locale
+            )
+        }
+        XCTAssertEqual(result.0, expectedLabels)
+        XCTAssertEqual(result.1, TallyLocalization.weekdayTitle(for: now, locale: locale))
     }
 
     func testItemTitlePrefersNoteAndSubtitleUsesCategoryAndTime() async throws {

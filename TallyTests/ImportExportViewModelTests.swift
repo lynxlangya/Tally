@@ -17,7 +17,7 @@ final class ImportExportViewModelTests: XCTestCase {
         )
 
         XCTAssertEqual(viewModel.currentRecordCount, 2)
-        XCTAssertEqual(viewModel.dateRangeSubtitle, "跨度 2026/5/1 — 2026/5/3 · 3 天")
+        XCTAssertEqual(viewModel.dateRangeSubtitle, "跨度 2026/5/1 - 2026/5/3 · 3 天")
     }
 
     @MainActor

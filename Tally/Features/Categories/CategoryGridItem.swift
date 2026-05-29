@@ -80,7 +80,7 @@ struct AddCategoryItem: View {
                             .foregroundStyle(Color.tallyInkFaint)
                     )
 
-                Text("新分类")
+                Text(TallyLocalization.text(.newCategory, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(12, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
                     .lineLimit(1)

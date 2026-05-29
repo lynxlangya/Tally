@@ -48,12 +48,19 @@ final class ImportExportViewModel: ObservableObject {
     }
 
     var dateRangeSubtitle: String {
-        guard let dayKeyRange else { return "还没有记录跨度。" }
+        let locale = LanguageManager.shared.currentLocale
+        guard let dayKeyRange else { return TallyLocalization.text("import_export_empty_range", locale: locale) }
         let dayCount = max(
             1,
             (Self.dayKeyCalendar.dateComponents([.day], from: dayKeyRange.0, to: dayKeyRange.1).day ?? 0) + 1
         )
-        return "跨度 \(Self.rangeDateFormatter.string(from: dayKeyRange.0)) — \(Self.rangeDateFormatter.string(from: dayKeyRange.1)) · \(dayCount) 天"
+        return TallyLocalization.format(
+            "import_export_range_subtitle",
+            locale: locale,
+            Self.rangeDateText(dayKeyRange.0, locale: locale),
+            Self.rangeDateText(dayKeyRange.1, locale: locale),
+            dayCount
+        )
     }
 
     private var dayKeyRange: (Date, Date)? {
@@ -79,13 +86,13 @@ final class ImportExportViewModel: ObservableObject {
     }
 
     func exportCSV() {
-        runExportAction(title: "导出 CSV", kind: .csv) { [service, selectedScope] in
+        runExportAction(title: TallyLocalization.text("export_csv", locale: LanguageManager.shared.currentLocale), kind: .csv) { [service, selectedScope] in
             try await service.exportCSV(request: ExportRequest(scope: selectedScope, type: .csv))
         }
     }
 
     func exportBackup() {
-        runExportAction(title: "导出备份 JSON", kind: .backupJSON) { [service, selectedScope] in
+        runExportAction(title: TallyLocalization.text("export_backup_json", locale: LanguageManager.shared.currentLocale), kind: .backupJSON) { [service, selectedScope] in
             try await service.exportBackup(request: ExportRequest(scope: selectedScope, type: .backupJSON))
         }
     }
@@ -176,7 +183,7 @@ final class ImportExportViewModel: ObservableObject {
                     errors: result.failedCount
                 )
                 importResultDialog = ImportResultDialog(
-                    title: "导入结果",
+                    title: TallyLocalization.text("import_result", locale: LanguageManager.shared.currentLocale),
                     importedCount: result.importedCount,
                     skippedCount: result.skippedCount,
                     failedCount: result.failedCount
@@ -230,14 +237,15 @@ final class ImportExportViewModel: ObservableObject {
     }
 
     private func previewMessage(_ preview: ImportPreview) -> String {
+        let locale = LanguageManager.shared.currentLocale
         var lines: [String] = [
-            "可导入：\(preview.pendingCount)",
-            "冲突：\(preview.conflictCount)",
-            "失败：\(preview.failedCount)"
+            TallyLocalization.format("import_pending_count", locale: locale, preview.pendingCount),
+            TallyLocalization.format("import_conflict_count", locale: locale, preview.conflictCount),
+            TallyLocalization.format("import_failed_count", locale: locale, preview.failedCount)
         ]
 
         if !preview.errorSummary.isEmpty {
-            lines.append("错误摘要：")
+            lines.append(TallyLocalization.text("import_error_summary", locale: locale))
             lines.append(contentsOf: preview.errorSummary.map { "• \($0)" })
         }
 
@@ -268,16 +276,27 @@ final class ImportExportViewModel: ObservableObject {
                 )
                 recordLog(status: .success, title: title, count: result.recordCount, errors: 0)
                 if let size = result.fileSizeBytes {
-                    showToast("已生成\(title)（\(result.recordCount)条，\(formatFileSize(size))）")
+                    showToast(TallyLocalization.format(
+                        "export_generated_with_size",
+                        locale: LanguageManager.shared.currentLocale,
+                        title,
+                        result.recordCount,
+                        formatFileSize(size)
+                    ))
                 } else {
-                    showToast("已生成\(title)（\(result.recordCount)条）")
+                    showToast(TallyLocalization.format(
+                        "export_generated",
+                        locale: LanguageManager.shared.currentLocale,
+                        title,
+                        result.recordCount
+                    ))
                 }
             } catch ServiceError.notImplemented {
                 recordLog(status: .failure, title: title, count: 0, errors: 1)
-                showToast("\(title)功能开发中")
+                showToast(TallyLocalization.format("feature_in_development", locale: LanguageManager.shared.currentLocale, title))
             } catch {
                 recordLog(status: .failure, title: title, count: 0, errors: 1)
-                showToast("\(title)失败，请稍后重试")
+                showToast(TallyLocalization.format("action_failed_try_later", locale: LanguageManager.shared.currentLocale, title))
             }
         }
     }
@@ -318,21 +337,17 @@ final class ImportExportViewModel: ObservableObject {
         case csv
 
         var title: String {
+            let locale = LanguageManager.shared.currentLocale
             switch self {
             case .backup:
-                return "导入备份"
+                return TallyLocalization.text("import_backup", locale: locale)
             case .csv:
-                return "导入 CSV"
+                return TallyLocalization.text("import_csv", locale: locale)
             }
         }
 
         var notImplementedToast: String {
-            switch self {
-            case .backup:
-                return "导入备份功能开发中"
-            case .csv:
-                return "导入 CSV 功能开发中"
-            }
+            TallyLocalization.format("feature_in_development", locale: LanguageManager.shared.currentLocale, title)
         }
     }
 
@@ -356,14 +371,14 @@ final class ImportExportViewModel: ObservableObject {
         return calendar
     }()
 
-    private static let rangeDateFormatter: DateFormatter = {
+    private static func rangeDateText(_ date: Date, locale: Locale) -> String {
         let formatter = DateFormatter()
         formatter.calendar = dayKeyCalendar
         formatter.timeZone = dayKeyCalendar.timeZone
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "yyyy/M/d"
-        return formatter
-    }()
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("yMd")
+        return formatter.string(from: date)
+    }
 }
 
 extension ImportExportViewModel {
@@ -394,10 +409,11 @@ extension ImportExportViewModel {
         let failedCount: Int
 
         var message: String {
-            [
-                "成功：\(importedCount)",
-                "跳过：\(skippedCount)",
-                "失败：\(failedCount)"
+            let locale = LanguageManager.shared.currentLocale
+            return [
+                TallyLocalization.format("import_success_count", locale: locale, importedCount),
+                TallyLocalization.format("import_skipped_count", locale: locale, skippedCount),
+                TallyLocalization.format("import_failed_count", locale: locale, failedCount)
             ].joined(separator: "\n")
         }
     }
