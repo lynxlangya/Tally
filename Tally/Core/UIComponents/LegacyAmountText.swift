@@ -27,7 +27,7 @@ struct LegacyAmountText: View {
     }
 
     private var displayText: String {
-        let amount = MoneyFormatter.string(fromCents: cents)
+        let amount = MoneyFormatter.string(fromCents: cents, locale: LanguageManager.shared.currentLocale)
         return (sign ?? "") + amount
     }
 

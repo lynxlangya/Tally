@@ -31,7 +31,7 @@ struct RecurringBillFormSheet: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    FormActionRow(title: "分类") {
+                    FormActionRow(title: TallyLocalization.text(.categories, locale: LanguageManager.shared.currentLocale)) {
                         showsCategoryPicker = true
                     } content: {
                         HStack(spacing: 10) {
@@ -46,7 +46,7 @@ struct RecurringBillFormSheet: View {
                                     .font(TallyType.body(15, weight: .medium))
                                     .foregroundStyle(Color.tallyInk)
                             } else {
-                                Text("请选择")
+                                Text(TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale))
                                     .font(TallyType.body(15, weight: .medium))
                                     .foregroundStyle(Color.tallyInkFaint)
                             }
@@ -56,7 +56,7 @@ struct RecurringBillFormSheet: View {
                         }
                     }
 
-                    FormActionRow(title: "金额") {
+                    FormActionRow(title: TallyLocalization.text(.amount, locale: LanguageManager.shared.currentLocale)) {
                         showsAmountEditor = true
                     } content: {
                         HStack(spacing: 5) {
@@ -74,7 +74,7 @@ struct RecurringBillFormSheet: View {
 
                     ruleSection
 
-                    FormDisplayRow(title: "下次触发") {
+                    FormDisplayRow(title: TallyLocalization.text("next_trigger", locale: LanguageManager.shared.currentLocale)) {
                         Text(viewModel.nextFireText)
                             .font(TallyType.body(14, weight: .medium))
                             .foregroundStyle(Color.tallyInk)
@@ -131,7 +131,7 @@ struct RecurringBillFormSheet: View {
 
     private var header: some View {
         HStack {
-            Button("取消") {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale)) {
                 dismiss()
             }
             .font(TallyType.body(14, weight: .medium))
@@ -139,13 +139,13 @@ struct RecurringBillFormSheet: View {
 
             Spacer()
 
-            Text(viewModel.isEditing ? "编辑定时" : "新建定时")
+            Text(TallyLocalization.text(viewModel.isEditing ? .recurring : .newRecurring, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.display(16, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
 
             Spacer()
 
-            Button("保存") {
+            Button(TallyLocalization.text(.done, locale: LanguageManager.shared.currentLocale)) {
                 if viewModel.save() {
                     dismiss()
                     onSaved()
@@ -162,7 +162,7 @@ struct RecurringBillFormSheet: View {
 
     private var ruleSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("重复规则")
+            Text(TallyLocalization.text(.recurringRule, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(12, weight: .medium))
                 .foregroundStyle(Color.tallyInkDim)
 
@@ -201,11 +201,11 @@ struct RecurringBillFormSheet: View {
 
     private var noteRow: some View {
         HStack(alignment: .center, spacing: TallySpacing.s4) {
-            Text("备注")
+            Text(TallyLocalization.text(.note, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(13, weight: .medium))
                 .foregroundStyle(Color.tallyInkDim)
 
-            TextField("选填", text: $viewModel.note)
+            TextField(TallyLocalization.text("optional", locale: LanguageManager.shared.currentLocale), text: $viewModel.note)
                 .focused($isNoteFocused)
                 .font(TallyType.body(14, weight: .regular))
                 .foregroundStyle(Color.tallyInk)
@@ -230,10 +230,10 @@ private enum RuleOption: CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .daily: return "每日"
-        case .weekly: return "每周"
-        case .monthlyFirst: return "月初"
-        case .monthlyLast: return "月末"
+        case .daily: return TallyLocalization.text("repeat_daily", locale: LanguageManager.shared.currentLocale)
+        case .weekly: return TallyLocalization.text("repeat_weekly", locale: LanguageManager.shared.currentLocale)
+        case .monthlyFirst: return TallyLocalization.text("repeat_monthly_first", locale: LanguageManager.shared.currentLocale)
+        case .monthlyLast: return TallyLocalization.text("repeat_monthly_last", locale: LanguageManager.shared.currentLocale)
         }
     }
 
@@ -316,11 +316,11 @@ private struct RecurringAmountEditorSheet: View {
     var body: some View {
         VStack(spacing: TallySpacing.s5) {
             HStack {
-                Text("金额")
+                Text(TallyLocalization.text(.amount, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.display(16, weight: .semibold))
                     .foregroundStyle(Color.tallyInk)
                 Spacer()
-                Button("完成", action: onDone)
+                Button(TallyLocalization.text(.done, locale: LanguageManager.shared.currentLocale), action: onDone)
                     .font(TallyType.body(14, weight: .semibold))
                     .foregroundStyle(Color.tallyAccent)
             }

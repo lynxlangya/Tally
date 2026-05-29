@@ -12,9 +12,9 @@ enum ExportScope: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .currentMonth:
-            return "当前月"
+            return TallyLocalization.text("current_month", locale: LanguageManager.shared.currentLocale)
         case .allRecords:
-            return "全部"
+            return TallyLocalization.text("all_records", locale: LanguageManager.shared.currentLocale)
         }
     }
 }

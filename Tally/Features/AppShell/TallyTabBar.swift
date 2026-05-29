@@ -10,11 +10,11 @@ enum TallyShellTab: Int, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .home:
-            return "今日"
+            return TallyLocalization.text(.home, locale: LanguageManager.shared.currentLocale)
         case .statistics:
-            return "账本"
+            return TallyLocalization.text(.bills, locale: LanguageManager.shared.currentLocale)
         case .profile:
-            return "我"
+            return TallyLocalization.text(.profile, locale: LanguageManager.shared.currentLocale)
         }
     }
 

@@ -36,10 +36,10 @@ struct ThemeSettingsView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .applyThemePreview(settings: settings)
-        .alert("图标暂时无法切换", isPresented: iconErrorBinding) {
-            Button("知道了", role: .cancel) { }
+        .alert(TallyLocalization.text("icon_switch_unavailable", locale: LanguageManager.shared.currentLocale), isPresented: iconErrorBinding) {
+            Button(TallyLocalization.text(.gotIt, locale: LanguageManager.shared.currentLocale), role: .cancel) { }
         } message: {
-            Text(iconErrorMessage ?? "请稍后再试。")
+            Text(iconErrorMessage ?? TallyLocalization.text("try_again_later", locale: LanguageManager.shared.currentLocale))
         }
         .onAppear {
             tabBarVisibility?.setVisible(false)
@@ -59,11 +59,11 @@ struct ThemeSettingsView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("返回")
+            .accessibilityLabel(TallyLocalization.text("back", locale: LanguageManager.shared.currentLocale))
 
             Spacer()
 
-            Text("主题与外观")
+            Text(TallyLocalization.text("theme_title", locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.display(18, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
 
@@ -77,13 +77,13 @@ struct ThemeSettingsView: View {
     private var previewCard: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center) {
-                Text("预览 · 本月 5 月")
+                Text(TallyLocalization.text("preview_current_month", locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(12, weight: .semibold))
                     .foregroundStyle(Color.tallyInkFaint)
 
                 Spacer()
 
-                Text(settings.accent.name)
+                Text(settings.accent.localizedName)
                     .font(TallyType.body(11, weight: .medium))
                     .foregroundStyle(Color.tallyInkDim)
 
@@ -97,7 +97,7 @@ struct ThemeSettingsView: View {
             DividerLine()
 
             HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text("¥")
+                Text(MoneyFormatter.currencySymbol(locale: LanguageManager.shared.currentLocale))
                     .font(numberFont(size: 34, weight: .regular))
                     .foregroundStyle(Color.tallyInkFaint)
                 Text(primaryAmountText)
@@ -137,7 +137,7 @@ struct ThemeSettingsView: View {
                                 TallyMark(size: 12, variant: .one, color: .white, strokeWidth: 1.8)
                             )
 
-                        Text("记一笔")
+                        Text(TallyLocalization.text(.quickEntry, locale: LanguageManager.shared.currentLocale))
                             .font(TallyType.body(14, weight: .semibold))
                     }
                     .foregroundStyle(Color.tallyAccentInk)
@@ -148,7 +148,7 @@ struct ThemeSettingsView: View {
                     .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("预览记一笔")
+                .accessibilityLabel(TallyLocalization.text("preview_quick_entry", locale: LanguageManager.shared.currentLocale))
             }
             .padding(.horizontal, TallySpacing.s5)
             .frame(height: 86)
@@ -164,7 +164,7 @@ struct ThemeSettingsView: View {
 
     private var appearanceSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            SectionTitle(title: "皮肤", trailing: settings.appearance.title)
+            SectionTitle(title: TallyLocalization.text("appearance_skin", locale: LanguageManager.shared.currentLocale), trailing: settings.appearance.title)
 
             GeometryReader { proxy in
                 let spacing: CGFloat = 10
@@ -191,7 +191,7 @@ struct ThemeSettingsView: View {
 
     private var accentSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            SectionTitle(title: "SIGNATURE 色", trailing: settings.accent.displayName)
+            SectionTitle(title: TallyLocalization.text("signature_color", locale: LanguageManager.shared.currentLocale), trailing: settings.accent.displayName)
 
             VStack(spacing: 0) {
                 HStack(spacing: 10) {
@@ -214,7 +214,7 @@ struct ThemeSettingsView: View {
                     .padding(.horizontal, TallySpacing.s4)
 
                 HStack {
-                    Text("FAB · 收入 · 强调")
+                    Text(TallyLocalization.text("accent_usage_hint", locale: LanguageManager.shared.currentLocale))
                         .font(TallyType.body(13, weight: .medium))
                         .foregroundStyle(Color.tallyInkDim)
                     Spacer()
@@ -236,7 +236,10 @@ struct ThemeSettingsView: View {
 
     private var appIconSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            SectionTitle(title: "APP 图标", trailing: "点选后同步主屏图标")
+            SectionTitle(
+                title: TallyLocalization.text("app_icon", locale: LanguageManager.shared.currentLocale),
+                trailing: TallyLocalization.text("app_icon_trailing", locale: LanguageManager.shared.currentLocale)
+            )
 
             HStack(spacing: TallySpacing.s5) {
                 ForEach(ThemeAppIconOption.allCases) { option in
@@ -256,12 +259,12 @@ struct ThemeSettingsView: View {
 
     private var detailSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            SectionTitle(title: "细节", trailing: nil)
+            SectionTitle(title: TallyLocalization.text("details", locale: LanguageManager.shared.currentLocale), trailing: nil)
 
             VStack(spacing: 0) {
                 DetailToggleRow(
-                    title: "减少动效",
-                    subtitle: "关闭弹簧与过渡",
+                    title: TallyLocalization.text("reduce_motion", locale: LanguageManager.shared.currentLocale),
+                    subtitle: TallyLocalization.text("reduce_motion_subtitle", locale: LanguageManager.shared.currentLocale),
                     isOn: Binding(
                         get: { settings.reduceMotion },
                         set: { themeManager.setReduceMotion($0) }
@@ -273,8 +276,8 @@ struct ThemeSettingsView: View {
                     .padding(.leading, TallySpacing.s4)
 
                 DetailToggleRow(
-                    title: "触感反馈",
-                    subtitle: "记一笔与拨号盘时轻触",
+                    title: TallyLocalization.text("haptic_feedback", locale: LanguageManager.shared.currentLocale),
+                    subtitle: TallyLocalization.text("haptic_feedback_subtitle", locale: LanguageManager.shared.currentLocale),
                     isOn: Binding(
                         get: { settings.hapticFeedback },
                         set: { themeManager.setHapticFeedback($0) }
@@ -300,7 +303,12 @@ struct ThemeSettingsView: View {
             HStack(spacing: TallySpacing.s3) {
                 Image(systemName: "arrow.counterclockwise")
                     .font(.system(size: 14, weight: .semibold))
-                Text("恢复默认 · \(ThemeManager.defaultAppearance.title) \(themeManager.defaultAccent.name)")
+                Text(TallyLocalization.format(
+                    "reset_default_format",
+                    locale: LanguageManager.shared.currentLocale,
+                    ThemeManager.defaultAppearance.title,
+                    themeManager.defaultAccent.localizedName
+                ))
                     .font(TallyType.body(14, weight: .semibold))
             }
             .foregroundStyle(Color.tallyInkDim)
@@ -496,7 +504,7 @@ private struct AppearanceCard: View {
                     .fill(ink.opacity(0.24))
                     .frame(width: 22, height: 4)
                 Spacer()
-                Text(MoneyFormatter.wholeYuanString(fromCents: 642_100))
+                Text(MoneyFormatter.wholeYuanString(fromCents: 642_100, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.num(16, weight: .semibold))
                     .foregroundStyle(ink)
                 Rectangle()
@@ -684,7 +692,7 @@ private struct TallyThemeToggleStyle: ToggleStyle {
                     )
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(configuration.isOn ? "已开启" : "已关闭")
+        .accessibilityLabel(TallyLocalization.text(configuration.isOn ? "enabled" : "disabled", locale: LanguageManager.shared.currentLocale))
         }
     }
 }

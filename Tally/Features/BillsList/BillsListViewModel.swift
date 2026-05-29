@@ -78,15 +78,6 @@ final class BillsListViewModel: ObservableObject {
         return calendar
     }()
 
-    private static let detailDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.timeZone = .autoupdatingCurrent
-        formatter.dateFormat = "M月d日"
-        return formatter
-    }()
-
     init(
         repository: BillRepository,
         categoryRepository: CategoryRepository,
@@ -102,67 +93,73 @@ final class BillsListViewModel: ObservableObject {
 
     var timeTitle: String {
         let normalized = normalizedAnchorDate
+        let locale = LanguageManager.shared.currentLocale
         switch timeRange {
         case .week:
             let range = dateRange(for: normalized)
-            return "\(shortDateTitle(for: range.start))–\(shortDateTitle(for: range.end))"
+            return "\(shortDateTitle(for: range.start, locale: locale))–\(shortDateTitle(for: range.end, locale: locale))"
         case .month:
-            let year = calendar.component(.year, from: normalized)
-            let month = calendar.component(.month, from: normalized)
-            return "\(year)年\(month)月"
+            return TallyLocalization.monthYearTitle(for: normalized, locale: locale)
         case .year:
-            let year = calendar.component(.year, from: normalized)
-            return "\(year)年"
+            return TallyLocalization.yearTitle(for: normalized, locale: locale)
         case .custom:
             let range = dateRange(for: normalized)
-            return "\(shortDateTitle(for: range.start))–\(shortDateTitle(for: range.end))"
+            return "\(shortDateTitle(for: range.start, locale: locale))–\(shortDateTitle(for: range.end, locale: locale))"
         }
     }
 
     var periodNavigationTitle: String {
         let normalized = normalizedAnchorDate
+        let locale = LanguageManager.shared.currentLocale
         switch timeRange {
         case .week:
             let range = dateRange(for: normalized)
-            return "\(shortDottedTitle(for: range.start)) – \(shortDottedTitle(for: range.end))"
+            return "\(shortDateTitle(for: range.start, locale: locale)) – \(shortDateTitle(for: range.end, locale: locale))"
         case .month:
-            let year = calendar.component(.year, from: normalized)
-            let month = calendar.component(.month, from: normalized)
-            return "\(year)年\(month)月"
+            return TallyLocalization.monthYearTitle(for: normalized, locale: locale)
         case .year:
-            let year = calendar.component(.year, from: normalized)
-            return "\(year)年"
+            return TallyLocalization.yearTitle(for: normalized, locale: locale)
         case .custom:
             let range = dateRange(for: normalized)
-            return "\(shortDottedTitle(for: range.start)) – \(shortDottedTitle(for: range.end))"
+            return "\(shortDateTitle(for: range.start, locale: locale)) – \(shortDateTitle(for: range.end, locale: locale))"
         }
     }
 
     var periodEyebrow: String {
         let normalized = normalizedAnchorDate
+        let locale = LanguageManager.shared.currentLocale
         switch timeRange {
         case .week:
             let weekStart = dateRange(for: normalized).start
-            let month = calendar.component(.month, from: weekStart)
-            return "\(month)月第 \(weekOrdinalInMonth(for: weekStart)) 周"
+            return TallyLocalization.format(
+                .periodWeekOrdinal,
+                locale: locale,
+                TallyLocalization.monthTitle(for: weekStart, locale: locale),
+                weekOrdinalInMonth(for: weekStart)
+            )
         case .month:
-            let month = calendar.component(.month, from: normalized)
-            return "\(month)月"
+            return TallyLocalization.monthTitle(for: normalized, locale: locale)
         case .year:
-            let year = calendar.component(.year, from: normalized)
-            return "\(year)"
+            return TallyLocalization.yearTitle(for: normalized, locale: locale)
         case .custom:
-            return "自定区间"
+            return TallyLocalization.text(.timeRangeCustom, locale: locale)
         }
     }
 
     var summaryTitle: String {
-        let typeTitle = selectedType == .expense ? "支出" : "收入"
-        return "\(timeRange.summaryPrefix)总\(typeTitle)"
+        let typeTitle = selectedTypeTitle
+        return TallyLocalization.format(
+            "summary_total_type",
+            locale: LanguageManager.shared.currentLocale,
+            timeRange.summaryPrefix,
+            typeTitle
+        )
     }
 
     var selectedTypeTitle: String {
-        selectedType == .expense ? "支出" : "收入"
+        selectedType == .expense
+            ? TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale)
+            : TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale)
     }
 
     var selectedTotalCents: Int {
@@ -170,7 +167,7 @@ final class BillsListViewModel: ObservableObject {
     }
 
     var rankTitle: String {
-        selectedType == .expense ? "支出排行" : "收入排行"
+        TallyLocalization.text(selectedType == .expense ? "expense_ranking" : "income_ranking", locale: LanguageManager.shared.currentLocale)
     }
 
     var trend30Cents: [Int] {
@@ -185,13 +182,13 @@ final class BillsListViewModel: ObservableObject {
         let typeTitle = selectedTypeTitle
         switch timeRange {
         case .week:
-            return "本周\(typeTitle)"
+            return TallyLocalization.format(.trendWeek, locale: LanguageManager.shared.currentLocale, typeTitle)
         case .month:
-            return "本期\(typeTitle)"
+            return TallyLocalization.format(.trendMonth, locale: LanguageManager.shared.currentLocale, typeTitle)
         case .year:
-            return "全年\(typeTitle)"
+            return TallyLocalization.format(.trendYear, locale: LanguageManager.shared.currentLocale, typeTitle)
         case .custom:
-            return "区间\(typeTitle)"
+            return TallyLocalization.format(.trendCustom, locale: LanguageManager.shared.currentLocale, typeTitle)
         }
     }
 
@@ -299,7 +296,10 @@ final class BillsListViewModel: ObservableObject {
             applyFilters()
         } catch {
             didLoad = false
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "账本加载失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text(.billLoadFailed, locale: LanguageManager.shared.currentLocale)
+            )
         }
     }
 
@@ -345,7 +345,8 @@ final class BillsListViewModel: ObservableObject {
                 anchorDate: normalizedAnchorDate,
                 customStart: normalizedCustomRange.start,
                 customEnd: normalizedCustomRange.end,
-                calendar: calendar
+                calendar: calendar,
+                locale: LanguageManager.shared.currentLocale
             )
             .build(for: trendBills)
             trendPoints = trend.points
@@ -384,7 +385,10 @@ final class BillsListViewModel: ObservableObject {
             categoryRankingTotalCount = 0
             summaryTotalCents = 0
             summaryChange = nil
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "账本加载失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text(.billLoadFailed, locale: LanguageManager.shared.currentLocale)
+            )
         }
     }
 
@@ -414,10 +418,10 @@ final class BillsListViewModel: ObservableObject {
 
         let totalCents = items.reduce(0) { $0 + $1.amount.cents }
         let category = categoriesById[categoryId]
-        let title = category?.name ?? "未分类"
+        let title = category?.name ?? TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale)
         let detailItems = items.map { bill in
             let note = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let noteText = note.isEmpty ? "无备注" : note
+            let noteText = note.isEmpty ? TallyLocalization.text(.noNote, locale: LanguageManager.shared.currentLocale) : note
             return CategoryDetailItem(
                 id: bill.id,
                 dateText: Self.detailDateString(for: bill),
@@ -539,12 +543,8 @@ final class BillsListViewModel: ObservableObject {
         }
     }
 
-    private func shortDateTitle(for date: Date) -> String {
-        "\(calendar.component(.month, from: date))月\(calendar.component(.day, from: date))日"
-    }
-
-    private func shortDottedTitle(for date: Date) -> String {
-        "\(calendar.component(.month, from: date)).\(calendar.component(.day, from: date))"
+    private func shortDateTitle(for date: Date, locale: Locale) -> String {
+        TallyLocalization.monthDayTitle(for: date, locale: locale)
     }
 
     private func weekOrdinalInMonth(for weekStart: Date) -> Int {
@@ -565,7 +565,7 @@ final class BillsListViewModel: ObservableObject {
     private func makeRowItem(for bill: BillRecord) -> RowItem {
         let categoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
         let category = categoriesById[categoryId]
-        let title = category?.name ?? "未分类"
+        let title = category?.name ?? TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale)
 
         let timeString = BillTimeFormatter.timeText(for: bill)
         let note = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -594,6 +594,6 @@ final class BillsListViewModel: ObservableObject {
         guard let date = DayKeyFormatter.date(from: bill.occurredLocalDate, timeZone: .autoupdatingCurrent) else {
             return bill.occurredLocalDate
         }
-        return detailDateFormatter.string(from: date)
+        return TallyLocalization.monthDayTitle(for: date, locale: LanguageManager.shared.currentLocale)
     }
 }

@@ -26,7 +26,7 @@ struct RecurringBillsView: View {
 
             VStack(spacing: 0) {
                 TallyNavHeader(
-                    title: "定时记账",
+                    title: TallyLocalization.text(.recurring, locale: LanguageManager.shared.currentLocale),
                     onBack: { dismiss() },
                     trailing: AnyView(addButton)
                 )
@@ -36,7 +36,7 @@ struct RecurringBillsView: View {
                 if viewModel.items.isEmpty {
                     Spacer(minLength: 0)
                     LegacyEmptyStateView(
-                        title: "还没有定时账单。"
+                        title: TallyLocalization.text("no_recurring_bills", locale: LanguageManager.shared.currentLocale)
                     )
                     Spacer(minLength: 0)
                 } else {
@@ -52,13 +52,16 @@ struct RecurringBillsView: View {
                                     Button(role: .destructive) {
                                         viewModel.delete(id: item.id)
                                     } label: {
-                                        Label("删除", systemImage: "trash")
+                                        Label(TallyLocalization.text(.delete, locale: LanguageManager.shared.currentLocale), systemImage: "trash")
                                     }
 
                                     Button {
                                         viewModel.toggleEnabled(id: item.id, isEnabled: !item.isEnabled)
                                     } label: {
-                                        Label(item.isEnabled ? "暂停" : "启用", systemImage: item.isEnabled ? "pause.fill" : "play.fill")
+                                        Label(
+                                            TallyLocalization.text(item.isEnabled ? "pause" : "enable", locale: LanguageManager.shared.currentLocale),
+                                            systemImage: item.isEnabled ? "pause.fill" : "play.fill"
+                                        )
                                     }
                                     .tint(item.isEnabled ? .orange : .green)
                                 }
@@ -98,8 +101,8 @@ struct RecurringBillsView: View {
                 viewModel.load()
             }
         }
-        .alert("操作未完成", isPresented: errorAlertBinding) {
-            Button("知道了", role: .cancel) {
+        .alert(TallyLocalization.text(.operationIncomplete, locale: LanguageManager.shared.currentLocale), isPresented: errorAlertBinding) {
+            Button(TallyLocalization.text(.gotIt, locale: LanguageManager.shared.currentLocale), role: .cancel) {
                 viewModel.dismissError()
             }
         } message: {
@@ -129,19 +132,24 @@ struct RecurringBillsView: View {
                 .clipShape(Circle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("新建定时")
+        .accessibilityLabel(TallyLocalization.text(.newRecurring, locale: LanguageManager.shared.currentLocale))
     }
 
     private var summaryRow: some View {
         HStack(alignment: .firstTextBaseline) {
-            Eyebrow("已启用 \(viewModel.enabledCount) 条 · 暂停 \(viewModel.pausedCount) 条")
+            Eyebrow(TallyLocalization.format(
+                "enabled_paused_summary",
+                locale: LanguageManager.shared.currentLocale,
+                viewModel.enabledCount,
+                viewModel.pausedCount
+            ))
 
             Spacer(minLength: TallySpacing.s3)
 
             HStack(spacing: 3) {
-                Text("每月固定支出")
+                Text(TallyLocalization.text(.monthlyExpense, locale: LanguageManager.shared.currentLocale))
                     .foregroundStyle(Color.tallyInkFaint)
-                Text(MoneyFormatter.string(fromCents: viewModel.monthlyFixedExpenseCents))
+                Text(MoneyFormatter.string(fromCents: viewModel.monthlyFixedExpenseCents, locale: LanguageManager.shared.currentLocale))
                     .foregroundStyle(Color.tallyInkDim)
             }
             .font(TallyType.num(11, weight: .medium))
@@ -179,7 +187,7 @@ private struct RecurringBillRow: View {
                 HStack(spacing: 5) {
                     Image(systemName: "clock")
                         .font(.system(size: 10, weight: .regular))
-                    Text("下次 \(item.nextFireText)")
+                    Text(TallyLocalization.format("next_fire_format", locale: LanguageManager.shared.currentLocale, item.nextFireText))
                         .font(TallyType.body(11, weight: .medium))
                 }
                 .foregroundStyle(Color.tallyInkFaint)

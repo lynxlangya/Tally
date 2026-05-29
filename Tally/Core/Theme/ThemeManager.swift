@@ -10,35 +10,38 @@ enum AppearanceMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     var title: String {
+        let locale = LanguageManager.shared.currentLocale
         switch self {
         case .dark:
-            return "夜"
+            return TallyLocalization.text("appearance_dark_title", locale: locale)
         case .light:
-            return "昼"
+            return TallyLocalization.text("appearance_light_title", locale: locale)
         case .system:
-            return "跟随"
+            return TallyLocalization.text("appearance_system_title", locale: locale)
         }
     }
 
     var subtitle: String {
+        let locale = LanguageManager.shared.currentLocale
         switch self {
         case .dark:
-            return "墨色"
+            return TallyLocalization.text("appearance_dark_subtitle", locale: locale)
         case .light:
-            return "月白"
+            return TallyLocalization.text("appearance_light_subtitle", locale: locale)
         case .system:
-            return "系统"
+            return TallyLocalization.text("appearance_system_subtitle", locale: locale)
         }
     }
 
     var profileTitle: String {
+        let locale = LanguageManager.shared.currentLocale
         switch self {
         case .dark:
-            return "深色"
+            return TallyLocalization.text("appearance_dark_profile", locale: locale)
         case .light:
-            return "浅色"
+            return TallyLocalization.text("appearance_light_profile", locale: locale)
         case .system:
-            return "跟随系统"
+            return TallyLocalization.text("appearance_system_profile", locale: locale)
         }
     }
 
@@ -63,15 +66,16 @@ enum ThemeAppIconOption: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     var title: String {
+        let locale = LanguageManager.shared.currentLocale
         switch self {
         case .vermilion:
-            return "朱砂"
+            return TallyLocalization.text("app_icon_vermilion", locale: locale)
         case .moon:
-            return "月白"
+            return TallyLocalization.text("app_icon_moon", locale: locale)
         case .ink:
-            return "墨笔"
+            return TallyLocalization.text("app_icon_ink", locale: locale)
         case .inkNote:
-            return "砚台"
+            return TallyLocalization.text("app_icon_ink_note", locale: locale)
         }
     }
 
@@ -97,7 +101,11 @@ struct AccentOption: Identifiable {
     let hex: UInt32
 
     var displayName: String {
-        "\(name) · \(englishName)"
+        "\(localizedName) · \(englishName)"
+    }
+
+    var localizedName: String {
+        TallyLocalization.text("accent_\(id.snakeCased)", locale: LanguageManager.shared.currentLocale)
     }
 
     var hexText: String {
@@ -225,4 +233,18 @@ private enum Keys {
     static let appIcon = "theme.appIcon"
     static let reduceMotion = "theme.reduceMotion"
     static let hapticFeedback = "theme.hapticFeedback"
+}
+
+private extension String {
+    var snakeCased: String {
+        unicodeScalars.reduce(into: "") { result, scalar in
+            let character = Character(scalar)
+            if CharacterSet.uppercaseLetters.contains(scalar), !result.isEmpty {
+                result.append("_")
+                result.append(String(character).lowercased())
+            } else {
+                result.append(String(character))
+            }
+        }
+    }
 }

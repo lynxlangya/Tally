@@ -52,7 +52,7 @@ final class RecurringBillFormViewModel: ObservableObject {
     }
 
     var firstDateText: String {
-        Self.firstDateFormatter.string(from: normalizedFirstDate(firstDate))
+        Self.firstDateText(normalizedFirstDate(firstDate))
     }
 
     var nextFireText: String {
@@ -61,7 +61,7 @@ final class RecurringBillFormViewModel: ObservableObject {
             rule: repeatRule,
             now: nowProvider()
         )
-        return Self.nextFireFormatter.string(from: date) + " " + Self.weekdayText(for: date)
+        return Self.nextFireText(for: date)
     }
 
     var amountCents: Int {
@@ -90,7 +90,10 @@ final class RecurringBillFormViewModel: ObservableObject {
             errorMessage = nil
         } catch {
             categories = []
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "分类加载失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("category_load_failed", locale: LanguageManager.shared.currentLocale)
+            )
         }
     }
 
@@ -116,19 +119,19 @@ final class RecurringBillFormViewModel: ObservableObject {
 
     func save() -> Bool {
         guard let category = selectedCategory else {
-            errorMessage = "请选择分类"
+            errorMessage = TallyLocalization.text("select_category", locale: LanguageManager.shared.currentLocale)
             return false
         }
         let cents = amountValue
         guard cents > 0 else {
-            errorMessage = "金额需大于 0"
+            errorMessage = TallyLocalization.text("amount_positive_required", locale: LanguageManager.shared.currentLocale)
             return false
         }
 
         let now = nowProvider()
         let firstExecutionDate = normalizedFirstDate(firstDate)
         if !isEditing && firstExecutionDate <= now {
-            errorMessage = "首次执行时间必须晚于当前时间"
+            errorMessage = TallyLocalization.text("first_fire_must_be_future", locale: LanguageManager.shared.currentLocale)
             return false
         }
         let nextFireDate = RecurringScheduler.computeNextFireDate(
@@ -164,7 +167,10 @@ final class RecurringBillFormViewModel: ObservableObject {
             errorMessage = nil
             return true
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "保存定时账单失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("recurring_save_failed", locale: LanguageManager.shared.currentLocale)
+            )
             return false
         }
     }
@@ -335,34 +341,18 @@ final class RecurringBillFormViewModel: ObservableObject {
         return "\(yuan).\(centText)"
     }
 
-    private static let firstDateFormatter: DateFormatter = {
+    private static func firstDateText(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = LanguageManager.shared.currentLocale
         formatter.timeZone = .autoupdatingCurrent
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter
-    }()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
 
-    private static let nextFireFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M/d"
-        return formatter
-    }()
-
-    private static func weekdayText(for date: Date) -> String {
-        let weekday = Calendar.current.component(.weekday, from: date)
-        switch weekday {
-        case 1: return "周日"
-        case 2: return "周一"
-        case 3: return "周二"
-        case 4: return "周三"
-        case 5: return "周四"
-        case 6: return "周五"
-        case 7: return "周六"
-        default: return "周一"
-        }
+    private static func nextFireText(for date: Date) -> String {
+        let locale = LanguageManager.shared.currentLocale
+        return "\(TallyLocalization.monthDayTitle(for: date, locale: locale)) \(TallyLocalization.weekdayTitle(for: date, locale: locale))"
     }
 }

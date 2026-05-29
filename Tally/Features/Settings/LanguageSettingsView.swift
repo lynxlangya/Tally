@@ -57,11 +57,11 @@ struct LanguageSettingsView: View {
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("返回")
+            .accessibilityLabel(Text(TallyLocalization.text(.cancel, locale: languageManager.currentLocale)))
 
             Spacer()
 
-            Text("语言")
+            Text(TallyLocalization.text(.language, locale: languageManager.currentLocale))
                 .font(TallyType.display(18, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
 
@@ -76,12 +76,12 @@ struct LanguageSettingsView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: TallySpacing.s2) {
-                    Text("LANGUAGE")
+                    Text(TallyLocalization.text(.language, locale: languageManager.currentLocale).uppercased())
                         .font(TallyType.body(11, weight: .semibold))
                         .tracking(1.8)
                         .foregroundStyle(Color.tallyInkFaint)
 
-                    Text(selectedLanguage.title)
+                    Text(selectedLanguage.nativeName)
                         .font(TallyType.display(30, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                         .lineLimit(1)
@@ -100,10 +100,10 @@ struct LanguageSettingsView: View {
 
             HStack(alignment: .bottom, spacing: TallySpacing.s4) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(selectedLanguage.sampleTitle)
+                    Text(selectedLanguage.sampleTitle(locale: languageManager.currentLocale))
                         .font(TallyType.body(14, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
-                    Text(selectedLanguage.sampleSubtitle)
+                    Text(selectedLanguage.sampleSubtitle(locale: languageManager.currentLocale))
                         .font(TallyType.body(12, weight: .medium))
                         .foregroundStyle(Color.tallyInkFaint)
                 }
@@ -136,12 +136,13 @@ struct LanguageSettingsView: View {
 
     private var languageSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            LanguageSectionTitle(title: "应用语言", trailing: selectedLanguage.nativeName)
+            LanguageSectionTitle(title: TallyLocalization.text(.applicationLanguage, locale: languageManager.currentLocale), trailing: selectedLanguage.nativeName)
 
             VStack(spacing: 0) {
                 ForEach(Array(languageManager.languageOptions.enumerated()), id: \.element.id) { index, language in
                     LanguageOptionRow(
                         language: language,
+                        locale: languageManager.currentLocale,
                         isSelected: selectedLanguage == language,
                         accent: accent
                     ) {
@@ -165,16 +166,16 @@ struct LanguageSettingsView: View {
 
     private var formatPreviewSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            LanguageSectionTitle(title: "格式预览", trailing: selectedLanguage.localeIdentifier)
+            LanguageSectionTitle(title: TallyLocalization.text(.formatPreview, locale: languageManager.currentLocale), trailing: selectedLanguage.localeIdentifier)
 
             VStack(spacing: 0) {
-                LanguageFormatRow(title: "日期", value: formattedDate)
+                LanguageFormatRow(title: TallyLocalization.text(.date, locale: languageManager.currentLocale), value: formattedDate)
                 LanguageDividerLine()
                     .padding(.leading, TallySpacing.s4)
-                LanguageFormatRow(title: "月份", value: formattedMonth)
+                LanguageFormatRow(title: TallyLocalization.text(.month, locale: languageManager.currentLocale), value: formattedMonth)
                 LanguageDividerLine()
                     .padding(.leading, TallySpacing.s4)
-                LanguageFormatRow(title: "金额", value: formattedAmount)
+                LanguageFormatRow(title: TallyLocalization.text(.amount, locale: languageManager.currentLocale), value: formattedAmount)
             }
             .background(Color.tallySurface)
             .clipShape(RoundedRectangle(cornerRadius: TallyRadii.lg, style: .continuous))
@@ -201,7 +202,7 @@ struct LanguageSettingsView: View {
     }
 
     private var formattedAmount: String {
-        MoneyFormatter.string(fromCents: 642_188)
+        MoneyFormatter.string(fromCents: 642_188, locale: languageManager.currentLocale)
     }
 
     private var previewDate: Date {
@@ -250,6 +251,7 @@ private struct LanguageSectionTitle: View {
 
 private struct LanguageOptionRow: View {
     let language: AppLanguage
+    let locale: Locale
     let isSelected: Bool
     let accent: Color
     let action: () -> Void
@@ -265,12 +267,12 @@ private struct LanguageOptionRow: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(language.title)
+                        Text(language.displayTitle(locale: locale))
                             .font(TallyType.body(15, weight: .semibold))
                             .foregroundStyle(Color.tallyInk)
                             .lineLimit(1)
 
-                        if language.title != language.nativeName {
+                        if language.displayTitle(locale: locale) != language.nativeName {
                             Text(language.nativeName)
                                 .font(TallyType.body(11, weight: .medium))
                                 .foregroundStyle(Color.tallyInkFaint)
@@ -278,7 +280,7 @@ private struct LanguageOptionRow: View {
                         }
                     }
 
-                    Text(language.subtitle)
+                    Text(language.displaySubtitle(locale: locale))
                         .font(TallyType.body(12, weight: .medium))
                         .foregroundStyle(Color.tallyInkFaint)
                         .lineLimit(1)
@@ -293,7 +295,7 @@ private struct LanguageOptionRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(language.title)，\(language.subtitle)")
+        .accessibilityLabel("\(language.displayTitle(locale: locale))，\(language.displaySubtitle(locale: locale))")
         .languageSelectedAccessibility(isSelected)
     }
 }

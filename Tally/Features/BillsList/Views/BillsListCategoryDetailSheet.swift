@@ -72,7 +72,7 @@ struct BillsListCategoryDetailSheet: View {
                         .foregroundStyle(Color.tallyInk)
                         .lineLimit(1)
 
-                    Text("\(detail.items.count) 笔 · \(detail.isIncome ? "收入" : "支出")")
+                    Text("\(TallyLocalization.format(.entryCount, locale: LanguageManager.shared.currentLocale, detail.items.count)) · \(detail.isIncome ? TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale) : TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale))")
                         .font(TallyType.body(11, weight: .medium))
                         .foregroundStyle(Color.tallyInkFaint)
                 }
@@ -91,7 +91,10 @@ struct BillsListCategoryDetailSheet: View {
             }
 
             HStack(spacing: TallySpacing.s2) {
-                MiniStatPill(title: detail.isIncome ? "收入明细" : "支出明细", value: "\(detail.items.count) 笔")
+                MiniStatPill(
+                    title: TallyLocalization.text(detail.isIncome ? .incomeDetail : .expenseDetail, locale: LanguageManager.shared.currentLocale),
+                    value: TallyLocalization.format(.entryCount, locale: LanguageManager.shared.currentLocale, detail.items.count)
+                )
 
                 Spacer(minLength: 0)
             }
@@ -108,7 +111,7 @@ struct BillsListCategoryDetailSheet: View {
     }
 
     private var emptyState: some View {
-        Text("没有记录。")
+        Text(TallyLocalization.text(.noDetails, locale: LanguageManager.shared.currentLocale))
             .font(TallyType.body(13, weight: .medium))
             .foregroundStyle(Color.tallyInkFaint)
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -26,6 +26,7 @@ struct TallyAmountText: View {
     let color: Color
     let dim: Bool
     let showYen: Bool
+    let locale: Locale
 
     init(
         cents: Int,
@@ -34,7 +35,8 @@ struct TallyAmountText: View {
         weight: Font.Weight = .medium,
         color: Color = .tallyInk,
         dim: Bool = false,
-        showYen: Bool = true
+        showYen: Bool = true,
+        locale: Locale = LanguageManager.shared.currentLocale
     ) {
         self.cents = cents
         self.sign = sign
@@ -43,6 +45,7 @@ struct TallyAmountText: View {
         self.color = color
         self.dim = dim
         self.showYen = showYen
+        self.locale = locale
     }
 
     var body: some View {
@@ -53,7 +56,8 @@ struct TallyAmountText: View {
             weight: weight,
             color: dim ? .tallyInkDim : color,
             dim: dim,
-            showYen: showYen
+            showYen: showYen,
+            locale: locale
         )
     }
 
@@ -64,9 +68,10 @@ struct TallyAmountText: View {
         weight: Font.Weight = .medium,
         color: Color = .tallyInk,
         dim: Bool = false,
-        showYen: Bool = true
+        showYen: Bool = true,
+        locale: Locale = LanguageManager.shared.currentLocale
     ) -> Text {
-        let parts = amountParts(cents: cents)
+        let parts = amountParts(cents: cents, locale: locale)
         let resolvedColor = dim ? Color.tallyInkDim : color
         let decimalSize = size * 0.62
         var text = Text("")
@@ -78,7 +83,7 @@ struct TallyAmountText: View {
         }
 
         if showYen {
-            text = text + Text("¥")
+            text = text + Text(MoneyFormatter.currencySymbol(locale: locale))
                 .font(TallyType.num(decimalSize, weight: .light))
                 .foregroundColor(resolvedColor.opacity(0.55))
                 .baselineOffset(-size * 0.06)
@@ -93,8 +98,8 @@ struct TallyAmountText: View {
                 .foregroundColor(resolvedColor.opacity(0.5))
     }
 
-    static func amountParts(cents: Int) -> MoneyFormatter.Parts {
-        MoneyFormatter.parts(fromCents: cents)
+    static func amountParts(cents: Int, locale: Locale = LanguageManager.shared.currentLocale) -> MoneyFormatter.Parts {
+        MoneyFormatter.parts(fromCents: cents, locale: locale)
     }
 }
 

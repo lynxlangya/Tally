@@ -20,7 +20,7 @@ final class CategoriesViewModel: ObservableObject {
     }
 
     var maxUserCategoriesMessage: String {
-        "最多新增 \(maxUserCategories) 个分类"
+        TallyLocalization.format("category_limit_message", locale: LanguageManager.shared.currentLocale, maxUserCategories)
     }
 
     func load(type: BillType) {
@@ -31,7 +31,10 @@ final class CategoriesViewModel: ObservableObject {
             userCategoryCount = fetched.filter { !$0.isSystem }.count
             errorMessage = nil
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "分类加载失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("category_load_failed", locale: LanguageManager.shared.currentLocale)
+            )
         }
     }
 
@@ -39,7 +42,7 @@ final class CategoriesViewModel: ObservableObject {
     func addCategory(name: String, iconKey: String, colorHex: UInt32) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            errorMessage = "分类名称不能为空"
+            errorMessage = TallyLocalization.text("category_name_empty", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
         guard !isAtLimit else {
@@ -47,7 +50,7 @@ final class CategoriesViewModel: ObservableObject {
             return errorMessage
         }
         guard !categories.contains(where: { !$0.isSystem && $0.name == trimmed }) else {
-            errorMessage = "分类名称已存在"
+            errorMessage = TallyLocalization.text("category_name_exists", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
 
@@ -67,7 +70,10 @@ final class CategoriesViewModel: ObservableObject {
             NotificationCenter.default.post(name: .categoryDidChange, object: nil)
             return nil
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "新增分类失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("category_create_failed", locale: LanguageManager.shared.currentLocale)
+            )
             return errorMessage
         }
     }
@@ -76,20 +82,20 @@ final class CategoriesViewModel: ObservableObject {
     func updateCategory(id: UUID, name: String, iconKey: String, colorHex: UInt32) -> String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            errorMessage = "分类名称不能为空"
+            errorMessage = TallyLocalization.text("category_name_empty", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
 
         guard let existing = categories.first(where: { $0.id == id }) else {
-            errorMessage = "未找到分类"
+            errorMessage = TallyLocalization.text("category_not_found", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
         guard !existing.isSystem else {
-            errorMessage = "系统分类不可编辑"
+            errorMessage = TallyLocalization.text("system_category_edit_forbidden", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
         guard !categories.contains(where: { !$0.isSystem && $0.id != id && $0.name == trimmed }) else {
-            errorMessage = "分类名称已存在"
+            errorMessage = TallyLocalization.text("category_name_exists", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
 
@@ -109,14 +115,17 @@ final class CategoriesViewModel: ObservableObject {
             NotificationCenter.default.post(name: .categoryDidChange, object: nil)
             return nil
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "更新分类失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("category_update_failed", locale: LanguageManager.shared.currentLocale)
+            )
             return errorMessage
         }
     }
 
     func deleteCategory(_ category: CategoryRecord) {
         guard !category.isSystem else {
-            errorMessage = "系统分类不可删除"
+            errorMessage = TallyLocalization.text("system_category_delete_forbidden", locale: LanguageManager.shared.currentLocale)
             return
         }
         do {
@@ -126,7 +135,10 @@ final class CategoriesViewModel: ObservableObject {
             persistOrder(notifiesChange: false)
             NotificationCenter.default.post(name: .categoryDidChange, object: nil)
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "删除分类失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("category_delete_failed", locale: LanguageManager.shared.currentLocale)
+            )
         }
     }
 
@@ -168,7 +180,10 @@ final class CategoriesViewModel: ObservableObject {
                 NotificationCenter.default.post(name: .categoryDidChange, object: nil)
             }
         } catch {
-            errorMessage = FeatureErrorMessage.message(for: error, fallback: "保存分类排序失败，请稍后重试")
+            errorMessage = FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("category_order_save_failed", locale: LanguageManager.shared.currentLocale)
+            )
             load(type: selectedType)
         }
     }

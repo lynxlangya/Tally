@@ -59,7 +59,7 @@ struct CategoryPickerSheet: View {
 
     private var header: some View {
         HStack {
-            Text("选择分类")
+            Text(TallyLocalization.text(.categories, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(17, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
 
@@ -142,7 +142,7 @@ struct CategoryPickerSheet: View {
                             .foregroundStyle(Color.tallyInkFaint)
                     )
 
-                Text("新分类")
+                Text(TallyLocalization.text(.newCategory, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(12, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
             }
@@ -164,8 +164,8 @@ private struct CategoryPickerTypeToggle: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            toggleButton(type: .expense, title: "支出")
-            toggleButton(type: .income, title: "收入")
+            toggleButton(type: .expense, title: TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale))
+            toggleButton(type: .income, title: TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale))
         }
         .padding(3)
         .background(Color.tallySurface2)

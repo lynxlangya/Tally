@@ -9,10 +9,10 @@ enum BillTimeFormatter {
 
     static func timeText(from occurredAtUTC: Date, tzId: String, tzOffset: Int) -> String {
         let timeZone = TimePolicy.timeZone(tzId: tzId, tzOffset: tzOffset)
-        return formatter(for: timeZone).string(from: occurredAtUTC)
+        return formatter(for: timeZone, locale: LanguageManager.shared.currentLocale).string(from: occurredAtUTC)
     }
 
-    private static func formatter(for timeZone: TimeZone) -> DateFormatter {
+    private static func formatter(for timeZone: TimeZone, locale: Locale) -> DateFormatter {
         let threadDictionary = Thread.current.threadDictionary
         let storage: NSMutableDictionary
         if let existing = threadDictionary[threadDictionaryKey] as? NSMutableDictionary {
@@ -23,16 +23,18 @@ enum BillTimeFormatter {
             storage = created
         }
 
-        if let formatter = storage[timeZone.identifier] as? DateFormatter {
+        let cacheKey = "\(timeZone.identifier)|\(locale.identifier)"
+        if let formatter = storage[cacheKey] as? DateFormatter {
             return formatter
         }
 
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "HH:mm"
+        formatter.locale = locale
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
         formatter.timeZone = timeZone
-        storage[timeZone.identifier] = formatter
+        storage[cacheKey] = formatter
         return formatter
     }
 }

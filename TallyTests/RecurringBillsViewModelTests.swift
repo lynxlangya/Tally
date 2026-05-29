@@ -43,7 +43,10 @@ final class RecurringBillsViewModelTests: XCTestCase {
         XCTAssertEqual(result.1, 1)
         XCTAssertEqual(result.2, 540000)
         XCTAssertEqual(result.3, ["月初", "每周"])
-        XCTAssertEqual(result.4, ["6/1 周一", "6/8 周一"])
+        XCTAssertEqual(result.4, [
+            localizedMonthDayWeekday(year: 2026, month: 6, day: 1),
+            localizedMonthDayWeekday(year: 2026, month: 6, day: 8)
+        ])
         XCTAssertEqual(result.5, [true, false])
     }
 
@@ -204,6 +207,12 @@ final class RecurringBillsViewModelTests: XCTestCase {
             createdAt: firstDate,
             updatedAt: firstDate
         )
+    }
+
+    private func localizedMonthDayWeekday(year: Int, month: Int, day: Int) -> String {
+        let date = fixedDate(year: year, month: month, day: day, hour: 9, minute: 0)
+        let locale = LanguageManager.shared.currentLocale
+        return "\(TallyLocalization.monthDayTitle(for: date, locale: locale)) \(TallyLocalization.weekdayTitle(for: date, locale: locale))"
     }
 
     private func fixedDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {

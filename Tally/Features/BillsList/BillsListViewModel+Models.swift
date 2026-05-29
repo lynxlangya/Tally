@@ -11,15 +11,15 @@ extension BillsListViewModel {
 
         var title: String {
             switch self {
-            case .week: return "周"
-            case .month: return "月"
-            case .year: return "年"
-            case .custom: return "自定"
+            case .week: return TallyLocalization.text(.timeRangeWeek, locale: LanguageManager.shared.currentLocale)
+            case .month: return TallyLocalization.text(.timeRangeMonth, locale: LanguageManager.shared.currentLocale)
+            case .year: return TallyLocalization.text(.timeRangeYear, locale: LanguageManager.shared.currentLocale)
+            case .custom: return TallyLocalization.text(.timeRangeCustom, locale: LanguageManager.shared.currentLocale)
             }
         }
 
         var summaryPrefix: String {
-            "合计"
+            TallyLocalization.text(.summaryTotal, locale: LanguageManager.shared.currentLocale)
         }
     }
 
@@ -31,8 +31,8 @@ extension BillsListViewModel {
 
         var title: String {
             switch self {
-            case .most: return "最多"
-            case .least: return "最少"
+            case .most: return TallyLocalization.text("most", locale: LanguageManager.shared.currentLocale)
+            case .least: return TallyLocalization.text("least", locale: LanguageManager.shared.currentLocale)
             }
         }
     }

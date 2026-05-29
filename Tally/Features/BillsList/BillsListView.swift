@@ -137,7 +137,7 @@ struct BillsListView: View {
 
     private var header: some View {
         HStack(alignment: .center, spacing: TallySpacing.s4) {
-            Text("账本")
+            Text(TallyLocalization.text(.bills, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.display(28, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
                 .lineLimit(1)
@@ -147,7 +147,10 @@ struct BillsListView: View {
 
             Segmented(
                 value: $viewModel.selectedType,
-                options: [(BillType.expense, "支出"), (BillType.income, "收入")],
+                options: [
+                    (BillType.expense, TallyLocalization.text(.expense, locale: LanguageManager.shared.currentLocale)),
+                    (BillType.income, TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale))
+                ],
                 size: .sm
             )
         }
@@ -249,9 +252,9 @@ private struct BillsListHeroSummary: View {
                 .frame(height: 0.5)
 
             HStack(alignment: .top, spacing: TallySpacing.s7) {
-                miniMetric(title: "收入", cents: summary.incomeCents, sign: .income, color: .tallyInkDim)
+                miniMetric(title: TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale), cents: summary.incomeCents, sign: .income, color: .tallyInkDim)
                 miniMetric(
-                    title: "结余",
+                    title: TallyLocalization.text(.balance, locale: LanguageManager.shared.currentLocale),
                     cents: abs(summary.balanceCents),
                     sign: summary.balanceCents >= 0 ? .income : .expense,
                     color: summary.balanceCents >= 0 ? themeColors.accent : .tallyInk
@@ -337,8 +340,20 @@ private struct StatsTrendCard: View {
     }
 
     private var peakText: String {
-        guard let peak else { return "峰值 - \(MoneyFormatter.wholeYuanString(fromCents: 0))" }
-        return "峰值 \(peak.label) \(MoneyFormatter.wholeYuanString(fromCents: peak.amountCents))"
+        let locale = LanguageManager.shared.currentLocale
+        guard let peak else {
+            return TallyLocalization.format(
+                "peak_empty_format",
+                locale: locale,
+                MoneyFormatter.wholeYuanString(fromCents: 0, locale: locale)
+            )
+        }
+        return TallyLocalization.format(
+            "peak_format",
+            locale: locale,
+            peak.label,
+            MoneyFormatter.wholeYuanString(fromCents: peak.amountCents, locale: locale)
+        )
     }
 }
 
@@ -350,16 +365,16 @@ private struct StatsCategoryRanking: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
             HStack(alignment: .firstTextBaseline) {
-                SectionTitle("分类排名")
+                SectionTitle(TallyLocalization.text(.categoryRanking, locale: LanguageManager.shared.currentLocale))
                 Spacer()
-                Text("共 \(totalCount) 项 · 看全部")
+                Text(TallyLocalization.format(.categoryCountSummary, locale: LanguageManager.shared.currentLocale, totalCount))
                     .font(TallyType.body(12, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
             }
             .padding(.horizontal, BillsListLayout.horizontalPadding)
 
             if items.isEmpty {
-                Text("没有分类记录。")
+                Text(TallyLocalization.text(.noCategoryRecords, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(12, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -395,13 +410,13 @@ private struct RankingRow: View {
                         .foregroundStyle(Color.tallyInk)
                         .lineLimit(1)
 
-                    Text("\(item.count) 笔 · \(Int(round(item.percent * 100)))%")
+                    Text("\(TallyLocalization.format(.entryCount, locale: LanguageManager.shared.currentLocale, item.count)) · \(Int(round(item.percent * 100)))%")
                         .font(TallyType.body(11, weight: .medium))
                         .foregroundStyle(Color.tallyInkFaint)
 
                     Spacer()
 
-                    Text(MoneyFormatter.wholeYuanString(fromCents: item.amountCents))
+                    Text(MoneyFormatter.wholeYuanString(fromCents: item.amountCents, locale: LanguageManager.shared.currentLocale))
                         .font(TallyType.num(15, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                 }
@@ -438,16 +453,16 @@ private struct StatsBillsList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s3) {
             HStack(alignment: .firstTextBaseline) {
-                SectionTitle("明细")
+                SectionTitle(TallyLocalization.text(.detail, locale: LanguageManager.shared.currentLocale))
                 Spacer()
-                Text("按日期 · 看全部")
+                Text(TallyLocalization.text(.detailByDate, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(12, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
             }
             .padding(.horizontal, BillsListLayout.horizontalPadding)
 
             if dayKeys.isEmpty {
-                Text("没有明细。")
+                Text(TallyLocalization.text(.noDetails, locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(13, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
                     .padding(.horizontal, BillsListLayout.horizontalPadding)
@@ -480,14 +495,11 @@ private struct StatsBillsList: View {
     }
 
     private func dayTitle(for dayKey: String) -> String {
-        let parts = dayKey.split(separator: "-").compactMap { Int($0) }
-        guard parts.count == 3 else { return dayKey }
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = .autoupdatingCurrent
-        let date = calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2])) ?? Date()
-        let weekday = calendar.component(.weekday, from: date)
-        let weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
-        return "\(parts[1])/\(parts[2]) \(weekdays[max(0, min(weekday - 1, weekdays.count - 1))])"
+        guard let date = DayKeyFormatter.date(from: dayKey, timeZone: .autoupdatingCurrent) else {
+            return dayKey
+        }
+        let locale = LanguageManager.shared.currentLocale
+        return "\(TallyLocalization.monthDayTitle(for: date, locale: locale)) \(TallyLocalization.weekdayTitle(for: date, locale: locale))"
     }
 }
 
@@ -538,8 +550,11 @@ private struct DenseBillRow: View {
     }
 
     private var accessibilitySummary: String {
-        let typeText = item.isIncome ? "收入" : "支出"
-        let amountText = MoneyFormatter.string(fromCents: item.amountCents)
+        let locale = LanguageManager.shared.currentLocale
+        let typeText = item.isIncome
+            ? TallyLocalization.text(.income, locale: locale)
+            : TallyLocalization.text(.expense, locale: locale)
+        let amountText = MoneyFormatter.string(fromCents: item.amountCents, locale: locale)
         return "\(item.title)，\(item.subtitle)，\(typeText)，\(amountText)"
     }
 }

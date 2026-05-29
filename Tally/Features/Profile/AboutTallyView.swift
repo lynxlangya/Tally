@@ -16,7 +16,7 @@ struct AboutTallyView: View {
             Color.tallyBg.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                TallyNavHeader(title: "关于 Tally", onBack: close)
+                TallyNavHeader(title: TallyLocalization.text("about_tally", locale: LanguageManager.shared.currentLocale), onBack: close)
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: TallySpacing.s6) {
@@ -66,7 +66,7 @@ struct AboutTallyView: View {
                         .font(TallyType.display(28, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
 
-                    Text("单币种本地记账")
+                    Text(TallyLocalization.text("local_single_currency", locale: LanguageManager.shared.currentLocale))
                         .font(TallyType.body(13, weight: .medium))
                         .foregroundStyle(Color.tallyInkDim)
                 }
@@ -74,8 +74,11 @@ struct AboutTallyView: View {
                 Spacer(minLength: 0)
             }
 
-            AboutKeyValueRow(title: "版本", value: versionText)
-            AboutKeyValueRow(title: "数据范围", value: "账单、分类、定时记账、Widget 快照")
+            AboutKeyValueRow(title: TallyLocalization.text("version", locale: LanguageManager.shared.currentLocale), value: versionText)
+            AboutKeyValueRow(
+                title: TallyLocalization.text("data_scope", locale: LanguageManager.shared.currentLocale),
+                value: TallyLocalization.text("data_scope_value", locale: LanguageManager.shared.currentLocale)
+            )
         }
         .padding(TallySpacing.s5)
         .background(Color.tallySurface)
@@ -89,22 +92,22 @@ struct AboutTallyView: View {
 
     private var privacySection: some View {
         AboutSection(
-            title: "隐私政策",
+            title: TallyLocalization.text("privacy_policy", locale: LanguageManager.shared.currentLocale),
             rows: [
                 AboutInfoRow(
                     icon: "lock.fill",
-                    title: "默认留在本机",
-                    detail: "账单、分类、偏好设置和头像保存在本机；Widget 仅读取 App Group 中的摘要快照。"
+                    title: TallyLocalization.text("local_by_default", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("local_by_default_detail", locale: LanguageManager.shared.currentLocale)
                 ),
                 AboutInfoRow(
                     icon: "network.slash",
-                    title: "不做联网分析",
-                    detail: "当前版本没有第三方分析、广告追踪或远程账号同步。"
+                    title: TallyLocalization.text("no_network_analytics", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("no_network_analytics_detail", locale: LanguageManager.shared.currentLocale)
                 ),
                 AboutInfoRow(
                     icon: "bell.fill",
-                    title: "通知按需开启",
-                    detail: "每日提醒只在你手动开启后申请系统通知权限。"
+                    title: TallyLocalization.text("notification_opt_in", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("notification_opt_in_detail", locale: LanguageManager.shared.currentLocale)
                 )
             ]
         )
@@ -112,17 +115,17 @@ struct AboutTallyView: View {
 
     private var dataSection: some View {
         AboutSection(
-            title: "数据与备份",
+            title: TallyLocalization.text("data_backup", locale: LanguageManager.shared.currentLocale),
             rows: [
                 AboutInfoRow(
                     icon: "externaldrive.fill",
-                    title: "手动导入导出",
-                    detail: "你可以在“导入与导出”中生成 CSV 或 JSON 备份文件。"
+                    title: TallyLocalization.text("manual_import_export", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("manual_import_export_detail", locale: LanguageManager.shared.currentLocale)
                 ),
                 AboutInfoRow(
                     icon: "photo.fill",
-                    title: "头像选择",
-                    detail: "账号头像来自系统照片选择器，图片数据只用于本机展示。"
+                    title: TallyLocalization.text("avatar_selection", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("avatar_selection_detail", locale: LanguageManager.shared.currentLocale)
                 )
             ]
         )
@@ -130,17 +133,17 @@ struct AboutTallyView: View {
 
     private var supportSection: some View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
-            AboutSectionTitle("支持")
+            AboutSectionTitle(TallyLocalization.text("support", locale: LanguageManager.shared.currentLocale))
 
             Link(destination: supportURL) {
                 HStack(spacing: TallySpacing.s4) {
                     AboutIcon("questionmark.circle.fill")
 
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("反馈问题")
+                        Text(TallyLocalization.text("report_issue", locale: LanguageManager.shared.currentLocale))
                             .font(TallyType.body(14, weight: .semibold))
                             .foregroundStyle(Color.tallyInk)
-                        Text("通过 GitHub Issues 提交问题和建议")
+                        Text(TallyLocalization.text("report_issue_detail", locale: LanguageManager.shared.currentLocale))
                             .font(TallyType.body(12, weight: .medium))
                             .foregroundStyle(Color.tallyInkFaint)
                     }
@@ -160,18 +163,18 @@ struct AboutTallyView: View {
                 )
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("反馈问题")
+            .accessibilityLabel(TallyLocalization.text("report_issue", locale: LanguageManager.shared.currentLocale))
         }
     }
 
     private var acknowledgementsSection: some View {
         AboutSection(
-            title: "致谢",
+            title: TallyLocalization.text("acknowledgements", locale: LanguageManager.shared.currentLocale),
             rows: [
                 AboutInfoRow(
                     icon: "apple.logo",
-                    title: "Apple 平台技术",
-                    detail: "Tally 使用 SwiftUI、Core Data 与 WidgetKit 构建。"
+                    title: TallyLocalization.text("apple_platforms", locale: LanguageManager.shared.currentLocale),
+                    detail: TallyLocalization.text("apple_platforms_detail", locale: LanguageManager.shared.currentLocale)
                 )
             ]
         )

@@ -186,7 +186,7 @@ final class RecurringBillFormViewModelTests: XCTestCase {
         }
 
         XCTAssertEqual(result.0, fixedDate(year: 2026, month: 5, day: 1, hour: 11, minute: 0))
-        XCTAssertEqual(result.1, "5/1 周五")
+        XCTAssertEqual(result.1, localizedMonthDayWeekday(year: 2026, month: 5, day: 1))
     }
 
     func testMonthlyLastRuleSelectionMovesFirstDateToUpcomingMonthEnd() async throws {
@@ -206,7 +206,7 @@ final class RecurringBillFormViewModelTests: XCTestCase {
         }
 
         XCTAssertEqual(result.0, fixedDate(year: 2026, month: 4, day: 30, hour: 11, minute: 0))
-        XCTAssertEqual(result.1, "4/30 周四")
+        XCTAssertEqual(result.1, localizedMonthDayWeekday(year: 2026, month: 4, day: 30))
     }
 
 
@@ -228,7 +228,13 @@ final class RecurringBillFormViewModelTests: XCTestCase {
         }
 
         XCTAssertEqual(result.0, fixedDate(year: 2026, month: 4, day: 12, hour: 11, minute: 0))
-        XCTAssertEqual(result.1, "4/12 周日")
+        XCTAssertEqual(result.1, localizedMonthDayWeekday(year: 2026, month: 4, day: 12))
+    }
+
+    private func localizedMonthDayWeekday(year: Int, month: Int, day: Int) -> String {
+        let date = fixedDate(year: year, month: month, day: day, hour: 9, minute: 0)
+        let locale = LanguageManager.shared.currentLocale
+        return "\(TallyLocalization.monthDayTitle(for: date, locale: locale)) \(TallyLocalization.weekdayTitle(for: date, locale: locale))"
     }
 
     private func makeCategory() -> CategoryRecord {

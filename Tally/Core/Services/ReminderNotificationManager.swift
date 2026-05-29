@@ -27,8 +27,8 @@ final class ReminderNotificationManager {
 
     func scheduleDailyReminder(hour: Int, minute: Int) async {
         let content = UNMutableNotificationContent()
-        content.title = "记一笔"
-        content.body = "别忘了记录今天的账单"
+        content.title = TallyLocalization.text(.quickEntry, locale: LanguageManager.shared.currentLocale)
+        content.body = TallyLocalization.text("daily_reminder_body", locale: LanguageManager.shared.currentLocale)
         content.sound = .default
 
         var components = DateComponents()

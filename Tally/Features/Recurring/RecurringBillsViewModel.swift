@@ -59,7 +59,7 @@ final class RecurringBillsViewModel: ObservableObject {
                 }
             errorMessage = nil
         } catch {
-            errorMessage = "定时账单加载失败，请稍后重试"
+            errorMessage = TallyLocalization.text("recurring_load_failed", locale: LanguageManager.shared.currentLocale)
         }
     }
 
@@ -72,7 +72,7 @@ final class RecurringBillsViewModel: ObservableObject {
             try recurringRepository.setEnabled(id: id, isEnabled: isEnabled)
             load()
         } catch {
-            errorMessage = isEnabled ? "启用定时账单失败，请稍后重试" : "暂停定时账单失败，请稍后重试"
+            errorMessage = TallyLocalization.text(isEnabled ? "recurring_enable_failed" : "recurring_pause_failed", locale: LanguageManager.shared.currentLocale)
         }
     }
 
@@ -81,7 +81,7 @@ final class RecurringBillsViewModel: ObservableObject {
             try recurringRepository.delete(id: id)
             load()
         } catch {
-            errorMessage = "删除定时账单失败，请稍后重试"
+            errorMessage = TallyLocalization.text("recurring_delete_failed", locale: LanguageManager.shared.currentLocale)
         }
     }
 
@@ -107,46 +107,33 @@ final class RecurringBillsViewModel: ObservableObject {
             return (category.name, category.iconKey, Color(hex: hex))
         }
         let hex = CategoryColorPalette.defaultHex(for: fallbackId)
-        return ("未分类", "tag", Color(hex: hex))
+        return (TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale), "tag", Color(hex: hex))
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M/d"
-        return formatter
-    }()
+    private static func dateText(_ date: Date) -> String {
+        TallyLocalization.monthDayTitle(for: date, locale: LanguageManager.shared.currentLocale)
+    }
+
+    private static func weekdayText(for date: Date) -> String {
+        TallyLocalization.weekdayTitle(for: date, locale: LanguageManager.shared.currentLocale)
+    }
 
     private static func formatNextFireDate(_ date: Date) -> String {
-        let weekday = Calendar.current.component(.weekday, from: date)
-        return "\(dateFormatter.string(from: date)) \(weekdayText(for: weekday))"
-    }
-
-    private static func weekdayText(for weekday: Int) -> String {
-        switch weekday {
-        case 1: return "周日"
-        case 2: return "周一"
-        case 3: return "周二"
-        case 4: return "周三"
-        case 5: return "周四"
-        case 6: return "周五"
-        case 7: return "周六"
-        default: return "周一"
-        }
+        "\(dateText(date)) \(weekdayText(for: date))"
     }
 
     private static func ruleText(for rawValue: String) -> String {
-        guard let rule = RepeatRule(rawValue: rawValue) else { return "每日" }
+        let locale = LanguageManager.shared.currentLocale
+        guard let rule = RepeatRule(rawValue: rawValue) else { return TallyLocalization.text("repeat_daily", locale: locale) }
         switch rule {
         case .daily:
-            return "每日"
+            return TallyLocalization.text("repeat_daily", locale: locale)
         case .weeklyMonday, .weeklySunday:
-            return "每周"
+            return TallyLocalization.text("repeat_weekly", locale: locale)
         case .monthlyFirst:
-            return "月初"
+            return TallyLocalization.text("repeat_monthly_first", locale: locale)
         case .monthlyLast:
-            return "月末"
+            return TallyLocalization.text("repeat_monthly_last", locale: locale)
         }
     }
 

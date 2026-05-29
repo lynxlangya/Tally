@@ -18,14 +18,15 @@ enum WidgetTheme {
         size: CGFloat,
         weight: Font.Weight = .medium,
         color: Color = textPrimary,
-        showYen: Bool = true
+        showYen: Bool = true,
+        locale: Locale = Locale.autoupdatingCurrent
     ) -> some View {
-        let parts = MoneyFormatter.parts(fromCents: cents)
+        let parts = MoneyFormatter.parts(fromCents: cents, locale: locale)
         let decimalSize = size * 0.62
 
         return HStack(alignment: .firstTextBaseline, spacing: 0) {
             if showYen {
-                Text("¥")
+                Text(MoneyFormatter.currencySymbol(locale: locale))
                     .font(.system(size: decimalSize, weight: .light, design: .rounded))
                     .foregroundColor(color.opacity(0.55))
                     .baselineOffset(-size * 0.06)
@@ -41,8 +42,8 @@ enum WidgetTheme {
         }
     }
 
-    static func compactMoney(cents: Int) -> String {
-        MoneyFormatter.compactString(fromCents: cents)
+    static func compactMoney(cents: Int, locale: Locale = Locale.autoupdatingCurrent) -> String {
+        MoneyFormatter.compactString(fromCents: cents, locale: locale)
     }
 }
 

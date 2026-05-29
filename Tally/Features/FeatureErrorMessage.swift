@@ -18,9 +18,9 @@ enum FeatureErrorMessage {
     private static func message(for error: RepositoryError, fallback: String) -> String {
         switch error {
         case .notFound:
-            return "未找到对应数据，请返回后重试"
+            return TallyLocalization.text("error_not_found", locale: LanguageManager.shared.currentLocale)
         case .invalidData:
-            return "本地数据异常，请稍后重试"
+            return TallyLocalization.text("error_invalid_data", locale: LanguageManager.shared.currentLocale)
         case .forbidden:
             return fallback
         }

@@ -79,21 +79,21 @@ struct HomeView: View {
                 editingBill: bill
             )
         }
-        .confirmationDialog("确定删除该账单？", isPresented: $showsDeleteConfirm, titleVisibility: .visible) {
-            Button("确定删除", role: .destructive) {
+        .confirmationDialog(TallyLocalization.text(.deleteBillConfirm, locale: LanguageManager.shared.currentLocale), isPresented: $showsDeleteConfirm, titleVisibility: .visible) {
+            Button(TallyLocalization.text(.deleteBill, locale: LanguageManager.shared.currentLocale), role: .destructive) {
                 if let id = deleteCandidateId {
                     viewModel.deleteBill(id: id)
                 }
                 deleteCandidateId = nil
             }
-            Button("取消", role: .cancel) {
+            Button(TallyLocalization.text(.cancel, locale: LanguageManager.shared.currentLocale), role: .cancel) {
                 deleteCandidateId = nil
             }
         } message: {
-            Text("该操作不可撤销")
+            Text(TallyLocalization.text(.undoUnavailable, locale: LanguageManager.shared.currentLocale))
         }
-        .alert("操作未完成", isPresented: errorAlertBinding) {
-            Button("知道了", role: .cancel) {
+        .alert(TallyLocalization.text(.operationIncomplete, locale: LanguageManager.shared.currentLocale), isPresented: errorAlertBinding) {
+            Button(TallyLocalization.text(.gotIt, locale: LanguageManager.shared.currentLocale), role: .cancel) {
                 viewModel.dismissError()
             }
         } message: {
@@ -135,7 +135,7 @@ private struct HomeHeader: View {
             .lineLimit(1)
             .minimumScaleFactor(0.72)
 
-            Text("本月支出")
+            Text(TallyLocalization.text(.monthlyExpense, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(12, weight: .medium))
                 .tracking(12 * 0.04)
                 .foregroundStyle(Color.tallyInkFaint)
@@ -165,7 +165,7 @@ private struct HomeStatsRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             HomeStatCell(
-                label: "收入",
+                label: TallyLocalization.text(.income, locale: LanguageManager.shared.currentLocale),
                 cents: summary.incomeCents,
                 sign: .income,
                 color: .tallyInk,
@@ -173,7 +173,7 @@ private struct HomeStatsRow: View {
             )
 
             HomeStatCell(
-                label: "结余",
+                label: TallyLocalization.text(.balance, locale: LanguageManager.shared.currentLocale),
                 cents: summary.balanceCents,
                 sign: summary.balance >= 0 ? .income : .expense,
                 color: summary.balance >= 0 ? themeColors.accent : .tallyInk,
@@ -181,7 +181,7 @@ private struct HomeStatsRow: View {
             )
 
             HomeStatCell(
-                label: "日均",
+                label: TallyLocalization.text(.averageDaily, locale: LanguageManager.shared.currentLocale),
                 cents: dailyAverageCents,
                 sign: .none,
                 color: .tallyInkDim,
@@ -258,7 +258,7 @@ private struct HomeTrendCard: View {
     var body: some View {
         VStack(spacing: TallySpacing.s3) {
             HStack(alignment: .firstTextBaseline) {
-                Eyebrow("近 7 日")
+                Eyebrow(TallyLocalization.text("last_7_days", locale: LanguageManager.shared.currentLocale))
 
                 Spacer()
 
@@ -306,7 +306,7 @@ private struct HomeTrendCard: View {
     }
 
     private func compactAmountText(_ cents: Int) -> String {
-        MoneyFormatter.wholeYuanString(fromCents: cents)
+        MoneyFormatter.wholeYuanString(fromCents: cents, locale: LanguageManager.shared.currentLocale)
     }
 }
 
@@ -377,7 +377,7 @@ private struct HomeDayGroupTotals: View {
     }
 
     private func moneyText(_ cents: Int) -> String {
-        MoneyFormatter.string(fromCents: cents)
+        MoneyFormatter.string(fromCents: cents, locale: LanguageManager.shared.currentLocale)
     }
 }
 
@@ -428,17 +428,20 @@ private struct HomeBillRow: View {
         .buttonStyle(HomeBillRowButtonStyle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilitySummary))
-        .accessibilityAction(named: Text("删除"), onDelete)
+        .accessibilityAction(named: Text(TallyLocalization.text(.delete, locale: LanguageManager.shared.currentLocale)), onDelete)
         .contextMenu {
             Button(role: .destructive, action: onDelete) {
-                Label("删除", systemImage: "trash")
+                Label(TallyLocalization.text(.delete, locale: LanguageManager.shared.currentLocale), systemImage: "trash")
             }
         }
     }
 
     private var accessibilitySummary: String {
-        let typeText = item.isIncome ? "收入" : "支出"
-        let amountText = MoneyFormatter.string(fromCents: item.amountCents)
+        let locale = LanguageManager.shared.currentLocale
+        let typeText = item.isIncome
+            ? TallyLocalization.text(.income, locale: locale)
+            : TallyLocalization.text(.expense, locale: locale)
+        let amountText = MoneyFormatter.string(fromCents: item.amountCents, locale: locale)
         if item.subtitle.isEmpty {
             return "\(item.title)，\(typeText)，\(amountText)"
         }
@@ -460,10 +463,10 @@ private struct HomeEmptyState: View {
             Image(systemName: "tray")
                 .font(.system(size: 26, weight: .medium))
                 .foregroundStyle(Color.tallyInkFaint)
-            Text("一根刻痕，一笔账。")
+            Text(TallyLocalization.text("tally_slogan", locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.display(17, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
-            Text("记一笔")
+            Text(TallyLocalization.text(.quickEntry, locale: LanguageManager.shared.currentLocale))
                 .font(TallyType.body(13, weight: .regular))
                 .foregroundStyle(Color.tallyInkFaint)
         }
