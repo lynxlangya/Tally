@@ -8,6 +8,8 @@ struct BillsListPeriodJumpSheet: View {
     @State private var selectedDate: Date
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
+    @State private var customStart: Date
+    @State private var customEnd: Date
 
     init(viewModel: BillsListViewModel) {
         self.viewModel = viewModel
@@ -17,6 +19,8 @@ struct BillsListPeriodJumpSheet: View {
         _selectedDate = State(initialValue: anchor)
         _selectedYear = State(initialValue: calendar.component(.year, from: anchor))
         _selectedMonth = State(initialValue: calendar.component(.month, from: anchor))
+        _customStart = State(initialValue: viewModel.customStart)
+        _customEnd = State(initialValue: viewModel.customEnd)
     }
 
     var body: some View {
@@ -31,10 +35,7 @@ struct BillsListPeriodJumpSheet: View {
             case .year:
                 yearPicker
             case .custom:
-                Text("自定义区间下一阶段启用")
-                    .font(TallyType.body(14, weight: .medium))
-                    .foregroundStyle(Color.tallyInkFaint)
-                    .frame(maxWidth: .infinity, minHeight: 180)
+                customRangePicker
             }
         }
         .padding(.horizontal, TallySpacing.s5)
@@ -126,6 +127,42 @@ struct BillsListPeriodJumpSheet: View {
         .scrollIndicators(.hidden)
     }
 
+    private var customRangePicker: some View {
+        VStack(spacing: TallySpacing.s3) {
+            customDatePicker(title: "起始日", selection: $customStart)
+            customDatePicker(title: "结束日", selection: $customEnd)
+
+            Text("结束日不会晚于今天；起止选反时会自动调整。")
+                .font(TallyType.body(11, weight: .medium))
+                .foregroundStyle(Color.tallyInkFaint)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func customDatePicker(title: String, selection: Binding<Date>) -> some View {
+        VStack(alignment: .leading, spacing: TallySpacing.s2) {
+            Text(title)
+                .font(TallyType.body(12, weight: .medium))
+                .foregroundStyle(Color.tallyInkDim)
+
+            DatePicker(
+                title,
+                selection: selection,
+                in: ...viewModel.latestSelectableDate,
+                displayedComponents: [.date]
+            )
+            .datePickerStyle(.compact)
+            .labelsHidden()
+            .tint(themeColors.accent)
+            .environment(\.locale, Locale(identifier: "zh_CN"))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, TallySpacing.s3)
+            .frame(height: 44)
+            .background(Color.tallySurface2.opacity(0.62))
+            .clipShape(RoundedRectangle(cornerRadius: TallyRadii.sm, style: .continuous))
+        }
+    }
+
     private var monthYears: [Int] {
         Array(Set(viewModel.availableYears + [selectedYear])).sorted()
     }
@@ -158,7 +195,7 @@ struct BillsListPeriodJumpSheet: View {
             )) ?? selectedDate
             viewModel.jump(to: date)
         case .custom:
-            break
+            viewModel.updateCustomRange(start: customStart, end: customEnd)
         }
     }
 }

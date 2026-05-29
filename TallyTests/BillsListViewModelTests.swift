@@ -175,7 +175,7 @@ final class BillsListViewModelTests: XCTestCase {
         XCTAssertEqual(result.2, [1_000, 0, 0, 0, 0, 0, 2_000])
     }
 
-    func testCustomRangeUsesTrailingThirtyDaysAndKeepsAllBillRows() async throws {
+    func testCustomRangeUsesExplicitStartAndEndDates() async throws {
         let expenseId = UUID()
         let incomeId = UUID()
 
@@ -189,20 +189,78 @@ final class BillsListViewModelTests: XCTestCase {
                 categoryRepository: MockCategoryRepository(seed: [
                     makeCategory(id: expenseId, type: .expense, name: "购物", icon: "cart.fill", colorHex: 0x4D7148),
                     makeCategory(id: incomeId, type: .income, name: "奖金", icon: "gift.fill", colorHex: 0xA65566)
-                ])
+                ]),
+                nowProvider: { self.fixedDate(year: 2026, month: 5, day: 20) }
             )
-            viewModel.anchorDate = fixedDate(year: 2026, month: 5, day: 20)
             viewModel.timeRange = .custom
+            viewModel.updateCustomRange(
+                start: fixedDate(year: 2026, month: 5, day: 1),
+                end: fixedDate(year: 2026, month: 5, day: 20)
+            )
             viewModel.load()
             return (viewModel.trend30Cents, viewModel.axisLabels, viewModel.dayKeys)
         }
 
-        XCTAssertEqual(result.0.count, 30)
-        XCTAssertEqual(result.0.first, 0)
-        XCTAssertEqual(result.0[10], 1_000)
+        XCTAssertEqual(result.0.count, 20)
+        XCTAssertEqual(result.0.first, 1_000)
         XCTAssertEqual(result.0.last, 2_000)
-        XCTAssertEqual(result.1, ["4/21", "5/5", "5/20"])
+        XCTAssertEqual(result.1, ["5/1", "5/11", "5/20"])
         XCTAssertEqual(result.2, ["2026-05-20", "2026-05-01"])
+    }
+
+    func testCustomRangeSwapsReversedDatesAndClampsFutureEndToToday() async throws {
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> (String, [String]) in
+            let viewModel = BillsListViewModel(
+                repository: MockBillRepository(seed: [
+                    makeBill(type: .expense, cents: 1_000, date: fixedDate(year: 2026, month: 5, day: 18), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 2_000, date: fixedDate(year: 2026, month: 5, day: 20), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 3_000, date: fixedDate(year: 2026, month: 5, day: 21), categoryId: categoryId)
+                ]),
+                categoryRepository: MockCategoryRepository(seed: [
+                    makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
+                ]),
+                nowProvider: { self.fixedDate(year: 2026, month: 5, day: 20) }
+            )
+            viewModel.timeRange = .custom
+            viewModel.updateCustomRange(
+                start: fixedDate(year: 2026, month: 5, day: 22),
+                end: fixedDate(year: 2026, month: 5, day: 18)
+            )
+            viewModel.load()
+            return (viewModel.timeTitle, viewModel.dayKeys)
+        }
+
+        XCTAssertEqual(result.0, "5月18日–5月20日")
+        XCTAssertEqual(result.1, ["2026-05-20", "2026-05-18"])
+    }
+
+    func testLongCustomRangeUsesReasonableBucketCount() async throws {
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> ([Int], [String]) in
+            let viewModel = BillsListViewModel(
+                repository: MockBillRepository(seed: [
+                    makeBill(type: .expense, cents: 1_000, date: fixedDate(year: 2026, month: 1, day: 1), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 2_000, date: fixedDate(year: 2026, month: 2, day: 15), categoryId: categoryId),
+                    makeBill(type: .expense, cents: 3_000, date: fixedDate(year: 2026, month: 5, day: 20), categoryId: categoryId)
+                ]),
+                categoryRepository: MockCategoryRepository(seed: [
+                    makeCategory(id: categoryId, type: .expense, name: "日用", icon: "cart.fill", colorHex: 0x4D7148)
+                ]),
+                nowProvider: { self.fixedDate(year: 2026, month: 5, day: 20) }
+            )
+            viewModel.timeRange = .custom
+            viewModel.updateCustomRange(
+                start: fixedDate(year: 2026, month: 1, day: 1),
+                end: fixedDate(year: 2026, month: 5, day: 20)
+            )
+            viewModel.load()
+            return (viewModel.trend30Cents, viewModel.axisLabels)
+        }
+
+        XCTAssertGreaterThanOrEqual(result.0.count, 10)
+        XCTAssertLessThanOrEqual(result.0.count, 31)
+        XCTAssertEqual(result.1.count, 3)
     }
 
     func testBatchFilterUpdateAppliesOnlyOnceAfterLoad() async throws {

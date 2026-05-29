@@ -47,6 +47,20 @@ final class BillsListViewModel: ObservableObject {
         }
     }
 
+    @Published var customStart: Date {
+        didSet {
+            guard oldValue != customStart else { return }
+            applyFiltersIfReady()
+        }
+    }
+
+    @Published var customEnd: Date {
+        didSet {
+            guard oldValue != customEnd else { return }
+            applyFiltersIfReady()
+        }
+    }
+
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
     private var categoriesById: [UUID: CategoryRecord] = [:]
@@ -81,6 +95,9 @@ final class BillsListViewModel: ObservableObject {
         self.billRepository = repository
         self.categoryRepository = categoryRepository
         self.nowProvider = nowProvider
+        let today = nowProvider()
+        self.customEnd = today
+        self.customStart = Calendar.current.date(byAdding: .day, value: -29, to: today) ?? today
     }
 
     var timeTitle: String {
@@ -122,18 +139,11 @@ final class BillsListViewModel: ObservableObject {
     var canGoNext: Bool {
         guard timeRange != .custom else { return false }
 
-        let anchor = normalizedAnchorDate
-        let now = normalizedDate(nowProvider())
-        switch timeRange {
-        case .week:
-            return !calendar.isDate(anchor, equalTo: now, toGranularity: .weekOfYear) && anchor < now
-        case .month:
-            return !calendar.isDate(anchor, equalTo: now, toGranularity: .month) && anchor < now
-        case .year:
-            return !calendar.isDate(anchor, equalTo: now, toGranularity: .year) && anchor < now
-        case .custom:
-            return false
-        }
+        return periodStart(for: normalizedAnchorDate) < periodStart(for: normalizedDate(nowProvider()))
+    }
+
+    var latestSelectableDate: Date {
+        normalizedDate(nowProvider())
     }
 
     func toggleRankSort() {
@@ -186,6 +196,36 @@ final class BillsListViewModel: ObservableObject {
 
     func jump(to date: Date) {
         updateFilters(anchorDate: normalizedDate(date))
+    }
+
+    func updateCustomRange(start: Date, end: Date) {
+        let today = normalizedDate(nowProvider())
+        let normalizedStart = min(normalizedDate(start), today)
+        let normalizedEnd = min(normalizedDate(end), today)
+        let lower = min(normalizedStart, normalizedEnd)
+        let upper = max(normalizedStart, normalizedEnd)
+
+        var shouldApply = false
+        isBatchingFilterUpdates = true
+        defer {
+            isBatchingFilterUpdates = false
+            if shouldApply {
+                applyFiltersIfReady()
+            }
+        }
+
+        if customStart != lower {
+            customStart = lower
+            shouldApply = true
+        }
+        if customEnd != upper {
+            customEnd = upper
+            shouldApply = true
+        }
+        if anchorDate != upper {
+            anchorDate = upper
+            shouldApply = true
+        }
     }
 
     func load() {
@@ -244,6 +284,8 @@ final class BillsListViewModel: ObservableObject {
             let trend = BillsListTrendBuilder(
                 timeRange: timeRange,
                 anchorDate: normalizedAnchorDate,
+                customStart: normalizedCustomRange.start,
+                customEnd: normalizedCustomRange.end,
                 calendar: calendar
             )
             .build(for: trendBills)
@@ -340,6 +382,13 @@ final class BillsListViewModel: ObservableObject {
         return (startKey, endKey)
     }
 
+    private var normalizedCustomRange: (start: Date, end: Date) {
+        let today = normalizedDate(nowProvider())
+        let start = min(normalizedDate(customStart), today)
+        let end = min(normalizedDate(customEnd), today)
+        return start <= end ? (start, end) : (end, start)
+    }
+
     private func dateRange(for anchor: Date) -> (start: Date, end: Date) {
         let interval: DateInterval
         switch timeRange {
@@ -350,9 +399,7 @@ final class BillsListViewModel: ObservableObject {
         case .year:
             interval = calendar.dateInterval(of: .year, for: anchor) ?? DateInterval(start: anchor, end: anchor)
         case .custom:
-            let start = calendar.date(byAdding: .day, value: -29, to: anchor) ?? anchor
-            let end = calendar.date(byAdding: .day, value: 1, to: anchor) ?? anchor
-            interval = DateInterval(start: start, end: end)
+            return normalizedCustomRange
         }
 
         let endDate = calendar.date(byAdding: .day, value: -1, to: interval.end) ?? interval.end
@@ -369,7 +416,18 @@ final class BillsListViewModel: ObservableObject {
         case .year:
             previousAnchor = calendar.date(byAdding: .year, value: -1, to: normalizedAnchorDate) ?? normalizedAnchorDate
         case .custom:
-            previousAnchor = calendar.date(byAdding: .day, value: -30, to: normalizedAnchorDate) ?? normalizedAnchorDate
+            let range = normalizedCustomRange
+            let dayCount = max((calendar.dateComponents([.day], from: range.start, to: range.end).day ?? 0) + 1, 1)
+            let previousEnd = calendar.date(byAdding: .day, value: -1, to: range.start) ?? range.start
+            let previousStart = calendar.date(byAdding: .day, value: -(dayCount - 1), to: previousEnd) ?? previousEnd
+            let previousStartKey = DayKeyFormatter.dayKey(for: previousStart, timeZone: calendar.timeZone)
+            let previousEndKey = DayKeyFormatter.dayKey(for: previousEnd, timeZone: calendar.timeZone)
+            let previousTotal = (try? billRepository.list(
+                fromDayKey: previousStartKey,
+                toDayKey: previousEndKey,
+                type: selectedType
+            ))?.reduce(0) { $0 + $1.amount.cents } ?? 0
+            return makeSummaryChange(currentTotal: currentTotal, previousTotal: previousTotal)
         }
 
         let previousRange = dayKeyRange(for: previousAnchor)
@@ -378,6 +436,10 @@ final class BillsListViewModel: ObservableObject {
             toDayKey: previousRange.end,
             type: selectedType
         ))?.reduce(0) { $0 + $1.amount.cents } ?? 0
+        return makeSummaryChange(currentTotal: currentTotal, previousTotal: previousTotal)
+    }
+
+    private func makeSummaryChange(currentTotal: Int, previousTotal: Int) -> SummaryChange? {
         guard previousTotal > 0 else { return nil }
 
         let delta = Double(currentTotal - previousTotal) / Double(previousTotal)
@@ -396,6 +458,22 @@ final class BillsListViewModel: ObservableObject {
             return calendar.date(byAdding: .year, value: value, to: normalizedAnchorDate) ?? normalizedAnchorDate
         case .custom:
             return normalizedAnchorDate
+        }
+    }
+
+    private func periodStart(for date: Date) -> Date {
+        switch timeRange {
+        case .week:
+            let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
+            return calendar.date(from: components) ?? date
+        case .month:
+            let components = calendar.dateComponents([.year, .month], from: date)
+            return calendar.date(from: components) ?? date
+        case .year:
+            let components = calendar.dateComponents([.year], from: date)
+            return calendar.date(from: components) ?? date
+        case .custom:
+            return normalizedCustomRange.start
         }
     }
 

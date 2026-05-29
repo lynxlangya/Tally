@@ -11,6 +11,8 @@ struct BillsListTrendModel {
 struct BillsListTrendBuilder {
     let timeRange: BillsListViewModel.TimeRange
     let anchorDate: Date
+    let customStart: Date
+    let customEnd: Date
     let calendar: Calendar
 
     func build(for bills: [BillRecord]) -> BillsListTrendModel {
@@ -60,20 +62,10 @@ struct BillsListTrendBuilder {
             axisLabels = ["1月", "6月", "12月"]
             pointLabels = (1...12).map { "\($0)月" }
         case .custom:
-            let start = calendar.date(byAdding: .day, value: -29, to: anchorDate) ?? anchorDate
-            let dates = (0..<30).map { offset in
-                calendar.date(byAdding: .day, value: offset, to: start) ?? start
-            }
-            totals = dates.map { date in
-                let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
-                return dayTotals[dayKey, default: 0]
-            }
-            axisLabels = [
-                shortDateText(for: dates.first ?? start),
-                shortDateText(for: dates[min(14, dates.count - 1)]),
-                shortDateText(for: dates.last ?? start)
-            ]
-            pointLabels = dates.map(shortDateText)
+            let custom = buildCustomBuckets(dayTotals: dayTotals, monthTotals: monthTotals)
+            totals = custom.totals
+            axisLabels = custom.axisLabels
+            pointLabels = custom.pointLabels
         }
 
         let maxValue = totals.max() ?? 0
@@ -100,8 +92,88 @@ struct BillsListTrendBuilder {
         return calendar.date(from: components) ?? date
     }
 
+    private func buildCustomBuckets(
+        dayTotals: [String: Int],
+        monthTotals: [String: Int]
+    ) -> (totals: [Int], axisLabels: [String], pointLabels: [String]) {
+        let start = min(customStart, customEnd)
+        let end = max(customStart, customEnd)
+        let daySpan = max((calendar.dateComponents([.day], from: start, to: end).day ?? 0) + 1, 1)
+
+        if daySpan <= 31 {
+            let dates = (0..<daySpan).map { offset in
+                calendar.date(byAdding: .day, value: offset, to: start) ?? start
+            }
+            let totals = dates.map { date in
+                let dayKey = DayKeyFormatter.dayKey(for: date, timeZone: calendar.timeZone)
+                return dayTotals[dayKey, default: 0]
+            }
+            return makeBucketResult(totals: totals, labels: dates.map(shortDateText))
+        }
+
+        if daySpan <= 217 {
+            let bucketCount = min(max(Int(ceil(Double(daySpan) / 7.0)), 10), 31)
+            let weekStarts = (0..<bucketCount).map { offset in
+                calendar.date(byAdding: .day, value: offset * 7, to: start) ?? start
+            }
+            let totals = weekStarts.enumerated().map { index, bucketStart in
+                let rawNext = calendar.date(byAdding: .day, value: 7, to: bucketStart) ?? bucketStart
+                let nextStart = index == bucketCount - 1 ? calendar.date(byAdding: .day, value: 1, to: end) ?? end : rawNext
+                let bucketEnd = min(calendar.date(byAdding: .day, value: -1, to: nextStart) ?? bucketStart, end)
+                return sumDayTotals(dayTotals, start: bucketStart, end: bucketEnd)
+            }
+            return makeBucketResult(totals: totals, labels: weekStarts.map(shortDateText))
+        }
+
+        let monthStarts = monthBucketStarts(start: start, end: end)
+        let totals = monthStarts.map { date in
+            let year = calendar.component(.year, from: date)
+            let month = calendar.component(.month, from: date)
+            let prefix = String(format: "%04d-%02d", year, month)
+            return monthTotals[prefix, default: 0]
+        }
+        return makeBucketResult(totals: totals, labels: monthStarts.map(monthText))
+    }
+
+    private func makeBucketResult(totals: [Int], labels: [String]) -> (totals: [Int], axisLabels: [String], pointLabels: [String]) {
+        guard !labels.isEmpty else {
+            return ([0], ["", "", ""], [""])
+        }
+        let mid = labels.count / 2
+        let axisLabels = [
+            labels.first ?? "",
+            labels[min(mid, labels.count - 1)],
+            labels.last ?? ""
+        ]
+        return (totals, axisLabels, labels)
+    }
+
+    private func sumDayTotals(_ totals: [String: Int], start: Date, end: Date) -> Int {
+        let startKey = DayKeyFormatter.dayKey(for: start, timeZone: calendar.timeZone)
+        let endKey = DayKeyFormatter.dayKey(for: end, timeZone: calendar.timeZone)
+        return totals
+            .filter { $0.key >= startKey && $0.key <= endKey }
+            .reduce(0) { $0 + $1.value }
+    }
+
+    private func monthBucketStarts(start: Date, end: Date) -> [Date] {
+        let startComponents = calendar.dateComponents([.year, .month], from: start)
+        var current = calendar.date(from: startComponents) ?? start
+        var dates: [Date] = []
+        while current <= end && dates.count < 31 {
+            dates.append(current)
+            guard let next = calendar.date(byAdding: .month, value: 1, to: current) else { break }
+            current = next
+        }
+        return dates.isEmpty ? [start] : dates
+    }
+
     private func shortDateText(for date: Date) -> String {
         "\(calendar.component(.month, from: date))/\(calendar.component(.day, from: date))"
+    }
+
+    private func monthText(for date: Date) -> String {
+        "\(calendar.component(.month, from: date))月"
     }
 
     private func makePeak(values: [Int], labels: [String]) -> BillsListViewModel.TrendPeak? {
