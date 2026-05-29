@@ -413,7 +413,8 @@ final class BillsListViewModel: ObservableObject {
             .sorted { $0.occurredAtUTC > $1.occurredAtUTC }
 
         let totalCents = items.reduce(0) { $0 + $1.amount.cents }
-        let title = categoriesById[categoryId]?.name ?? "未分类"
+        let category = categoriesById[categoryId]
+        let title = category?.name ?? "未分类"
         let detailItems = items.map { bill in
             let note = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let noteText = note.isEmpty ? "无备注" : note
@@ -428,6 +429,8 @@ final class BillsListViewModel: ObservableObject {
         return CategoryDetail(
             id: categoryId,
             title: title,
+            iconName: categoryIconName(for: category),
+            iconColorHex: categoryIconHex(for: category),
             totalCents: totalCents,
             isIncome: selectedType == .income,
             items: detailItems
@@ -563,8 +566,6 @@ final class BillsListViewModel: ObservableObject {
         let categoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
         let category = categoriesById[categoryId]
         let title = category?.name ?? "未分类"
-        let iconName = category?.iconKey ?? "tag"
-        let iconHex = category?.colorHex.map { UInt32($0) }
 
         let timeString = BillTimeFormatter.timeText(for: bill)
         let note = bill.note?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -574,11 +575,19 @@ final class BillsListViewModel: ObservableObject {
             id: bill.id,
             title: title,
             subtitle: subtitle,
-            iconName: iconName,
-            iconColorHex: iconHex,
+            iconName: categoryIconName(for: category),
+            iconColorHex: categoryIconHex(for: category),
             amountCents: bill.amount.cents,
             isIncome: bill.type == .income
         )
+    }
+
+    private func categoryIconName(for category: CategoryRecord?) -> String {
+        category?.iconKey ?? "tag"
+    }
+
+    private func categoryIconHex(for category: CategoryRecord?) -> UInt32? {
+        category?.colorHex.map { UInt32($0) }
     }
 
     private static func detailDateString(for bill: BillRecord) -> String {

@@ -60,7 +60,7 @@ struct BillsListView: View {
                         totalCount: viewModel.categoryRankingTotalCount,
                         onSelect: { item in selectedCategory = CategorySheetTarget(id: item.id) }
                     )
-                    .padding(.top, TallySpacing.s7)
+                    .padding(.top, TallySpacing.s6)
 
                     StatsBillsList(
                         groupedRows: viewModel.groupedRows,
@@ -71,7 +71,7 @@ struct BillsListView: View {
                             }
                         }
                     )
-                    .padding(.top, TallySpacing.s7)
+                    .padding(.top, TallySpacing.s6)
 
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
@@ -115,7 +115,7 @@ struct BillsListView: View {
             .presentationDetents([.fraction(BillsListLayout.detailSheetHeightRatio)])
             .presentationDragIndicator(.hidden)
             .presentationCornerRadius(BillsListLayout.detailSheetCornerRadius)
-            .presentationBackground(Color.tallySurface)
+            .presentationBackground(Color.tallyBg)
         }
         .sheet(item: $editingBill, onDismiss: {
             editingBill = nil
@@ -138,7 +138,7 @@ struct BillsListView: View {
     private var header: some View {
         HStack(alignment: .center, spacing: TallySpacing.s4) {
             Text("账本")
-                .font(TallyType.display(34, weight: .semibold))
+                .font(TallyType.display(28, weight: .semibold))
                 .foregroundStyle(Color.tallyInk)
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
@@ -196,10 +196,10 @@ private struct CompactRangeSegmented: View {
                     }
                 } label: {
                     Text(option.1)
-                        .font(TallyType.body(13, weight: .semibold))
+                        .font(TallyType.body(12, weight: .semibold))
                         .foregroundStyle(active ? themeColors.accentInk : Color.tallyInkDim)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 34)
+                        .frame(height: 30)
                         .background(active ? themeColors.accent : Color.clear)
                         .clipShape(Capsule(style: .continuous))
                 }
@@ -227,17 +227,17 @@ private struct BillsListHeroSummary: View {
     @Environment(\.tallyThemeColors) private var themeColors
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TallySpacing.s5) {
+        VStack(alignment: .leading, spacing: TallySpacing.s4) {
             VStack(alignment: .leading, spacing: TallySpacing.s2) {
                 Text("\(eyebrow) · \(typeTitle)")
-                    .font(TallyType.body(14, weight: .semibold))
+                    .font(TallyType.body(13, weight: .semibold))
                     .foregroundStyle(Color.tallyInkDim)
 
                 TallyAmountText(
                     cents: selectedTotalCents,
                     sign: selectedType == .expense ? .expense : .income,
                     size: BillsListLayout.heroAmountSize,
-                    weight: .bold,
+                    weight: .semibold,
                     color: .tallyInk
                 )
                 .lineLimit(1)
@@ -248,7 +248,7 @@ private struct BillsListHeroSummary: View {
                 .fill(Color.tallyLine)
                 .frame(height: 0.5)
 
-            HStack(alignment: .top, spacing: TallySpacing.s8) {
+            HStack(alignment: .top, spacing: TallySpacing.s7) {
                 miniMetric(title: "收入", cents: summary.incomeCents, sign: .income, color: .tallyInkDim)
                 miniMetric(
                     title: "结余",
@@ -272,7 +272,7 @@ private struct BillsListHeroSummary: View {
                 .font(TallyType.body(12, weight: .semibold))
                 .foregroundStyle(Color.tallyInkDim)
 
-            TallyAmountText(cents: cents, sign: sign, size: 16, weight: .semibold, color: color)
+            TallyAmountText(cents: cents, sign: sign, size: 15, weight: .semibold, color: color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
@@ -325,8 +325,8 @@ private struct StatsTrendCard: View {
                 }
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 15)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 13)
         .background(Color.tallySurface)
         .clipShape(RoundedRectangle(cornerRadius: BillsListLayout.summaryCornerRadius, style: .continuous))
         .overlay(
@@ -385,24 +385,24 @@ private struct RankingRow: View {
     let item: BillsListViewModel.RankingItem
 
     var body: some View {
-        HStack(alignment: .center, spacing: TallySpacing.s4) {
-            CategoryTile(iconName: item.iconName, color: itemColor, size: 44, radius: TallyRadii.md)
+        HStack(alignment: .center, spacing: TallySpacing.s3) {
+            CategoryTile(iconName: item.iconName, color: itemColor, size: 38, radius: TallyRadii.md)
 
             VStack(spacing: TallySpacing.s2) {
                 HStack {
                     Text(item.title)
-                        .font(TallyType.body(16, weight: .semibold))
+                        .font(TallyType.body(15, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                         .lineLimit(1)
 
                     Text("\(item.count) 笔 · \(Int(round(item.percent * 100)))%")
-                        .font(TallyType.body(12, weight: .medium))
+                        .font(TallyType.body(11, weight: .medium))
                         .foregroundStyle(Color.tallyInkFaint)
 
                     Spacer()
 
                     Text(MoneyFormatter.wholeYuanString(fromCents: item.amountCents))
-                        .font(TallyType.num(16, weight: .semibold))
+                        .font(TallyType.num(15, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                 }
 
@@ -453,12 +453,12 @@ private struct StatsBillsList: View {
                     .padding(.horizontal, BillsListLayout.horizontalPadding)
                     .padding(.top, TallySpacing.s3)
             } else {
-                VStack(spacing: TallySpacing.s5) {
+                VStack(spacing: TallySpacing.s4) {
                     ForEach(dayKeys, id: \.self) { dayKey in
                         let rows = groupedRows[dayKey] ?? []
                         VStack(alignment: .leading, spacing: TallySpacing.s2) {
                             Text(dayTitle(for: dayKey))
-                                .font(TallyType.body(15, weight: .semibold))
+                                .font(TallyType.body(13, weight: .semibold))
                                 .foregroundStyle(Color.tallyInkDim)
                                 .padding(.horizontal, BillsListLayout.horizontalPadding)
 
@@ -498,16 +498,16 @@ private struct DenseBillRow: View {
 
     var body: some View {
         HStack(spacing: TallySpacing.s3) {
-            CategoryTile(iconName: item.iconName, color: iconColor, size: 40, radius: TallyRadii.md)
+            CategoryTile(iconName: item.iconName, color: iconColor, size: 36, radius: TallyRadii.md)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title)
-                    .font(TallyType.body(14, weight: .semibold))
+                    .font(TallyType.body(13, weight: .semibold))
                     .foregroundStyle(Color.tallyInk)
                     .lineLimit(1)
 
                 Text(item.subtitle)
-                    .font(TallyType.body(11, weight: .medium))
+                    .font(TallyType.body(10, weight: .medium))
                     .foregroundStyle(Color.tallyInkFaint)
                     .lineLimit(1)
             }
@@ -516,7 +516,7 @@ private struct DenseBillRow: View {
             TallyAmountText(
                 cents: item.amountCents,
                 sign: item.isIncome ? .income : .expense,
-                size: 15,
+                size: 14,
                 weight: .semibold,
                 color: item.isIncome ? themeColors.accent : .tallyInk
             )
@@ -524,7 +524,7 @@ private struct DenseBillRow: View {
             .minimumScaleFactor(0.75)
         }
         .padding(.horizontal, BillsListLayout.horizontalPadding)
-        .padding(.vertical, TallySpacing.s2)
+        .padding(.vertical, TallySpacing.s1 + 1)
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilitySummary))
@@ -553,7 +553,7 @@ private struct SectionTitle: View {
 
     var body: some View {
         Text(title)
-            .font(TallyType.body(16, weight: .semibold))
+            .font(TallyType.body(15, weight: .semibold))
             .foregroundStyle(Color.tallyInkDim)
     }
 }

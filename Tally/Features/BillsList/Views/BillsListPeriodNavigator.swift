@@ -21,7 +21,7 @@ struct BillsListPeriodNavigator: View {
             } label: {
                 HStack(spacing: TallySpacing.s2) {
                     Text(title)
-                        .font(TallyType.body(15, weight: .semibold))
+                        .font(TallyType.body(14, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                         .lineLimit(1)
                         .minimumScaleFactor(0.66)
@@ -30,7 +30,7 @@ struct BillsListPeriodNavigator: View {
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(Color.tallyInkDim)
                 }
-                .frame(minWidth: showsArrows ? 104 : 112)
+                .frame(minWidth: showsArrows ? 98 : 106)
                 .frame(height: BillsListLayout.periodNavigatorHeight)
                 .contentShape(Rectangle())
             }
@@ -49,9 +49,9 @@ struct BillsListPeriodNavigator: View {
             action()
         } label: {
             Image(systemName: systemName)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(enabled ? Color.tallyInkDim : Color.tallyInkFaint.opacity(0.38))
-                .frame(width: 18, height: 34)
+                .frame(width: 17, height: 32)
                 .contentShape(Circle())
         }
         .disabled(!enabled)

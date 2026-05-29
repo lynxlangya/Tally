@@ -80,6 +80,8 @@ extension BillsListViewModel {
     struct CategoryDetail {
         let id: UUID
         let title: String
+        let iconName: String
+        let iconColorHex: UInt32?
         let totalCents: Int
         let isIncome: Bool
         let items: [CategoryDetailItem]
