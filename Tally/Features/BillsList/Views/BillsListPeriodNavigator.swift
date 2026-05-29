@@ -21,16 +21,16 @@ struct BillsListPeriodNavigator: View {
             } label: {
                 HStack(spacing: TallySpacing.s2) {
                     Text(title)
-                        .font(TallyType.body(16, weight: .semibold))
+                        .font(TallyType.body(15, weight: .semibold))
                         .foregroundStyle(Color.tallyInk)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.72)
+                        .minimumScaleFactor(0.66)
 
                     Image(systemName: "chevron.down")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(themeColors.accent)
+                        .foregroundStyle(Color.tallyInkDim)
                 }
-                .frame(maxWidth: .infinity)
+                .frame(minWidth: showsArrows ? 104 : 112)
                 .frame(height: BillsListLayout.periodNavigatorHeight)
                 .contentShape(Rectangle())
             }
@@ -41,13 +41,6 @@ struct BillsListPeriodNavigator: View {
                 navButton(systemName: "chevron.right", enabled: canGoNext, action: onNext)
             }
         }
-        .padding(.horizontal, TallySpacing.s2)
-        .background(Color.tallySurface.opacity(0.72))
-        .clipShape(Capsule(style: .continuous))
-        .overlay(
-            Capsule(style: .continuous)
-                .stroke(Color.tallyLine, lineWidth: 0.5)
-        )
     }
 
     private func navButton(systemName: String, enabled: Bool, action: @escaping () -> Void) -> some View {
@@ -56,9 +49,9 @@ struct BillsListPeriodNavigator: View {
             action()
         } label: {
             Image(systemName: systemName)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(enabled ? themeColors.accent : Color.tallyInkFaint.opacity(0.45))
-                .frame(width: 36, height: 36)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(enabled ? Color.tallyInkDim : Color.tallyInkFaint.opacity(0.38))
+                .frame(width: 18, height: 34)
                 .contentShape(Circle())
         }
         .disabled(!enabled)
@@ -66,4 +59,3 @@ struct BillsListPeriodNavigator: View {
         .accessibilityHidden(!enabled)
     }
 }
-

@@ -119,9 +119,54 @@ final class BillsListViewModel: ObservableObject {
         }
     }
 
+    var periodNavigationTitle: String {
+        let normalized = normalizedAnchorDate
+        switch timeRange {
+        case .week:
+            let range = dateRange(for: normalized)
+            return "\(shortDottedTitle(for: range.start)) – \(shortDottedTitle(for: range.end))"
+        case .month:
+            let year = calendar.component(.year, from: normalized)
+            let month = calendar.component(.month, from: normalized)
+            return "\(year)年\(month)月"
+        case .year:
+            let year = calendar.component(.year, from: normalized)
+            return "\(year)年"
+        case .custom:
+            let range = dateRange(for: normalized)
+            return "\(shortDottedTitle(for: range.start)) – \(shortDottedTitle(for: range.end))"
+        }
+    }
+
+    var periodEyebrow: String {
+        let normalized = normalizedAnchorDate
+        switch timeRange {
+        case .week:
+            let weekStart = dateRange(for: normalized).start
+            let month = calendar.component(.month, from: weekStart)
+            return "\(month)月第 \(weekOrdinalInMonth(for: weekStart)) 周"
+        case .month:
+            let month = calendar.component(.month, from: normalized)
+            return "\(month)月"
+        case .year:
+            let year = calendar.component(.year, from: normalized)
+            return "\(year)"
+        case .custom:
+            return "自定区间"
+        }
+    }
+
     var summaryTitle: String {
         let typeTitle = selectedType == .expense ? "支出" : "收入"
         return "\(timeRange.summaryPrefix)总\(typeTitle)"
+    }
+
+    var selectedTypeTitle: String {
+        selectedType == .expense ? "支出" : "收入"
+    }
+
+    var selectedTotalCents: Int {
+        selectedType == .expense ? summary.expenseCents : summary.incomeCents
     }
 
     var rankTitle: String {
@@ -137,15 +182,16 @@ final class BillsListViewModel: ObservableObject {
     }
 
     var trendTitle: String {
+        let typeTitle = selectedTypeTitle
         switch timeRange {
         case .week:
-            return "周度支出"
+            return "本周\(typeTitle)"
         case .month:
-            return "月度支出"
+            return "本期\(typeTitle)"
         case .year:
-            return "年度支出"
+            return "全年\(typeTitle)"
         case .custom:
-            return "区间支出"
+            return "区间\(typeTitle)"
         }
     }
 
@@ -492,6 +538,25 @@ final class BillsListViewModel: ObservableObject {
 
     private func shortDateTitle(for date: Date) -> String {
         "\(calendar.component(.month, from: date))月\(calendar.component(.day, from: date))日"
+    }
+
+    private func shortDottedTitle(for date: Date) -> String {
+        "\(calendar.component(.month, from: date)).\(calendar.component(.day, from: date))"
+    }
+
+    private func weekOrdinalInMonth(for weekStart: Date) -> Int {
+        let month = calendar.component(.month, from: weekStart)
+        let year = calendar.component(.year, from: weekStart)
+        guard let monthStart = calendar.date(from: DateComponents(year: year, month: month, day: 1)) else {
+            return 1
+        }
+        let firstWeekStart = calendar.dateInterval(of: .weekOfYear, for: monthStart)?.start ?? monthStart
+        let firstWeekOverlapsMonth = calendar.component(.month, from: firstWeekStart) == month
+        let normalizedFirstWeekStart = firstWeekOverlapsMonth
+            ? firstWeekStart
+            : (calendar.date(byAdding: .weekOfYear, value: 1, to: firstWeekStart) ?? firstWeekStart)
+        let offset = calendar.dateComponents([.weekOfYear], from: normalizedFirstWeekStart, to: weekStart).weekOfYear ?? 0
+        return max(offset + 1, 1)
     }
 
     private func makeRowItem(for bill: BillRecord) -> RowItem {
