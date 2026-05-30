@@ -1,11 +1,16 @@
 import SwiftUI
+import MessageUI
+import UIKit
 
 struct AboutTallyView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tabBarVisibility) private var tabBarVisibility
 
     private let onBack: (() -> Void)?
-    private let supportURL = URL(string: "https://github.com/lynxlangya/Tally/issues")!
+    private let supportEmail = "hey@wangyun.fan"
+
+    @State private var showsFeedbackComposer = false
+    @State private var showsMailUnavailableAlert = false
 
     init(onBack: (() -> Void)? = nil) {
         self.onBack = onBack
@@ -36,6 +41,26 @@ struct AboutTallyView: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             tabBarVisibility?.setVisible(false)
+        }
+        .sheet(isPresented: $showsFeedbackComposer) {
+            FeedbackMailComposer(
+                recipient: supportEmail,
+                subject: supportMailSubject,
+                body: supportMailBody
+            ) {
+                showsFeedbackComposer = false
+            }
+        }
+        .alert(
+            TallyLocalization.text("feedback_email_unavailable_title", locale: LanguageManager.shared.currentLocale),
+            isPresented: $showsMailUnavailableAlert
+        ) {
+            Button(TallyLocalization.text("copy_email", locale: LanguageManager.shared.currentLocale)) {
+                UIPasteboard.general.string = supportEmail
+            }
+            Button(TallyLocalization.text(.gotIt, locale: LanguageManager.shared.currentLocale), role: .cancel) { }
+        } message: {
+            Text(TallyLocalization.text("feedback_email_unavailable_detail", locale: LanguageManager.shared.currentLocale))
         }
     }
 
@@ -135,9 +160,9 @@ struct AboutTallyView: View {
         VStack(alignment: .leading, spacing: TallySpacing.s4) {
             AboutSectionTitle(TallyLocalization.text("support", locale: LanguageManager.shared.currentLocale))
 
-            Link(destination: supportURL) {
+            Button(action: openSupportFeedback) {
                 HStack(spacing: TallySpacing.s4) {
-                    AboutIcon("questionmark.circle.fill")
+                    AboutIcon("envelope.fill")
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(TallyLocalization.text("report_issue", locale: LanguageManager.shared.currentLocale))
@@ -165,6 +190,37 @@ struct AboutTallyView: View {
             .buttonStyle(.plain)
             .accessibilityLabel(TallyLocalization.text("report_issue", locale: LanguageManager.shared.currentLocale))
         }
+    }
+
+    private func openSupportFeedback() {
+        guard MFMailComposeViewController.canSendMail() else {
+            showsMailUnavailableAlert = true
+            return
+        }
+
+        showsFeedbackComposer = true
+    }
+
+    private var supportMailSubject: String {
+        if TallyLocalization.supportedLanguageCode(for: LanguageManager.shared.currentLocale) == "en" {
+            return "Tally Feedback"
+        }
+        return "Tally 反馈"
+    }
+
+    private var supportMailBody: String {
+        """
+        Hello / 你好，
+
+        问题 / Suggestion:
+
+        复现步骤 / Steps:
+        1.
+        2.
+        3.
+
+        版本 / Version: \(versionText)
+        """
     }
 
     private var acknowledgementsSection: some View {

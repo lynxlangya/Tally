@@ -3862,13 +3862,64 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Submit issues and suggestions through GitHub Issues."
+            "value" : "Email issues and suggestions to hey@wangyun.fan."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通过 GitHub Issues 提交问题和建议"
+            "value" : "通过邮件向 hey@wangyun.fan 反馈问题和建议"
+          }
+        }
+      }
+    },
+    "feedback_email_unavailable_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mail isn't set up"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "邮件尚未设置"
+          }
+        }
+      }
+    },
+    "feedback_email_unavailable_detail" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy hey@wangyun.fan and send feedback from your mail app."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制 hey@wangyun.fan，然后在邮件应用里发送反馈。"
+          }
+        }
+      }
+    },
+    "copy_email" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Email"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制邮箱"
           }
         }
       }
