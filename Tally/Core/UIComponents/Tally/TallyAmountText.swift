@@ -74,28 +74,30 @@ struct TallyAmountText: View {
         let parts = amountParts(cents: cents, locale: locale)
         let resolvedColor = dim ? Color.tallyInkDim : color
         let decimalSize = size * 0.62
-        var text = Text("")
+        let signText = Text(sign.symbol)
+            .font(TallyType.num(size, weight: weight))
+            .foregroundColor(resolvedColor)
+        let symbolText = Text(MoneyFormatter.currencySymbol())
+            .font(TallyType.num(decimalSize, weight: .light))
+            .foregroundColor(resolvedColor.opacity(0.55))
+            .baselineOffset(-size * 0.06)
+        let integerText = Text(parts.integer)
+            .font(TallyType.num(size, weight: weight))
+            .foregroundColor(resolvedColor)
+        let decimalText = Text(".\(parts.decimal)")
+            .font(TallyType.num(decimalSize, weight: weight))
+            .foregroundColor(resolvedColor.opacity(0.5))
 
-        if !sign.symbol.isEmpty {
-            text = text + Text(sign.symbol)
-                .font(TallyType.num(size, weight: weight))
-                .foregroundColor(resolvedColor)
+        switch (sign.symbol.isEmpty, showSymbol) {
+        case (false, true):
+            return Text("\(signText)\(symbolText)\(integerText)\(decimalText)")
+        case (false, false):
+            return Text("\(signText)\(integerText)\(decimalText)")
+        case (true, true):
+            return Text("\(symbolText)\(integerText)\(decimalText)")
+        case (true, false):
+            return Text("\(integerText)\(decimalText)")
         }
-
-        if showSymbol {
-            text = text + Text(MoneyFormatter.currencySymbol())
-                .font(TallyType.num(decimalSize, weight: .light))
-                .foregroundColor(resolvedColor.opacity(0.55))
-                .baselineOffset(-size * 0.06)
-        }
-
-        return text
-            + Text(parts.integer)
-                .font(TallyType.num(size, weight: weight))
-                .foregroundColor(resolvedColor)
-            + Text(".\(parts.decimal)")
-                .font(TallyType.num(decimalSize, weight: weight))
-                .foregroundColor(resolvedColor.opacity(0.5))
     }
 
     static func amountParts(cents: Int, locale: Locale = LanguageManager.shared.currentLocale) -> MoneyFormatter.Parts {

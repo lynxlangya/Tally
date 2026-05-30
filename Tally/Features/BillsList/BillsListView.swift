@@ -581,6 +581,7 @@ private struct DenseBillRowButtonStyle: ButtonStyle {
     }
 }
 
+#if DEBUG
 #Preview("BillsList") {
     let sample = BillsListViewModel.makeMockData(anchor: BillsListViewModel.mockAnchorDate)
     NavigationStack {
@@ -591,3 +592,4 @@ private struct DenseBillRowButtonStyle: ButtonStyle {
     }
     .preferredColorScheme(.dark)
 }
+#endif
