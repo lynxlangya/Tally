@@ -1136,6 +1136,40 @@
         }
       }
     },
+    "use_default_avatar" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use App Icon"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 App 图标"
+          }
+        }
+      }
+    },
+    "avatar_update_failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avatar update failed. Please try again later."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "头像更新失败，请稍后重试"
+          }
+        }
+      }
+    },
     "choose_period" : {
       "extractionState" : "stale",
       "localizations" : {

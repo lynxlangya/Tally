@@ -5,7 +5,8 @@ struct ProfileView: View {
     @Environment(\.appEnvironment) private var environment
     @Environment(\.tabBarVisibility) private var tabBarVisibility
     @AppStorage("dailyReminderEnabled") private var dailyReminderEnabled: Bool = false
-    @AppStorage("profileName") private var profileName: String = "Mr. 琅邪"
+    @AppStorage(ProfileIdentityStore.nameKey) private var profileName: String = ProfileIdentityStore.defaultName
+    @AppStorage(ProfileIdentityStore.avatarDataKey) private var avatarData: Data = Data()
     @ObservedObject private var themeManager = ThemeManager.shared
     @ObservedObject private var languageManager = LanguageManager.shared
 
@@ -87,58 +88,58 @@ struct ProfileView: View {
     }
 
     private var identitySection: some View {
-        HStack(alignment: .center, spacing: TallySpacing.s4) {
-            avatarTile
+        Button {
+            selectedDestination = .account
+        } label: {
+            HStack(alignment: .center, spacing: TallySpacing.s4) {
+                avatarTile
 
-            VStack(alignment: .leading, spacing: TallySpacing.s2) {
-                Text(displayName)
-                    .font(TallyType.display(22, weight: .semibold))
-                    .tracking(-0.44)
-                    .foregroundStyle(Color.tallyInk)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-
-                HStack(spacing: 10) {
-                    Text(TallyLocalization.format(.billCount, locale: languageManager.currentLocale, viewModel.billCount))
-                        .font(TallyType.num(12, weight: .semibold))
+                VStack(alignment: .leading, spacing: TallySpacing.s2) {
+                    Text(displayName)
+                        .font(TallyType.display(22, weight: .semibold))
+                        .tracking(-0.44)
                         .foregroundStyle(Color.tallyInk)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
 
-                    Circle()
-                        .fill(Color.tallyInkGhost)
-                        .frame(width: 3, height: 3)
+                    HStack(spacing: 10) {
+                        Text(TallyLocalization.format(.billCount, locale: languageManager.currentLocale, viewModel.billCount))
+                            .font(TallyType.num(12, weight: .semibold))
+                            .foregroundStyle(Color.tallyInk)
 
-                    Text(TallyLocalization.format(.billRecordedDays, locale: languageManager.currentLocale, viewModel.recordedDayCount))
-                        .font(TallyType.body(12, weight: .medium))
-                        .foregroundStyle(Color.tallyInkDim)
+                        Circle()
+                            .fill(Color.tallyInkGhost)
+                            .frame(width: 3, height: 3)
+
+                        Text(TallyLocalization.format(.billRecordedDays, locale: languageManager.currentLocale, viewModel.recordedDayCount))
+                            .font(TallyType.body(12, weight: .medium))
+                            .foregroundStyle(Color.tallyInkDim)
+                    }
                 }
-            }
 
-            Spacer(minLength: 0)
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.tallyInkFaint)
+                    .frame(width: 24, height: 24)
+            }
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(TallyLocalization.text(.accountSettings, locale: languageManager.currentLocale))
         .padding(.horizontal, TallySpacing.s2)
         .padding(.top, TallySpacing.s2)
     }
 
     private var avatarTile: some View {
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color(red: 42 / 255, green: 37 / 255, blue: 32 / 255),
-                        Color(red: 26 / 255, green: 24 / 255, blue: 21 / 255)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .frame(width: 72, height: 72)
-            .overlay(
-                TallyMark(size: 32, variant: .five, color: .tallyAccent, strokeWidth: 2.2)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.tallyLineHi, lineWidth: 0.5)
-            )
+        ProfileAvatarView(
+            avatarData: avatarData,
+            size: 72,
+            cornerRadius: 22,
+            appIcon: themeManager.settings.appIcon,
+            accent: themeManager.settings.accent.color,
+            showsEditBadge: true
+        )
     }
 
     private var streakCard: some View {
@@ -226,6 +227,8 @@ struct ProfileView: View {
     @ViewBuilder
     private func destinationView(for destination: ProfileDestination) -> some View {
         switch destination {
+        case .account:
+            AccountSettingsView()
         case .categories:
             CategoriesView(repository: environment.container.repositories.category)
         case .recurring:
@@ -253,8 +256,7 @@ struct ProfileView: View {
     }
 
     private var displayName: String {
-        let trimmed = profileName.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Mr. 琅邪" : trimmed
+        ProfileIdentityStore.displayName(for: profileName)
     }
 
     private func subtitle(for row: ProfileRow) -> String {
@@ -482,6 +484,7 @@ private struct ProfileRow: Identifiable {
 }
 
 private enum ProfileDestination: Hashable, Identifiable {
+    case account
     case categories
     case recurring
     case importExport
