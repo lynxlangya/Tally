@@ -63,8 +63,6 @@ Tally/
 Shared/         App 与 Widget 共用的模型、格式化和本地化能力
 TallyWidgets/   WidgetKit extension
 TallyTests/     XCTest 单元测试与测试替身
-Tasks/          任务记录与发布风险整改材料
-review/         阶段性 review 记录
 ```
 
 完整依赖图见 [Architecture.mmd](Architecture.mmd) 和 `Architecture.png`。

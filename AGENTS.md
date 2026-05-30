@@ -48,7 +48,7 @@ xcodebuild -project Tally.xcodeproj -scheme TallyTests \
 - **时间**：写入账单时必须用 `TimePolicy.snapshot(for: localDate)` 同时落 4 个字段——`occurredAtUTC` / `tzId` / `tzOffset` / `occurredLocalDate`。**分组、筛选、月度汇总一律以 `occurredLocalDate` 为准**（避免跨时区漂移），展示时间走 `tzId` + `tzOffset` 还原。`DayKeyFormatter`（`yyyy-MM-dd`，`en_US_POSIX`，每个时区缓存一个 `DateFormatter` 在 Thread dictionary）是唯一日期 key 生成入口。
 - **枚举**：`BillType` / `ExportFormat` / `ThemeMode` 用 raw string，禁止散字符串魔法值。
 - **"未分类"系统分类**：UUID 写死在 `SystemCategories`，`isSystem=true`，删除自定义分类时 `CategoryRepository.delete(id:migrateTo:)` 把账单迁过去；不要让它被 UI 删掉。
-- **删除策略（本轮发布锁定）**：UI 走永久删除——`BillRepository.delete(id:)` / `TrashRepository.deleteForever(id:)`。`softDelete` / `restore` / `purgeExpired` 协议方法保留但本轮不接 UI，不要新增回收站入口（来源：[Tasks/21_Release_risk_cleanup.md](Tasks/21_Release_risk_cleanup.md)）。
+- **删除策略（当前发布口径）**：UI 走永久删除——`BillRepository.delete(id:)` / `TrashRepository.deleteForever(id:)`。`softDelete` / `restore` / `purgeExpired` 协议方法保留但本轮不接 UI，不要新增回收站入口。
 - **数据刷新通信**：写操作（新建 / 编辑 / 删除 / 导入 / 定时补齐）完成后发 `NotificationCenter.default.post(name: .billDidChange, object: nil)`（见 `Core/Utilities/AppEvents.swift`），Home / BillsList / Widget 监听这个通知再各自 reload。Widget 走 `WidgetSnapshotService.refresh(using:)` 写共享 App Group + `WidgetCenter.reloadTimelines`。
 - **Deep Link**：scheme `tally://`，已知路由 `quickEntry` / `home` / `statistics`（`DeepLinkRouter`）。
 - **定时账单**：`DefaultRecurringService.runCatchUp(maxDays:)` 在启动 / 回到前台时跑，按 `RepeatRule`（daily / weeklyMonday / weeklySunday / monthlyFirst / monthlyLast）从 `nextFireDate` 推进到 `now`，写 `BillDraft(isFromRecurring: true)`，落库前用 `detectDuplicate` 防同标的同金额同时间双写。
@@ -63,6 +63,5 @@ XCTest + `@testable import Tally`。`InMemoryBillRepository` / `InMemoryRecurrin
 
 ## 任务与 Review 流程（项目惯例）
 
-- [loadmap.md](loadmap.md) 是路线图与每个任务的验收 checklist，新任务在 [Tasks/](Tasks) 下编号顺延，发布风险整改总控见 [Tasks/21_Release_risk_cleanup.md](Tasks/21_Release_risk_cleanup.md)。
-- [review/](review) 下按任务编号 `<id>_review.md` 落每轮代码评审，模板在 [.gemini/skills/task-code-review/SKILL.md](.gemini/skills/task-code-review/SKILL.md)：先看架构对齐再列 P0–P3 问题、给文件:行号证据、最小修复建议，最后写"本次落地记录（YYYY-MM-DD）"+ 最小验证结果。新任务每阶段结束都要回填这两项。
-- Bug 复盘在 [bugs/](bugs)，整体项目深度复盘在 [project_deep_review_20260207.md](project_deep_review_20260207.md)，发版自查在 [app_store_submission_checklist_20260207.md](app_store_submission_checklist_20260207.md)。
+- 历史任务、评审和复盘材料已从仓库移除；当前任务说明以 GitHub issue / PR 描述和当前分支 diff 为准。
+- 需要落正式代码评审时，可参考 [.gemini/skills/task-code-review/SKILL.md](.gemini/skills/task-code-review/SKILL.md)：先看架构对齐，再列 P0–P3 问题、给文件:行号证据、最小修复建议，最后记录最小验证结果。
