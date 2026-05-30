@@ -156,17 +156,17 @@ struct QuickEntryView: View {
             showsCategoryPicker = true
         } label: {
             HStack(spacing: 10) {
-                let category = selectedCategoryForDisplay
+                let category = viewModel.selectedCategory
                 CategoryTile(
-                    iconName: category.iconKey,
-                    color: categoryColor(for: category),
+                    iconName: category?.iconKey ?? "tag",
+                    color: category.map(categoryColor(for:)) ?? .catAsh,
                     size: 28,
                     radius: TallyRadii.sm
                 )
 
-                Text(category.name)
+                Text(category?.name ?? TallyLocalization.text("select_category", locale: LanguageManager.shared.currentLocale))
                     .font(TallyType.body(14, weight: .medium))
-                    .foregroundStyle(Color.tallyInk)
+                    .foregroundStyle(category == nil ? Color.tallyInkDim : Color.tallyInk)
                     .lineLimit(1)
 
                 Image(systemName: "chevron.down")
@@ -236,21 +236,6 @@ struct QuickEntryView: View {
 
     private var dateText: String {
         TallyLocalization.monthDayTitle(for: viewModel.selectedDate, locale: LanguageManager.shared.currentLocale)
-    }
-
-    private var selectedCategoryForDisplay: CategoryRecord {
-        if let category = viewModel.selectedCategory {
-            return category
-        }
-        return CategoryRecord(
-            id: SystemCategoryID.uncategorized(for: viewModel.selectedType),
-            type: viewModel.selectedType,
-            name: TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale),
-            iconKey: "tag",
-            colorHex: Int(CategoryColorPalette.defaultHex(for: SystemCategoryID.uncategorized(for: viewModel.selectedType))),
-            isSystem: true,
-            sortOrder: 0
-        )
     }
 
     private func handleCategorySelection(_ category: CategoryRecord) {

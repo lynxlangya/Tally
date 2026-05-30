@@ -180,6 +180,7 @@ final class QuickEntryViewModel: ObservableObject {
                     isFromRecurring: false
                 )
                 _ = try billRepository.create(draft)
+                LastUsedCategoryStore.record(category.id, for: selectedType)
             }
             WidgetSnapshotService.refresh(using: billRepository)
             NotificationCenter.default.post(name: .billDidChange, object: nil)
@@ -200,7 +201,7 @@ final class QuickEntryViewModel: ObservableObject {
             categoriesById = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
             categories = sortCategories(items)
             if selectedCategory?.type != selectedType {
-                selectedCategory = categories.first
+                selectedCategory = defaultCategory()
             }
             errorMessage = nil
         } catch {
@@ -210,6 +211,16 @@ final class QuickEntryViewModel: ObservableObject {
                 fallback: TallyLocalization.text("category_load_failed", locale: LanguageManager.shared.currentLocale)
             )
         }
+    }
+
+    /// 新建账单时的默认分类：取当前收 / 支类型上次用过的那个；首次使用或该分类已不存在时返回 nil（不预选）。
+    /// 编辑模式不在此处理——选中由 `applyEditingSelectionIfNeeded` 按账单实际分类还原。
+    private func defaultCategory() -> CategoryRecord? {
+        guard editingBill == nil,
+              let id = LastUsedCategoryStore.categoryID(for: selectedType) else {
+            return nil
+        }
+        return categories.first { $0.id == id }
     }
 
     private func loadAvailableYears() {

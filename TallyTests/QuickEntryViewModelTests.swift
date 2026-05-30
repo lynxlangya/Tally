@@ -2,6 +2,23 @@ import XCTest
 @testable import Tally
 
 final class QuickEntryViewModelTests: XCTestCase {
+    private let lastUsedSuite = "QuickEntryViewModelTests.lastUsed"
+    private var savedDefaults: UserDefaults!
+
+    override func setUp() {
+        super.setUp()
+        savedDefaults = LastUsedCategoryStore.defaults
+        let suite = UserDefaults(suiteName: lastUsedSuite)!
+        suite.removePersistentDomain(forName: lastUsedSuite)
+        LastUsedCategoryStore.defaults = suite
+    }
+
+    override func tearDown() {
+        LastUsedCategoryStore.defaults.removePersistentDomain(forName: lastUsedSuite)
+        LastUsedCategoryStore.defaults = savedDefaults
+        super.tearDown()
+    }
+
     func testAmountInputFollowsTypedStringRules() async throws {
         let result = await MainActor.run { () -> (String, Int, String, Int) in
             let viewModel = makeViewModel()
@@ -101,9 +118,10 @@ final class QuickEntryViewModelTests: XCTestCase {
         XCTAssertEqual(result.6, "abcdef")
     }
 
-    func testChangingBillTypeLoadsMatchingCategoriesAndClearsMismatchedSelection() async throws {
+    func testChangingBillTypeSelectsLastUsedCategoryForThatType() async throws {
         let expenseCategory = makeCategory(type: .expense, name: "午餐")
         let incomeCategory = makeCategory(type: .income, name: "薪资")
+        LastUsedCategoryStore.record(incomeCategory.id, for: .income)
 
         let result = await MainActor.run { () -> (CategoryRecord?, [CategoryRecord], BillType) in
             let viewModel = QuickEntryViewModel(
@@ -119,6 +137,85 @@ final class QuickEntryViewModelTests: XCTestCase {
         XCTAssertEqual(result.0?.id, incomeCategory.id)
         XCTAssertEqual(result.1.map(\.id), [incomeCategory.id])
         XCTAssertEqual(result.2, .income)
+    }
+
+    func testFirstLaunchWithoutHistoryDoesNotPreselectCategory() async throws {
+        let category = makeCategory(type: .expense, name: "晚餐")
+
+        let selected = await MainActor.run { () -> CategoryRecord? in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: [category])
+            )
+            viewModel.load()
+            return viewModel.selectedCategory
+        }
+
+        XCTAssertNil(selected)
+    }
+
+    func testSavingRecordsLastUsedCategoryAsNextDefault() async throws {
+        let category = makeCategory(type: .expense, name: "咖啡")
+
+        let result = await MainActor.run { () -> (UUID?, UUID?) in
+            let repository = InMemoryBillRepository()
+            let categoryRepository = MockCategoryRepository(seed: [category])
+
+            let first = QuickEntryViewModel(repository: repository, categoryRepository: categoryRepository)
+            first.load()
+            first.selectCategory(category)
+            first.handleKey(.digit(5))
+            _ = first.save()
+
+            let second = QuickEntryViewModel(repository: repository, categoryRepository: categoryRepository)
+            second.load()
+            return (first.selectedCategory?.id, second.selectedCategory?.id)
+        }
+
+        XCTAssertEqual(result.0, category.id)
+        XCTAssertEqual(result.1, category.id)
+    }
+
+    func testLastUsedCategoryIsTrackedPerBillType() async throws {
+        let expense = makeCategory(type: .expense, name: "咖啡")
+        let income = makeCategory(type: .income, name: "薪资")
+
+        let result = await MainActor.run { () -> (UUID?, CategoryRecord?) in
+            let repository = InMemoryBillRepository()
+            let categoryRepository = MockCategoryRepository(seed: [expense, income])
+
+            let first = QuickEntryViewModel(repository: repository, categoryRepository: categoryRepository)
+            first.load()
+            first.selectCategory(expense)
+            first.handleKey(.digit(5))
+            _ = first.save()
+
+            let second = QuickEntryViewModel(repository: repository, categoryRepository: categoryRepository)
+            second.load()
+            let expenseDefault = second.selectedCategory?.id
+            second.handleKey(.add)
+            return (expenseDefault, second.selectedCategory)
+        }
+
+        XCTAssertEqual(result.0, expense.id)
+        XCTAssertNil(result.1)
+    }
+
+    func testStoredCategoryNoLongerAvailableFallsBackToNoSelection() async throws {
+        let available = makeCategory(type: .expense, name: "咖啡")
+        let removedID = UUID()
+
+        let selected = await MainActor.run { () -> CategoryRecord? in
+            LastUsedCategoryStore.record(removedID, for: .expense)
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: [available])
+            )
+            viewModel.load()
+            return viewModel.selectedCategory
+        }
+
+        XCTAssertNil(selected)
     }
 
     func testChangingBillTypeDoesNotAutoselectWhenNoMatchingCategoryExists() async throws {
