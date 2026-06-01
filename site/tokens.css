@@ -1,0 +1,122 @@
+/* =====================================================================
+   TALLY — Design Tokens
+   Cinnabar + ink-and-paper. Numbers as typography. No rainbow.
+   ===================================================================== */
+
+:root {
+  /* ---- type families ---------------------------------------------------- */
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', system-ui, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
+  --font-num:     -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
+  --font-mono:    'SF Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ---- signature accent: Cinnabar (朱砂) ------------------------------- */
+  --accent:       #C84A38;
+  --accent-hi:    #D8624E;
+  --accent-lo:    #A33B2C;
+  --accent-ink:   #FBF5E8;
+  --accent-tint:  rgba(200, 74, 56, 0.14);
+
+  /* ---- radii ----------------------------------------------------------- */
+  --r-xs: 6px;  --r-sm: 10px;  --r-md: 14px;
+  --r-lg: 18px; --r-xl: 24px;  --r-2xl: 32px;
+  --r-pill: 9999px;
+
+  /* ---- spacing scale --------------------------------------------------- */
+  --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+  --s-5: 20px; --s-6: 24px;  --s-7: 32px;  --s-8: 40px; --s-9: 56px;
+
+  /* ---- motion ---------------------------------------------------------- */
+  --t-fast: 120ms;
+  --t-base: 220ms;
+  --t-emph: 360ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---- DARK skin (primary) --------------------------------------------- */
+[data-theme="dark"] {
+  --bg:        #0F0F0D;
+  --surface:   #181815;
+  --surface-2: #22221E;
+  --surface-3: #2C2C27;
+  --line:      rgba(255, 248, 230, 0.08);
+  --line-hi:   rgba(255, 248, 230, 0.14);
+
+  --ink:       #EFEAE0;
+  --ink-dim:   #A39E92;
+  --ink-faint: #6E6A60;
+  --ink-ghost: #4A4742;
+
+  --shadow-1: 0 1px 0 rgba(255, 248, 230, 0.04) inset, 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-2: 0 4px 24px rgba(0,0,0,0.35), 0 0 0 0.5px rgba(255,248,230,0.06);
+  --shadow-fab: 0 12px 32px rgba(200, 74, 56, 0.45), 0 4px 12px rgba(0,0,0,0.5);
+
+  --scrim: rgba(8, 8, 6, 0.72);
+}
+
+/* ---- LIGHT skin (parchment) ------------------------------------------ */
+[data-theme="light"] {
+  --bg:        #F4F1EA;
+  --surface:   #FFFDF6;
+  --surface-2: #ECE7DC;
+  --surface-3: #DDD7C8;
+  --line:      rgba(20, 18, 12, 0.08);
+  --line-hi:   rgba(20, 18, 12, 0.14);
+
+  --ink:       #1A1815;
+  --ink-dim:   #5C5648;
+  --ink-faint: #8E8878;
+  --ink-ghost: #B6B0A2;
+
+  --shadow-1: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 1px 2px rgba(60, 50, 30, 0.06);
+  --shadow-2: 0 4px 18px rgba(60, 50, 30, 0.08), 0 0 0 0.5px rgba(20, 18, 12, 0.05);
+  --shadow-fab: 0 12px 32px rgba(200, 74, 56, 0.35), 0 4px 12px rgba(60, 30, 20, 0.18);
+
+  --scrim: rgba(60, 50, 30, 0.32);
+}
+
+/* =====================================================================
+   Category swatch palette — muted, earthen, no rainbow
+   ===================================================================== */
+:root {
+  --cat-terracotta: #B8553E;
+  --cat-persimmon:  #D6864A;
+  --cat-ochre:      #C49A3C;
+  --cat-olive:      #7A8043;
+  --cat-moss:       #4D7148;
+  --cat-sage:       #5E8B7A;
+  --cat-teal:       #3D7D7E;
+  --cat-slate:      #5C6F86;
+  --cat-indigo:     #5B5E8A;
+  --cat-plum:       #7E4D6E;
+  --cat-rose:       #A65566;
+  --cat-ash:        #6B6964;
+}
+
+/* =====================================================================
+   Base
+   ===================================================================== */
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-feature-settings: 'cv11', 'ss03';
+  color: var(--ink);
+  background: var(--bg);
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+
+/* tabular numerals helper (use on amounts) */
+.tnum { font-feature-settings: 'tnum' on, 'lnum' on, 'cv11'; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+
+/* fine ledger rule */
+.rule { height: 0.5px; background: var(--line); }
+
+/* tally stick character — used as glyph */
+.glyph-tally::before {
+  content: ''; display: inline-block; width: 2px; height: 1em;
+  background: currentColor; vertical-align: middle;
+}
