@@ -47,8 +47,48 @@
         }
       }
     },
+    "%@%@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "%@%@%@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@%3$@"
+          }
+        }
+      }
+    },
+    "%@%@%@%@" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@%3$@%4$@"
+          }
+        }
+      }
+    },
     "%lld" : {
 
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
+          }
+        }
+      }
     },
     "+" : {
 
@@ -711,6 +751,23 @@
         }
       }
     },
+    "avatar_update_failed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avatar update failed. Please try again later."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "头像更新失败，请稍后重试"
+          }
+        }
+      }
+    },
     "average_daily" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1136,40 +1193,6 @@
         }
       }
     },
-    "use_default_avatar" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use App Icon"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 App 图标"
-          }
-        }
-      }
-    },
-    "avatar_update_failed" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avatar update failed. Please try again later."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "头像更新失败，请稍后重试"
-          }
-        }
-      }
-    },
     "choose_period" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1268,6 +1291,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "继续"
+          }
+        }
+      }
+    },
+    "copy_email" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Email"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制邮箱"
           }
         }
       }
@@ -1948,6 +1988,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@功能开发中"
+          }
+        }
+      }
+    },
+    "feedback_email_unavailable_detail" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy hey@wangyun.fan and send feedback from your mail app."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制 hey@wangyun.fan，然后在邮件应用里发送反馈。"
+          }
+        }
+      }
+    },
+    "feedback_email_unavailable_title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mail isn't set up"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "邮件尚未设置"
           }
         }
       }
@@ -3907,57 +3981,6 @@
         }
       }
     },
-    "feedback_email_unavailable_title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mail isn't set up"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "邮件尚未设置"
-          }
-        }
-      }
-    },
-    "feedback_email_unavailable_detail" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copy hey@wangyun.fan and send feedback from your mail app."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "复制 hey@wangyun.fan，然后在邮件应用里发送反馈。"
-          }
-        }
-      }
-    },
-    "copy_email" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copy Email"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "复制邮箱"
-          }
-        }
-      }
-    },
     "reset_default_format" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4487,6 +4510,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "该操作不可撤销"
+          }
+        }
+      }
+    },
+    "use_default_avatar" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use App Icon"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 App 图标"
           }
         }
       }
