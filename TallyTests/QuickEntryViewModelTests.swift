@@ -237,6 +237,61 @@ final class QuickEntryViewModelTests: XCTestCase {
         XCTAssertFalse(result.2)
     }
 
+    func testSuggestedCategoriesTakesLeadingBySortOrderWithinLimit() async throws {
+        let seed = (0..<8).map { makeCategory(type: .expense, name: "c\($0)", sortOrder: $0) }
+
+        let names = await MainActor.run { () -> [String] in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: seed)
+            )
+            viewModel.load()
+            return viewModel.suggestedCategories.map(\.name)
+        }
+
+        // 取前 suggestionRowLimit 个（=6），按 sortOrder 升序
+        XCTAssertEqual(names, ["c0", "c1", "c2", "c3", "c4", "c5"])
+    }
+
+    func testSuggestedCategoriesForcesSelectedVisibleWhenBeyondLimit() async throws {
+        let seed = (0..<8).map { makeCategory(type: .expense, name: "c\($0)", sortOrder: $0) }
+        // 选中排在第 8 位（sortOrder=7）的分类，它本不在前 6
+        let tail = seed[7]
+
+        let result = await MainActor.run { () -> ([String], Int) in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: seed)
+            )
+            viewModel.load()
+            viewModel.selectCategory(tail)
+            let names = viewModel.suggestedCategories.map(\.name)
+            return (names, viewModel.suggestedCategories.count)
+        }
+
+        XCTAssertEqual(result.0.first, "c7")           // 选中项被挤到第一，保证可见
+        XCTAssertEqual(result.1, QuickEntryLayout.suggestionRowLimit) // 长度不超限
+        XCTAssertTrue(result.0.contains("c7"))
+    }
+
+    func testSuggestedCategoriesKeepsSelectedInPlaceWhenAlreadyVisible() async throws {
+        let seed = (0..<6).map { makeCategory(type: .expense, name: "c\($0)", sortOrder: $0) }
+        let third = seed[2]
+
+        let names = await MainActor.run { () -> [String] in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: seed)
+            )
+            viewModel.load()
+            viewModel.selectCategory(third)
+            return viewModel.suggestedCategories.map(\.name)
+        }
+
+        // 选中项已在可见范围内时不重排，保持 sortOrder 原位（守肌肉记忆）
+        XCTAssertEqual(names, ["c0", "c1", "c2", "c3", "c4", "c5"])
+    }
+
     @MainActor
     private func makeViewModel() -> QuickEntryViewModel {
         QuickEntryViewModel(
@@ -245,7 +300,7 @@ final class QuickEntryViewModelTests: XCTestCase {
         )
     }
 
-    private func makeCategory(type: BillType, name: String) -> CategoryRecord {
+    private func makeCategory(type: BillType, name: String, sortOrder: Int = 0) -> CategoryRecord {
         CategoryRecord(
             id: UUID(),
             type: type,
@@ -253,7 +308,7 @@ final class QuickEntryViewModelTests: XCTestCase {
             iconKey: type == .expense ? "fork.knife" : "banknote.fill",
             colorHex: nil,
             isSystem: false,
-            sortOrder: 0
+            sortOrder: sortOrder
         )
     }
 

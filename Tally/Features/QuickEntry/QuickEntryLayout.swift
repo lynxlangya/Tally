@@ -23,4 +23,21 @@ enum QuickEntryLayout {
     static let confirmButtonCornerRadius: CGFloat = 24
     static let noteLimit: Int = 6
     static let datePickerSheetHeight: CGFloat = 248
+
+    // 键盘上方的横向快捷分类行
+    static let suggestionRowTileSize: CGFloat = 44
+    static let suggestionRowSpacing: CGFloat = 14
+    static let suggestionRowLimit: Int = 6
+    static let suggestionRowVerticalPadding: CGFloat = 10
+    static let suggestionRowHorizontalPadding: CGFloat = 20
+    static let suggestionCaptionHeight: CGFloat = 18
+    static let suggestionEdgeFadeWidth: CGFloat = 24
+    // 选中描边环向外扩 inset；stroke 居中对齐，最外缘 = inset + lineWidth/2 ≈ 3.75。
+    // clearance 是 item 为容纳环预留的内边距，须 ≥ 最外缘，否则环顶被 ScrollView/mask 裁掉。
+    static let suggestionSelectionRingInset: CGFloat = 3
+    static let suggestionSelectionRingClearance: CGFloat = 5
+
+    // 全量 picker 的「常用 / 全部」分区
+    static let pickerSectionSpacing: CGFloat = 18
+    static let pickerSectionHeaderBottomPadding: CGFloat = 10
 }

@@ -87,6 +87,26 @@ final class QuickEntryViewModel: ObservableObject {
         cents(from: amountText) ?? 0
     }
 
+    /// 键盘上方横向快捷行要展示的前 N 个分类。
+    /// v1.1a：直接取已按 `sortOrder` 排序的 `categories` 前 N，并保证当前选中项一定可见
+    ///（不在前列时挤到第一个）。v1.1b 会用 `CategorySuggestionService` 的打分结果替换排序来源，
+    /// 「保证选中可见」这一层逻辑保持不变。
+    var suggestedCategories: [CategoryRecord] {
+        let limit = QuickEntryLayout.suggestionRowLimit
+        var result = Array(categories.prefix(limit))
+        guard let selected = selectedCategory,
+              selected.type == selectedType,
+              categories.contains(where: { $0.id == selected.id }),
+              !result.contains(where: { $0.id == selected.id }) else {
+            return result
+        }
+        if !result.isEmpty {
+            result.removeLast()
+        }
+        result.insert(selected, at: 0)
+        return result
+    }
+
     func load() {
         loadCategories()
         loadAvailableYears()

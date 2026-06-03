@@ -44,6 +44,8 @@ struct QuickEntryView: View {
                 viewModel.load()
             }
             .tallySheet(isPresented: $showsCategoryPicker, heightFraction: QuickEntryLayout.categoryPickerDetent) {
+                // v1.1a：全量 picker 暂为单层「全部」。`frequentCategories` 留空 → 常用区隐藏，
+                // 避免本阶段「常用=sortOrder 前缀」与「全部」开头重复。v1.1b 算法接入后再点亮常用区。
                 CategoryPickerSheet(
                     categories: viewModel.categories,
                     selectedCategory: viewModel.selectedCategory,
@@ -72,9 +74,6 @@ struct QuickEntryView: View {
             header
 
             VStack(spacing: TallySpacing.s5) {
-                categoryChip
-                    .padding(.top, TallySpacing.s5)
-
                 Spacer(minLength: TallySpacing.s2)
 
                 HeroAmount(
@@ -88,6 +87,13 @@ struct QuickEntryView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, QuickEntryLayout.contentHorizontalPadding)
+
+            QuickEntrySuggestionRow(
+                categories: viewModel.suggestedCategories,
+                selectedCategoryID: viewModel.selectedCategory?.id,
+                onSelect: { viewModel.selectCategory($0) },
+                onMore: { showsCategoryPicker = true }
+            )
 
             VStack(spacing: TallySpacing.s3) {
                 QuickEntryKeypad { key in
@@ -149,37 +155,6 @@ struct QuickEntryView: View {
         }
         .padding(.horizontal, QuickEntryLayout.headerHorizontalPadding)
         .padding(.top, TallySpacing.s1)
-    }
-
-    private var categoryChip: some View {
-        Button {
-            showsCategoryPicker = true
-        } label: {
-            HStack(spacing: 10) {
-                let category = viewModel.selectedCategory
-                CategoryTile(
-                    iconName: category?.iconKey ?? "tag",
-                    color: category.map(categoryColor(for:)) ?? .catAsh,
-                    size: 28,
-                    radius: TallyRadii.sm
-                )
-
-                Text(category?.name ?? TallyLocalization.text("select_category", locale: LanguageManager.shared.currentLocale))
-                    .font(TallyType.body(14, weight: .medium))
-                    .foregroundStyle(category == nil ? Color.tallyInkDim : Color.tallyInk)
-                    .lineLimit(1)
-
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Color.tallyInkDim.opacity(0.7))
-            }
-            .padding(.leading, TallySpacing.s2)
-            .padding(.trailing, TallySpacing.s4)
-            .padding(.vertical, TallySpacing.s2)
-            .background(Color.tallySurface2)
-            .clipShape(Capsule(style: .continuous))
-        }
-        .buttonStyle(QuickEntryChipButtonStyle())
     }
 
     private var dateAndNoteRow: some View {
@@ -251,11 +226,6 @@ struct QuickEntryView: View {
         if viewModel.save() {
             dismiss()
         }
-    }
-
-    private func categoryColor(for category: CategoryRecord) -> Color {
-        let hex = category.colorHex.map { UInt32($0) } ?? CategoryColorPalette.defaultHex(for: category.id)
-        return Color(hex: hex)
     }
 
 }
@@ -492,14 +462,6 @@ private struct QuickEntryDatePickerSheet: View {
         .padding(.horizontal, TallySpacing.s5)
         .padding(.bottom, TallySpacing.s5)
         .background(Color.tallySurface.ignoresSafeArea())
-    }
-}
-
-private struct QuickEntryChipButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.tallyFast, value: configuration.isPressed)
     }
 }
 

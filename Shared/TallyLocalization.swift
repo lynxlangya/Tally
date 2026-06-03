@@ -56,6 +56,8 @@ enum L10nKey: String {
     case monthlyExpense = "monthly_expense"
     case month = "month"
     case more = "more"
+    case frequentCategories = "frequent_categories"
+    case allCategories = "all_categories"
     case newCategory = "new_category"
     case newRecurring = "new_recurring"
     case noCategoryRecords = "no_category_records"
@@ -650,6 +652,8 @@ enum TallyLocalization {
             L10nKey.monthlyExpense.rawValue: "Monthly Expense",
             L10nKey.month.rawValue: "Month",
             L10nKey.more.rawValue: "More",
+            L10nKey.frequentCategories.rawValue: "Frequent",
+            L10nKey.allCategories.rawValue: "All",
             L10nKey.newCategory.rawValue: "New Category",
             L10nKey.newRecurring.rawValue: "New Recurring",
             L10nKey.noCategoryRecords.rawValue: "No category records.",
@@ -739,6 +743,8 @@ enum TallyLocalization {
         L10nKey.monthlyExpense.rawValue: "本月支出",
         L10nKey.month.rawValue: "月份",
         L10nKey.more.rawValue: "更多",
+        L10nKey.frequentCategories.rawValue: "常用",
+        L10nKey.allCategories.rawValue: "全部",
         L10nKey.newCategory.rawValue: "新分类",
         L10nKey.newRecurring.rawValue: "新建定时",
         L10nKey.noCategoryRecords.rawValue: "没有分类记录。",
