@@ -14,6 +14,7 @@ struct QuickEntryView: View {
     init(
         repository: BillRepository,
         categoryRepository: CategoryRepository,
+        suggestionService: CategorySuggestionService,
         editingBill: BillRecord? = nil,
         selectionOnly: Bool = false,
         onCategorySelected: ((CategoryRecord) -> Void)? = nil
@@ -21,7 +22,8 @@ struct QuickEntryView: View {
         _viewModel = StateObject(wrappedValue: QuickEntryViewModel(
             repository: repository,
             categoryRepository: categoryRepository,
-            editingBill: editingBill
+            editingBill: editingBill,
+            suggestionService: suggestionService
         ))
         self.selectionOnly = selectionOnly
         self.onCategorySelected = onCategorySelected
@@ -44,10 +46,9 @@ struct QuickEntryView: View {
                 viewModel.load()
             }
             .tallySheet(isPresented: $showsCategoryPicker, heightFraction: QuickEntryLayout.categoryPickerDetent) {
-                // v1.1a：全量 picker 暂为单层「全部」。`frequentCategories` 留空 → 常用区隐藏，
-                // 避免本阶段「常用=sortOrder 前缀」与「全部」开头重复。v1.1b 算法接入后再点亮常用区。
                 CategoryPickerSheet(
                     categories: viewModel.categories,
+                    frequentCategories: viewModel.suggestedCategories,
                     selectedCategory: viewModel.selectedCategory,
                     selectedType: nil,
                     onSelectType: nil,

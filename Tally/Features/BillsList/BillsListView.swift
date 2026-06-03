@@ -11,15 +11,18 @@ struct BillsListView: View {
 
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
+    private let suggestionService: CategorySuggestionService
     private let hidesTabBarOnAppear: Bool
 
     init(
         repository: BillRepository,
         categoryRepository: CategoryRepository,
+        suggestionService: CategorySuggestionService,
         hidesTabBarOnAppear: Bool = true
     ) {
         self.billRepository = repository
         self.categoryRepository = categoryRepository
+        self.suggestionService = suggestionService
         self.hidesTabBarOnAppear = hidesTabBarOnAppear
         _viewModel = StateObject(wrappedValue: BillsListViewModel(
             repository: repository,
@@ -123,6 +126,7 @@ struct BillsListView: View {
             QuickEntryView(
                 repository: billRepository,
                 categoryRepository: categoryRepository,
+                suggestionService: suggestionService,
                 editingBill: bill
             )
         }
@@ -587,7 +591,8 @@ private struct DenseBillRowButtonStyle: ButtonStyle {
     NavigationStack {
         BillsListView(
             repository: MockBillRepository(seed: sample.bills),
-            categoryRepository: MockCategoryRepository(seed: sample.categories)
+            categoryRepository: MockCategoryRepository(seed: sample.categories),
+            suggestionService: StubCategorySuggestionService()
         )
     }
     .preferredColorScheme(.dark)

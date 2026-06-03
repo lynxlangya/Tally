@@ -39,9 +39,11 @@ final class QuickEntryViewModel: ObservableObject {
 
     private let billRepository: BillRepository
     private let categoryRepository: CategoryRepository
+    private let suggestionService: CategorySuggestionService
     private let editingBill: BillRecord?
     private let nowProvider: () -> Date
     private var categoriesById: [UUID: CategoryRecord] = [:]
+    private var orderedSuggestedCategories: [CategoryRecord] = []
     private var didApplyEditing = false
     private var didUserEditDate = false
 
@@ -49,10 +51,12 @@ final class QuickEntryViewModel: ObservableObject {
         repository: BillRepository,
         categoryRepository: CategoryRepository,
         editingBill: BillRecord? = nil,
+        suggestionService: CategorySuggestionService = StubCategorySuggestionService(),
         nowProvider: @escaping () -> Date = Date.init
     ) {
         self.billRepository = repository
         self.categoryRepository = categoryRepository
+        self.suggestionService = suggestionService
         self.editingBill = editingBill
         self.nowProvider = nowProvider
 
@@ -88,12 +92,10 @@ final class QuickEntryViewModel: ObservableObject {
     }
 
     /// 键盘上方横向快捷行要展示的前 N 个分类。
-    /// v1.1a：直接取已按 `sortOrder` 排序的 `categories` 前 N，并保证当前选中项一定可见
-    ///（不在前列时挤到第一个）。v1.1b 会用 `CategorySuggestionService` 的打分结果替换排序来源，
-    /// 「保证选中可见」这一层逻辑保持不变。
+    /// 排序来源由 `CategorySuggestionService` 提供；这里保留「取前 N + 当前选中项一定可见」。
     var suggestedCategories: [CategoryRecord] {
         let limit = QuickEntryLayout.suggestionRowLimit
-        var result = Array(categories.prefix(limit))
+        var result = Array(orderedSuggestedCategories.prefix(limit))
         guard let selected = selectedCategory,
               selected.type == selectedType,
               categories.contains(where: { $0.id == selected.id }),
@@ -220,17 +222,29 @@ final class QuickEntryViewModel: ObservableObject {
             let items = try categoryRepository.list(type: selectedType)
             categoriesById = Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0) })
             categories = sortCategories(items)
+            refreshSuggestedCategoryOrder()
             if selectedCategory?.type != selectedType {
                 selectedCategory = defaultCategory()
             }
             errorMessage = nil
         } catch {
             categories = []
+            orderedSuggestedCategories = []
             errorMessage = FeatureErrorMessage.message(
                 for: error,
                 fallback: TallyLocalization.text("category_load_failed", locale: LanguageManager.shared.currentLocale)
             )
         }
+    }
+
+    private func refreshSuggestedCategoryOrder() {
+        let orderedIDs = suggestionService.orderedCategoryIDs(
+            type: selectedType,
+            now: nowProvider(),
+            candidates: categories
+        )
+        let categoryByID = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0) })
+        orderedSuggestedCategories = orderedIDs.compactMap { categoryByID[$0] }
     }
 
     /// 新建账单时的默认分类：取当前收 / 支类型上次用过的那个；首次使用或该分类已不存在时返回 nil（不预选）。

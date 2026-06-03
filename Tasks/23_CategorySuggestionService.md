@@ -156,7 +156,7 @@ score(c) = wTime * timeAffinity(c) + wRecency * recency(c) + wFreq * frequency(c
 ```
 - `frequency(c)`：90 天内该分类账单计数，按 90 天总数归一化到 [0,1]。
 - `recency(c)`：对该分类每笔账单按「距今天数」做指数衰减 `exp(-days / halfLifeDays)` 求和，再对全体归一化。`halfLifeDays` 初值 **10**。
-- `timeAffinity(c)`：只统计「还原后的本地小时」落在 `currentHour ± window` 内的该分类账单计数（**跨午夜环绕**：window=1.5h，即 23 点应覆盖到 0、1 点），归一化。
+- `timeAffinity(c)`：只统计「还原后的本地小时」落在 `currentHour ± window` 内的该分类账单计数（**跨午夜环绕**：window=1.5h，即 23 点应覆盖到 0:30，但不覆盖到 1:00），归一化。
 - 权重初值：`wTime = 0.5, wRecency = 0.3, wFreq = 0.2`。**定义成具名常量**，集中可调。v1.2 有数据后再校准。
 
 排序规则：`score` 降序；**score 全 0 或并列时，回退按 `sortOrder` 升序**（保证确定性，避免字典无序导致排序抖动）。
@@ -260,3 +260,37 @@ xcodebuild -project Tally.xcodeproj -scheme TallyTests \
 - **排序抖动**：字典无序 / 并列未定序会导致每次打开顺序跳变，必须用 sortOrder 兜底定序。
 - **建议失败拖垮记账**：所有 repo 调用 try? 回退，绝不抛到 VM。
 - **Preview / 测试编译**：漏改 mock() 或 Preview 调用点会导致 build 断，验收前务必整体编译两个 scheme。
+
+## 本次落地记录（2026-06-03）
+
+### 改动文件清单
+
+- `Tally/Services/CategorySuggestionService.swift`：新增 `CategorySuggestionService` 协议、默认实现、Stub；默认实现按 90 天历史做时段切片、近因衰减、全局频率打分，并在冷启动 / repo 抛错时回退稳定顺序。
+- `Tally/App/DIContainer.swift`：`Services` 增加 `categorySuggestion`，`live()` 注入 `DefaultCategorySuggestionService`，`mock()` 注入 `StubCategorySuggestionService`。
+- `Tally/Features/QuickEntry/QuickEntryViewModel.swift`：新增 `suggestionService` 注入，`suggestedCategories` 改用 service 排序结果，同时保留「取前 N + 选中项可见」逻辑。
+- `Tally/Features/QuickEntry/QuickEntryView.swift`：透传 `suggestionService`，并在全量 picker 重新传入 `frequentCategories: viewModel.suggestedCategories` 点亮「常用」区。
+- `Tally/Features/AppShell/TallyTabScaffold.swift`、`Tally/Features/Home/HomeView.swift`、`Tally/Features/BillsList/BillsListView.swift`：补齐 QuickEntry 入口和 Preview 的 service 注入。
+- `TallyTests/CategorySuggestionServiceTests.swift`：新增纯函数和默认 service 测试，覆盖时段切片、近因、跨午夜、冷启动、并列 sortOrder 回退、过滤规则和 repo 抛错兜底。
+
+### 最小验证结果
+
+- ✅ `xcodebuild -project Tally.xcodeproj -scheme Tally -destination 'platform=iOS Simulator,name=iPhone 17' build`：`BUILD SUCCEEDED`
+- ✅ `xcodebuild -project Tally.xcodeproj -scheme TallyTests -destination 'platform=iOS Simulator,name=iPhone 17' test -only-testing:TallyTests/CategorySuggestionServiceTests -only-testing:TallyTests/QuickEntryViewModelTests`：`TEST SUCCEEDED`
+- ✅ `git diff --check`：无 whitespace error
+
+### 本轮 review 整改（2026-06-03）
+
+- `Tally/Services/CategorySuggestionService.swift`：删除 `hourBucketTolerance`，时段窗口判定回到 `circularHourDistance <= timeWindowHours`，实现与文档里的 `±1.5h` 保持一致。
+- `TallyTests/CategorySuggestionServiceTests.swift`：将原跨午夜用例里的 `1:00` 调整为窗口内的 `22:30`，并新增 `testPureScoringDoesNotCountDistantHourWhenWindowWrapsMidnight`，验证 23 点窗口不会把 12 点远端记录计入 timeAffinity。
+- `TallyTests/QuickEntryViewModelTests.swift`：新增 `testSuggestedCategoriesUsesServiceOrderAndKeepsSelectedVisible`，用会改序的测试 service 覆盖「service 排序 + 选中项置顶」组合行为。
+
+### 本轮最小验证结果
+
+- ✅ `xcodebuild -project Tally.xcodeproj -scheme Tally -destination 'platform=iOS Simulator,name=iPhone 17' build`：`BUILD SUCCEEDED`
+- ✅ `xcodebuild -project Tally.xcodeproj -scheme TallyTests -destination 'platform=iOS Simulator,name=iPhone 17' test -only-testing:TallyTests/CategorySuggestionServiceTests -only-testing:TallyTests/QuickEntryViewModelTests`：`TEST SUCCEEDED`
+
+### 本轮 Codex review 修复（2026-06-03）
+
+- `Tally/Features/QuickEntry/QuickEntryViewModel.swift`：将 service 排序结果缓存到 `orderedSuggestedCategories`，在 `loadCategories()` 时刷新，避免 SwiftUI 高频读取 `suggestedCategories` 时重复触发 repo 查询；getter 只保留「取前 N + 选中项可见」逻辑。
+- `Tasks/23_CategorySuggestionService.md`：修正跨午夜窗口示例，明确 23:00 的 `±1.5h` 覆盖 0:30 但不覆盖 1:00。
+- `Tally/Services/CategorySuggestionService.swift`：为 `StubCategorySuggestionService` 增加 `nonisolated init()`，消除默认注入触发的 Swift actor-isolation warning。

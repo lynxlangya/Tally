@@ -9,10 +9,16 @@ struct HomeView: View {
 
     private let repository: BillRepository
     private let categoryRepository: CategoryRepository
+    private let suggestionService: CategorySuggestionService
 
-    init(repository: BillRepository, categoryRepository: CategoryRepository) {
+    init(
+        repository: BillRepository,
+        categoryRepository: CategoryRepository,
+        suggestionService: CategorySuggestionService
+    ) {
         self.repository = repository
         self.categoryRepository = categoryRepository
+        self.suggestionService = suggestionService
         _viewModel = StateObject(wrappedValue: HomeViewModel(
             repository: repository,
             categoryRepository: categoryRepository
@@ -76,6 +82,7 @@ struct HomeView: View {
             QuickEntryView(
                 repository: repository,
                 categoryRepository: categoryRepository,
+                suggestionService: suggestionService,
                 editingBill: bill
             )
         }
@@ -493,7 +500,8 @@ private extension HomeViewModel.Group {
     NavigationStack {
         HomeView(
             repository: AppEnvironment.preview.container.repositories.bill,
-            categoryRepository: AppEnvironment.preview.container.repositories.category
+            categoryRepository: AppEnvironment.preview.container.repositories.category,
+            suggestionService: AppEnvironment.preview.container.services.categorySuggestion
         )
     }
     .environment(\.appEnvironment, .preview)
@@ -504,7 +512,8 @@ private extension HomeViewModel.Group {
     NavigationStack {
         HomeView(
             repository: AppEnvironment.preview.container.repositories.bill,
-            categoryRepository: AppEnvironment.preview.container.repositories.category
+            categoryRepository: AppEnvironment.preview.container.repositories.category,
+            suggestionService: AppEnvironment.preview.container.services.categorySuggestion
         )
     }
     .environment(\.appEnvironment, .preview)

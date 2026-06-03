@@ -292,6 +292,29 @@ final class QuickEntryViewModelTests: XCTestCase {
         XCTAssertEqual(names, ["c0", "c1", "c2", "c3", "c4", "c5"])
     }
 
+    func testSuggestedCategoriesUsesServiceOrderAndKeepsSelectedVisible() async throws {
+        let seed = (0..<8).map { makeCategory(type: .expense, name: "c\($0)", sortOrder: $0) }
+        let serviceOrder = seed.reversed().map(\.id)
+        let tailInServiceOrder = seed[0]
+
+        let result = await MainActor.run { () -> ([String], [String], Int) in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: seed),
+                suggestionService: OrderedCategorySuggestionService(orderedIDs: serviceOrder)
+            )
+            viewModel.load()
+            let serviceOrderedNames = viewModel.suggestedCategories.map(\.name)
+            viewModel.selectCategory(tailInServiceOrder)
+            let selectedVisibleNames = viewModel.suggestedCategories.map(\.name)
+            return (serviceOrderedNames, selectedVisibleNames, selectedVisibleNames.count)
+        }
+
+        XCTAssertEqual(result.0, ["c7", "c6", "c5", "c4", "c3", "c2"])
+        XCTAssertEqual(result.1, ["c0", "c7", "c6", "c5", "c4", "c3"])
+        XCTAssertEqual(result.2, QuickEntryLayout.suggestionRowLimit)
+    }
+
     @MainActor
     private func makeViewModel() -> QuickEntryViewModel {
         QuickEntryViewModel(
@@ -326,5 +349,13 @@ final class QuickEntryViewModelTests: XCTestCase {
             second: 0
         )
         return calendar.date(from: components) ?? Date(timeIntervalSince1970: 0)
+    }
+}
+
+private struct OrderedCategorySuggestionService: CategorySuggestionService {
+    let orderedIDs: [UUID]
+
+    func orderedCategoryIDs(type: BillType, now: Date, candidates: [CategoryRecord]) -> [UUID] {
+        orderedIDs
     }
 }

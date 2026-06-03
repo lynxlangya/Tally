@@ -44,7 +44,8 @@ struct TallyTabScaffold: View {
         .sheet(isPresented: $showsQuickEntry) {
             QuickEntryView(
                 repository: environment.container.repositories.bill,
-                categoryRepository: environment.container.repositories.category
+                categoryRepository: environment.container.repositories.category,
+                suggestionService: environment.container.services.categorySuggestion
             )
         }
     }
@@ -53,7 +54,8 @@ struct TallyTabScaffold: View {
         NavigationStack {
             HomeView(
                 repository: environment.container.repositories.bill,
-                categoryRepository: environment.container.repositories.category
+                categoryRepository: environment.container.repositories.category,
+                suggestionService: environment.container.services.categorySuggestion
             )
             .enableInteractivePop()
         }
@@ -64,6 +66,7 @@ struct TallyTabScaffold: View {
             BillsListView(
                 repository: environment.container.repositories.bill,
                 categoryRepository: environment.container.repositories.category,
+                suggestionService: environment.container.services.categorySuggestion,
                 hidesTabBarOnAppear: false
             )
             .enableInteractivePop()

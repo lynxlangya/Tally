@@ -36,6 +36,7 @@ final class DIContainer {
         let recurring: RecurringService
         let security: SecurityService
         let seed: SeedService
+        let categorySuggestion: CategorySuggestionService
 
         static func live(container: NSPersistentContainer, repositories: Repositories) -> Services {
             let recurringContext = container.newBackgroundContext()
@@ -54,7 +55,8 @@ final class DIContainer {
                     billRepository: CoreDataBillRepository(context: recurringContext)
                 ),
                 security: StubSecurityService(),
-                seed: CoreDataSeedService(context: container.viewContext)
+                seed: CoreDataSeedService(context: container.viewContext),
+                categorySuggestion: DefaultCategorySuggestionService(billRepository: repositories.bill)
             )
         }
 
@@ -64,7 +66,8 @@ final class DIContainer {
                 importExport: StubImportExportService(),
                 recurring: StubRecurringService(),
                 security: StubSecurityService(),
-                seed: StubSeedService()
+                seed: StubSeedService(),
+                categorySuggestion: StubCategorySuggestionService()
             )
         }
     }
