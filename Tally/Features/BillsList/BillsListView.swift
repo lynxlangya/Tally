@@ -245,7 +245,8 @@ private struct BillsListHeroSummary: View {
                     sign: selectedType == .expense ? .expense : .income,
                     size: BillsListLayout.heroAmountSize,
                     weight: .semibold,
-                    color: .tallyInk
+                    color: .tallyInk,
+                    animationStyle: .numeric
                 )
                 .lineLimit(1)
                 .minimumScaleFactor(0.56)
@@ -279,7 +280,14 @@ private struct BillsListHeroSummary: View {
                 .font(TallyType.body(12, weight: .semibold))
                 .foregroundStyle(Color.tallyInkDim)
 
-            TallyAmountText(cents: cents, sign: sign, size: 15, weight: .semibold, color: color)
+            TallyAmountText(
+                cents: cents,
+                sign: sign,
+                size: 15,
+                weight: .semibold,
+                color: color,
+                animationStyle: .numeric
+            )
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }

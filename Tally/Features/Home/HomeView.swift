@@ -137,7 +137,8 @@ private struct HomeHeader: View {
                 cents: summary.expenseCents,
                 size: 56,
                 color: summary.expenseCents == 0 ? .tallyInkDim : .tallyInk,
-                dim: summary.expenseCents == 0
+                dim: summary.expenseCents == 0,
+                animationStyle: .numeric
             )
             .lineLimit(1)
             .minimumScaleFactor(0.72)
@@ -243,7 +244,14 @@ private struct HomeStatCell: View {
     var body: some View {
         VStack(alignment: alignment.hAlignment, spacing: TallySpacing.s1) {
             Eyebrow(label)
-            TallyAmountText(cents: cents, sign: sign, size: 17, weight: .semibold, color: color)
+            TallyAmountText(
+                cents: cents,
+                sign: sign,
+                size: 17,
+                weight: .semibold,
+                color: color,
+                animationStyle: .numeric
+            )
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
         }

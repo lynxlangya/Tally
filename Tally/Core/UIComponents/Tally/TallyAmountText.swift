@@ -2,6 +2,11 @@ import Foundation
 import SwiftUI
 
 struct TallyAmountText: View {
+    enum AnimationStyle {
+        case none
+        case numeric
+    }
+
     enum Sign {
         case none
         case expense
@@ -27,6 +32,9 @@ struct TallyAmountText: View {
     let dim: Bool
     let showSymbol: Bool
     let locale: Locale
+    let animationStyle: AnimationStyle
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         cents: Int,
@@ -36,7 +44,8 @@ struct TallyAmountText: View {
         color: Color = .tallyInk,
         dim: Bool = false,
         showSymbol: Bool = true,
-        locale: Locale = LanguageManager.shared.currentLocale
+        locale: Locale = LanguageManager.shared.currentLocale,
+        animationStyle: AnimationStyle = .none
     ) {
         self.cents = cents
         self.sign = sign
@@ -46,10 +55,11 @@ struct TallyAmountText: View {
         self.dim = dim
         self.showSymbol = showSymbol
         self.locale = locale
+        self.animationStyle = animationStyle
     }
 
     var body: some View {
-        Self.formattedText(
+        let text = Self.formattedText(
             cents: cents,
             sign: sign,
             size: size,
@@ -59,6 +69,14 @@ struct TallyAmountText: View {
             showSymbol: showSymbol,
             locale: locale
         )
+
+        if shouldAnimate {
+            text
+                .contentTransition(.numericText(value: Double(cents) / 100))
+                .animation(.tallyEmph, value: animationValue)
+        } else {
+            text
+        }
     }
 
     static func formattedText(
@@ -102,6 +120,23 @@ struct TallyAmountText: View {
 
     static func amountParts(cents: Int, locale: Locale = LanguageManager.shared.currentLocale) -> MoneyFormatter.Parts {
         MoneyFormatter.parts(fromCents: cents, locale: locale)
+    }
+
+    private var shouldAnimate: Bool {
+        guard !reduceMotion else {
+            return false
+        }
+
+        switch animationStyle {
+        case .none:
+            return false
+        case .numeric:
+            return true
+        }
+    }
+
+    private var animationValue: String {
+        "\(sign.symbol)|\(showSymbol)|\(MoneyFormatter.currencySymbol())|\(cents)"
     }
 }
 
