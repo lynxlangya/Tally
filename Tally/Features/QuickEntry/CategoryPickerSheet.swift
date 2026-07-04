@@ -11,7 +11,7 @@ struct CategoryPickerSheet: View {
     let selectedType: BillType?
     let onSelectType: ((BillType) -> Void)?
     let onSelect: (CategoryRecord) -> Void
-    let onAddCategory: () -> Void
+    let onAddCategory: (() -> Void)?
 
     @Environment(\.dismiss) private var dismiss
 
@@ -27,7 +27,7 @@ struct CategoryPickerSheet: View {
         selectedType: BillType? = nil,
         onSelectType: ((BillType) -> Void)? = nil,
         onSelect: @escaping (CategoryRecord) -> Void,
-        onAddCategory: @escaping () -> Void
+        onAddCategory: (() -> Void)? = nil
     ) {
         self.categories = categories
         self.frequentCategories = frequentCategories
@@ -119,7 +119,9 @@ struct CategoryPickerSheet: View {
                 ForEach(categories) { category in
                     categoryButton(category)
                 }
-                addCategoryButton
+                if onAddCategory != nil {
+                    addCategoryButton
+                }
             }
         }
     }
@@ -166,7 +168,7 @@ struct CategoryPickerSheet: View {
 
     private var addCategoryButton: some View {
         Button {
-            onAddCategory()
+            onAddCategory?()
             dismiss()
         } label: {
             VStack(spacing: TallySpacing.s2) {

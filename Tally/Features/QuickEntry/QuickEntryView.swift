@@ -52,8 +52,7 @@ struct QuickEntryView: View {
                     selectedCategory: viewModel.selectedCategory,
                     selectedType: nil,
                     onSelectType: nil,
-                    onSelect: handleCategorySelection,
-                    onAddCategory: {}
+                    onSelect: handleCategorySelection
                 )
             }
             .sheet(isPresented: $showsDatePicker) {
@@ -120,8 +119,7 @@ struct QuickEntryView: View {
             selectedCategory: viewModel.selectedCategory,
             selectedType: viewModel.selectedType,
             onSelectType: { viewModel.selectedType = $0 },
-            onSelect: handleCategorySelection,
-            onAddCategory: {}
+            onSelect: handleCategorySelection
         )
         .background(Color.tallySurface.ignoresSafeArea())
     }
@@ -142,17 +140,8 @@ struct QuickEntryView: View {
 
             Spacer()
 
-            Button {
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundStyle(Color.tallyInkDim)
-                    .frame(width: 36, height: 36)
-                    .background(Color.tallySurface2)
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(TallyLocalization.text(.more, locale: LanguageManager.shared.currentLocale))
+            Color.clear
+                .frame(width: 36, height: 36)
         }
         .padding(.horizontal, QuickEntryLayout.headerHorizontalPadding)
         .padding(.top, TallySpacing.s1)
