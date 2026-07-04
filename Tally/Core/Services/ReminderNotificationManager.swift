@@ -4,6 +4,7 @@ import UserNotifications
 
 final class ReminderNotificationManager {
     static let shared = ReminderNotificationManager()
+    private static let dailyReminderIdentifier = "dailyReminder"
 
     private let center: UNUserNotificationCenter
     private let logger = Logger(subsystem: "com.langya.Tally", category: "reminder")
@@ -37,7 +38,7 @@ final class ReminderNotificationManager {
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
 
         let request = UNNotificationRequest(
-            identifier: "dailyReminder",
+            identifier: Self.dailyReminderIdentifier,
             content: content,
             trigger: trigger
         )
@@ -48,8 +49,19 @@ final class ReminderNotificationManager {
         }
     }
 
+    func rescheduleDailyReminderIfPending() async {
+        let pending = await center.pendingNotificationRequests()
+        guard let request = pending.first(where: { $0.identifier == Self.dailyReminderIdentifier }),
+              let trigger = request.trigger as? UNCalendarNotificationTrigger,
+              let hour = trigger.dateComponents.hour,
+              let minute = trigger.dateComponents.minute
+        else { return }
+
+        await scheduleDailyReminder(hour: hour, minute: minute)
+    }
+
     func cancelDailyReminder() {
-        center.removePendingNotificationRequests(withIdentifiers: ["dailyReminder"])
-        center.removeDeliveredNotifications(withIdentifiers: ["dailyReminder"])
+        center.removePendingNotificationRequests(withIdentifiers: [Self.dailyReminderIdentifier])
+        center.removeDeliveredNotifications(withIdentifiers: [Self.dailyReminderIdentifier])
     }
 }

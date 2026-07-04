@@ -45,6 +45,9 @@ struct TallyApp: App {
                 .onChange(of: languageManager.selectedLanguage) { _, _ in
                     WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.quickEntry)
                     WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.summaryTrend)
+                    Task {
+                        await ReminderNotificationManager.shared.rescheduleDailyReminderIfPending()
+                    }
                 }
                 .onChange(of: languageManager.selectedMoneyDisplaySymbol) { _, _ in
                     guard persistenceStartupState.status.isReady else { return }
