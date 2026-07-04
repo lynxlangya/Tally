@@ -67,7 +67,10 @@ final class ImportExportViewModel: ObservableObject {
         } catch {
             currentRecordCount = 0
             dayKeyRange = nil
-            showToast(error.localizedDescription)
+            showToast(FeatureErrorMessage.message(
+                for: error,
+                fallback: TallyLocalization.text("data_load_failed", locale: LanguageManager.shared.currentLocale)
+            ))
         }
     }
 
@@ -152,7 +155,7 @@ final class ImportExportViewModel: ObservableObject {
                 showToast(kind.notImplementedToast)
             } catch {
                 recordLog(status: .failure, title: kind.title, count: 0, errors: 1)
-                showToast(error.localizedDescription)
+                showToast(importFailedMessage(for: error))
             }
         }
     }
@@ -190,7 +193,7 @@ final class ImportExportViewModel: ObservableObject {
                 showToast(kind.notImplementedToast)
             } catch {
                 recordLog(status: .failure, title: kind.title, count: 0, errors: 1)
-                showToast(error.localizedDescription)
+                showToast(importFailedMessage(for: error))
             }
         }
     }
@@ -315,6 +318,13 @@ final class ImportExportViewModel: ObservableObject {
         )
         logs = ImportExportLogStore.prepend(log, to: logs)
         ImportExportLogStore.save(logs, defaults: logDefaults)
+    }
+
+    private func importFailedMessage(for error: Error) -> String {
+        FeatureErrorMessage.message(
+            for: error,
+            fallback: TallyLocalization.text("import_failed_generic", locale: LanguageManager.shared.currentLocale)
+        )
     }
 
     private func formatFileSize(_ bytes: Int64) -> String {

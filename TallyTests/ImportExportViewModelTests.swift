@@ -120,6 +120,51 @@ final class ImportExportViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.logs.first?.errors, 1)
     }
 
+    @MainActor
+    func testConfirmImportCSVSystemErrorUsesGenericImportFallback() async throws {
+        let defaults = makeDefaults()
+        let service = SpyImportExportService(
+            csvPreview: ImportPreview(pendingCount: 1, conflictCount: 0, failedCount: 0, errorSummary: []),
+            csvImportOutcome: .failure(CocoaError(.fileReadNoSuchFile))
+        )
+        let viewModel = ImportExportViewModel(
+            service: service,
+            billRepository: MockBillRepository(),
+            logDefaults: defaults
+        )
+        let fileURL = URL(fileURLWithPath: "/tmp/tally-import-system-error.csv")
+
+        viewModel.prepareImportCSV(fileURL: fileURL)
+        try await waitUntil { viewModel.csvImportPreview != nil }
+
+        viewModel.confirmImportCSV()
+        try await waitUntil { viewModel.isProcessing == false }
+
+        XCTAssertEqual(viewModel.toastMessage, "导入失败，请检查文件后重试")
+    }
+
+    @MainActor
+    func testPrepareImportBackupPreservesLocalizedServiceErrorDescription() async throws {
+        let defaults = makeDefaults()
+        let service = DefaultImportExportService(
+            billRepository: MockBillRepository(),
+            categoryRepository: MockCategoryRepository(),
+            recurringRepository: NoopRecurringRepository()
+        )
+        let viewModel = ImportExportViewModel(
+            service: service,
+            billRepository: MockBillRepository(),
+            logDefaults: defaults
+        )
+        let fileURL = temporaryFileURL(name: "invalid-backup.json", contents: "not json")
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        viewModel.prepareImportBackup(fileURL: fileURL)
+        try await waitUntil { viewModel.toastMessage != nil }
+
+        XCTAssertEqual(viewModel.toastMessage, "备份文件格式不正确")
+    }
+
     func testImportExportLogStoreCapsAtTwentyEntries() {
         let logs = (0..<25).map { index in
             ImportExportLog(status: .success, title: "log \(index)", count: index, errors: 0)
