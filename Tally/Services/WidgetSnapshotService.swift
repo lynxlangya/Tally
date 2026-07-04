@@ -7,6 +7,7 @@ import WidgetKit
 enum WidgetSnapshotService {
     private static let logger = Logger(subsystem: "com.langya.Tally", category: "widget")
 
+    // Only write paths may refresh widget snapshots; read paths such as load() must not call this.
     static func refresh(using repository: BillRepository, now: Date = Date()) {
         do {
             let todayKey = DayKeyFormatter.dayKey(for: now)

@@ -5,7 +5,7 @@ final class HomeViewModelTests: XCTestCase {
     func testDeleteBillRemovesItemFromGroupsAndRepository() async throws {
         let today = fixedDate(year: 2026, month: 4, day: 12, hour: 10, minute: 0)
         let categoryId = UUID()
-        let result = await MainActor.run { () -> (Int, Bool, Int) in
+        let result = await MainActor.run { () -> (Int, Int, Bool, Int) in
             let bill = makeBill(
                 id: UUID(),
                 categoryId: categoryId,
@@ -32,12 +32,20 @@ final class HomeViewModelTests: XCTestCase {
             viewModel.load()
             let groupsAfterLoad = viewModel.groups.count
             viewModel.deleteBill(id: bill.id)
-            return (groupsAfterLoad, viewModel.groups.isEmpty, (try? repository.list().count) ?? -1)
+            let groupsAfterDeleteBeforeReload = viewModel.groups.count
+            viewModel.load()
+            return (
+                groupsAfterLoad,
+                groupsAfterDeleteBeforeReload,
+                viewModel.groups.isEmpty,
+                (try? repository.list().count) ?? -1
+            )
         }
 
         XCTAssertEqual(result.0, 1)
-        XCTAssertTrue(result.1)
-        XCTAssertEqual(result.2, 0)
+        XCTAssertEqual(result.1, 1)
+        XCTAssertTrue(result.2)
+        XCTAssertEqual(result.3, 0)
     }
 
     func testLoadFailureSurfacesErrorWithoutClearingExistingRows() async throws {

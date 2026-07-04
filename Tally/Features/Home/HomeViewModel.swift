@@ -72,7 +72,6 @@ final class HomeViewModel: ObservableObject {
             updateSummary(with: bills)
             groups = buildGroups(from: bills, categoryMap: categoryMap)
             errorMessage = nil
-            WidgetSnapshotService.refresh(using: billRepository, now: nowProvider())
         } catch {
             if loadedBills.isEmpty && groups.isEmpty {
                 summary = Summary(monthTitle: monthTitle(for: nowProvider()), expenseCents: 0, incomeCents: 0)
@@ -135,7 +134,6 @@ final class HomeViewModel: ObservableObject {
             try billRepository.delete(id: id)
             WidgetSnapshotService.refresh(using: billRepository, now: now)
             NotificationCenter.default.post(name: .billDidChange, object: nil)
-            load()
         } catch {
             errorMessage = TallyLocalization.text(.billDeleteFailed, locale: LanguageManager.shared.currentLocale)
         }
