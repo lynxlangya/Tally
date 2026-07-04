@@ -12,7 +12,8 @@ final class ImportExportViewModel: ObservableObject {
     @Published var backupImportPreview: BackupImportPreview?
     @Published var csvImportPreview: CSVImportPreview?
     @Published var importResultDialog: ImportResultDialog?
-    @Published private var currentBills: [BillRecord] = []
+    @Published private(set) var currentRecordCount: Int = 0
+    @Published private var dayKeyRange: (Date, Date)?
     @Published private(set) var logs: [ImportExportLog] = []
 
     private let service: ImportExportService
@@ -39,10 +40,6 @@ final class ImportExportViewModel: ObservableObject {
         dismissToastTask?.cancel()
     }
 
-    var currentRecordCount: Int {
-        currentBills.count
-    }
-
     var dateRange: (Date, Date)? {
         dayKeyRange
     }
@@ -63,26 +60,26 @@ final class ImportExportViewModel: ObservableObject {
         )
     }
 
-    private var dayKeyRange: (Date, Date)? {
-        let dayKeys = currentBills.map(\.occurredLocalDate)
+    func reloadCurrentData() {
+        do {
+            currentRecordCount = try billRepository.count()
+            dayKeyRange = try dateRange(from: billRepository.dayKeyBounds())
+        } catch {
+            currentRecordCount = 0
+            dayKeyRange = nil
+            showToast(error.localizedDescription)
+        }
+    }
+
+    private func dateRange(from bounds: (min: String, max: String)?) -> (Date, Date)? {
         guard
-            let minKey = dayKeys.min(),
-            let maxKey = dayKeys.max(),
-            let start = DayKeyFormatter.date(from: minKey, timeZone: Self.dayKeyCalendar.timeZone),
-            let end = DayKeyFormatter.date(from: maxKey, timeZone: Self.dayKeyCalendar.timeZone)
+            let bounds,
+            let start = DayKeyFormatter.date(from: bounds.min, timeZone: Self.dayKeyCalendar.timeZone),
+            let end = DayKeyFormatter.date(from: bounds.max, timeZone: Self.dayKeyCalendar.timeZone)
         else {
             return nil
         }
         return (start, end)
-    }
-
-    func reloadCurrentData() {
-        do {
-            currentBills = try billRepository.list().filter { $0.deletedAt == nil }
-        } catch {
-            currentBills = []
-            showToast(error.localizedDescription)
-        }
     }
 
     func exportCSV() {

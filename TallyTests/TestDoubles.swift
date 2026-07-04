@@ -154,6 +154,31 @@ final class InMemoryBillRepository: BillRepository {
         return Array(Set(years)).sorted()
     }
 
+    func count() throws -> Int {
+        if let listError {
+            throw listError
+        }
+        return activeRecords.count
+    }
+
+    func distinctDayCount() throws -> Int {
+        if let listError {
+            throw listError
+        }
+        return Set(activeRecords.map(\.occurredLocalDate)).count
+    }
+
+    func dayKeyBounds() throws -> (min: String, max: String)? {
+        if let listError {
+            throw listError
+        }
+        let dayKeys = activeRecords.map(\.occurredLocalDate)
+        guard let min = dayKeys.min(), let max = dayKeys.max() else {
+            return nil
+        }
+        return (min, max)
+    }
+
     func delete(id: UUID) throws {
         if let deleteError {
             throw deleteError
@@ -208,5 +233,9 @@ final class InMemoryBillRepository: BillRepository {
             guard let trashUntil = record.trashUntil else { return false }
             return trashUntil <= date
         }
+    }
+
+    private var activeRecords: [BillRecord] {
+        records.filter { $0.deletedAt == nil }
     }
 }

@@ -8,6 +8,9 @@ protocol BillRepository {
     func list(fromDayKey: String, toDayKey: String, type: BillType?) throws -> [BillRecord]
     func list(monthKey: String, type: BillType?) throws -> [BillRecord]
     func listYears() throws -> [Int]
+    func count() throws -> Int
+    func distinctDayCount() throws -> Int
+    func dayKeyBounds() throws -> (min: String, max: String)?
     func delete(id: UUID) throws
     func softDelete(id: UUID, deletedAt: Date, trashUntil: Date) throws
     func restore(id: UUID) throws

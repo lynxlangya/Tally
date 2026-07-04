@@ -83,6 +83,22 @@ final class MockBillRepository: BillRepository {
         return Array(Set(years)).sorted()
     }
 
+    func count() throws -> Int {
+        activeRecords.count
+    }
+
+    func distinctDayCount() throws -> Int {
+        Set(activeRecords.map(\.occurredLocalDate)).count
+    }
+
+    func dayKeyBounds() throws -> (min: String, max: String)? {
+        let dayKeys = activeRecords.map(\.occurredLocalDate)
+        guard let min = dayKeys.min(), let max = dayKeys.max() else {
+            return nil
+        }
+        return (min, max)
+    }
+
     func delete(id: UUID) throws {
         guard storage[id] != nil else { throw RepositoryError.notFound }
         storage.removeValue(forKey: id)
@@ -135,6 +151,10 @@ final class MockBillRepository: BillRepository {
             .filter { ($0.trashUntil ?? Date.distantFuture) < date }
             .map { $0.id }
         expiredIds.forEach { storage.removeValue(forKey: $0) }
+    }
+
+    private var activeRecords: [BillRecord] {
+        storage.values.filter { $0.deletedAt == nil }
     }
 }
 

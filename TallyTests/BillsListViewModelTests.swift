@@ -457,6 +457,22 @@ private final class CountingBillRepository: BillRepository {
         storage.compactMap { Int($0.occurredLocalDate.prefix(4)) }
     }
 
+    func count() throws -> Int {
+        activeRecords.count
+    }
+
+    func distinctDayCount() throws -> Int {
+        Set(activeRecords.map(\.occurredLocalDate)).count
+    }
+
+    func dayKeyBounds() throws -> (min: String, max: String)? {
+        let dayKeys = activeRecords.map(\.occurredLocalDate)
+        guard let min = dayKeys.min(), let max = dayKeys.max() else {
+            return nil
+        }
+        return (min, max)
+    }
+
     func delete(id: UUID) throws {
         guard let index = storage.firstIndex(where: { $0.id == id }) else { throw RepositoryError.notFound }
         storage.remove(at: index)
@@ -504,5 +520,9 @@ private final class CountingBillRepository: BillRepository {
 
     func purgeExpired(asOf date: Date) throws {
         storage.removeAll { ($0.trashUntil ?? Date.distantFuture) < date }
+    }
+
+    private var activeRecords: [BillRecord] {
+        storage.filter { $0.deletedAt == nil }
     }
 }

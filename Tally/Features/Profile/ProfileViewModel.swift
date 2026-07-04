@@ -47,9 +47,8 @@ final class ProfileViewModel: ObservableObject {
 
     func load() {
         do {
-            let bills = try billRepository.list().filter { $0.deletedAt == nil }
-            billCount = bills.count
-            recordedDayCount = Set(bills.map(\.occurredLocalDate)).count
+            billCount = try billRepository.count()
+            recordedDayCount = try billRepository.distinctDayCount()
 
             let weekRange = currentWeekRange()
             let weekBills = try billRepository.list(

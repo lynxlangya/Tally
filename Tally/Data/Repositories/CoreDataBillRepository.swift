@@ -170,6 +170,35 @@ final class CoreDataBillRepository: BillRepository {
         }
     }
 
+    func count() throws -> Int {
+        try context.performAndWaitThrowing {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Bill")
+            request.predicate = NSPredicate(format: "deletedAt == nil")
+            return try context.count(for: request)
+        }
+    }
+
+    func distinctDayCount() throws -> Int {
+        try context.performAndWaitThrowing {
+            let request = NSFetchRequest<NSDictionary>(entityName: "Bill")
+            request.resultType = .dictionaryResultType
+            request.propertiesToFetch = ["occurredLocalDate"]
+            request.returnsDistinctResults = true
+            request.predicate = NSPredicate(format: "deletedAt == nil")
+            return try context.fetch(request).count
+        }
+    }
+
+    func dayKeyBounds() throws -> (min: String, max: String)? {
+        try context.performAndWaitThrowing {
+            guard let min = try fetchBoundaryDayKey(ascending: true) else {
+                return nil
+            }
+            let max = try fetchBoundaryDayKey(ascending: false) ?? min
+            return (min, max)
+        }
+    }
+
     func delete(id: UUID) throws {
         try context.performAndWaitThrowing {
             let object = try fetchBillObject(id: id)
@@ -221,6 +250,16 @@ final class CoreDataBillRepository: BillRepository {
         let objects = try context.fetch(request)
         guard let object = objects.first else { throw RepositoryError.notFound }
         return object
+    }
+
+    private func fetchBoundaryDayKey(ascending: Bool) throws -> String? {
+        let request = NSFetchRequest<NSDictionary>(entityName: "Bill")
+        request.resultType = .dictionaryResultType
+        request.propertiesToFetch = ["occurredLocalDate"]
+        request.fetchLimit = 1
+        request.predicate = NSPredicate(format: "deletedAt == nil")
+        request.sortDescriptors = [NSSortDescriptor(key: "occurredLocalDate", ascending: ascending)]
+        return try context.fetch(request).first?["occurredLocalDate"] as? String
     }
 
     private static func compactMappedBills(from objects: [NSManagedObject]) -> [BillRecord] {
