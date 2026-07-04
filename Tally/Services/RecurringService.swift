@@ -66,6 +66,16 @@ struct DefaultRecurringService: RecurringService {
         var createdCount = 0
         var didAdvance = false
         let rule = RepeatRule(rawValue: task.repeatRule) ?? .daily
+        guard currentTask.nextFireDate <= now else {
+            return (createdCount, nil)
+        }
+
+        let existingRecurringBills = try billRepository.list(
+            fromDayKey: DayKeyFormatter.dayKey(for: earliestAllowedDate),
+            toDayKey: DayKeyFormatter.dayKey(for: now),
+            type: task.type
+        )
+        var seenKeys = Set(existingRecurringBills.filter(\.isFromRecurring).map(duplicateKey(for:)))
 
         while currentTask.nextFireDate <= now {
             if currentTask.nextFireDate >= earliestAllowedDate {
@@ -77,8 +87,10 @@ struct DefaultRecurringService: RecurringService {
                     categoryId: currentTask.categoryId,
                     isFromRecurring: true
                 )
-                if try !detectDuplicate(for: draft) {
+                let key = duplicateKey(for: draft)
+                if !seenKeys.contains(key) {
                     _ = try billRepository.create(draft)
+                    seenKeys.insert(key)
                     createdCount += 1
                 }
             }
@@ -116,6 +128,34 @@ struct DefaultRecurringService: RecurringService {
             return (createdCount, currentTask)
         }
         return (createdCount, nil)
+    }
+
+    private func duplicateKey(for record: BillRecord) -> String {
+        duplicateKey(
+            occurredAtUTC: record.occurredAtUTC,
+            amountCents: record.amount.cents,
+            categoryId: record.categoryId,
+            note: record.note
+        )
+    }
+
+    private func duplicateKey(for draft: BillDraft) -> String {
+        let snapshot = TimePolicy.snapshot(for: draft.occurredAtLocal)
+        return duplicateKey(
+            occurredAtUTC: snapshot.occurredAtUTC,
+            amountCents: draft.amount.cents,
+            categoryId: draft.categoryId,
+            note: draft.note
+        )
+    }
+
+    private func duplicateKey(
+        occurredAtUTC: Date,
+        amountCents: Int,
+        categoryId: UUID?,
+        note: String?
+    ) -> String {
+        "\(occurredAtUTC.timeIntervalSince1970)|\(amountCents)|\(categoryId?.uuidString ?? "-")|\(normalized(note))"
     }
 
     private func normalized(_ text: String?) -> String {

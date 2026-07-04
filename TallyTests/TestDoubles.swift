@@ -67,6 +67,7 @@ final class InMemoryRecurringRepository: RecurringRepository {
 final class InMemoryBillRepository: BillRepository {
     private(set) var records: [BillRecord]
     private(set) var createdDrafts: [BillDraft] = []
+    private(set) var listRangeRequests: [(fromDayKey: String, toDayKey: String, type: BillType?)] = []
     var listError: Error?
     var deleteError: Error?
 
@@ -125,6 +126,7 @@ final class InMemoryBillRepository: BillRepository {
         if let listError {
             throw listError
         }
+        listRangeRequests.append((fromDayKey: fromDayKey, toDayKey: toDayKey, type: type))
         return records.filter { record in
             let withinRange = record.occurredLocalDate >= fromDayKey && record.occurredLocalDate <= toDayKey
             let typeMatches = type == nil || record.type == type
