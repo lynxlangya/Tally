@@ -168,6 +168,17 @@ final class RecurringBillFormViewModelTests: XCTestCase {
         XCTAssertEqual(result, RepeatRule.weeklyMonday.rawValue)
     }
 
+    func testSanitizedAmountCapsIntegerDigits() async throws {
+        let sanitized = await MainActor.run { () -> String in
+            let viewModel = RecurringBillFormViewModel(
+                recurringRepository: InMemoryRecurringRepository(tasks: []),
+                categoryRepository: MockCategoryRepository(seed: [makeCategory()])
+            )
+            return viewModel.sanitizedAmount("12345678901234567.99")
+        }
+
+        XCTAssertEqual(sanitized, "123456789.99")
+    }
 
     func testMonthlyFirstRuleSelectionMovesFirstDateToUpcomingMonthStart() async throws {
         let now = fixedDate(year: 2026, month: 4, day: 12, hour: 10, minute: 0)

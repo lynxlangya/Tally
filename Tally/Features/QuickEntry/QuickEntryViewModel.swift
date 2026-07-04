@@ -46,6 +46,7 @@ final class QuickEntryViewModel: ObservableObject {
     private var orderedSuggestedCategories: [CategoryRecord] = []
     private var didApplyEditing = false
     private var didUserEditDate = false
+    private static let maxIntegerDigits = 9
 
     init(
         repository: BillRepository,
@@ -309,6 +310,8 @@ final class QuickEntryViewModel: ObservableObject {
         }
         if amountText.contains(".") {
             guard decimalCount(in: amountText) < 2 else { return }
+        } else {
+            guard integerDigitCount(in: amountText) < Self.maxIntegerDigits else { return }
         }
         amountText.append(digit)
     }
@@ -323,7 +326,9 @@ final class QuickEntryViewModel: ObservableObject {
         if amountText == "0" {
             return
         }
-        amountText.append("00")
+        let remaining = Self.maxIntegerDigits - integerDigitCount(in: amountText)
+        guard remaining > 0 else { return }
+        amountText.append(String(repeating: "0", count: min(2, remaining)))
     }
 
     private func appendDecimal() {
@@ -359,6 +364,10 @@ final class QuickEntryViewModel: ObservableObject {
         return decimals.count
     }
 
+    private func integerDigitCount(in text: String) -> Int {
+        String(text.split(separator: ".", omittingEmptySubsequences: false).first ?? "").count
+    }
+
     private static func rawAmountText(fromCents cents: Int) -> String {
         let integerPart = cents / 100
         let fraction = cents % 100
@@ -380,13 +389,17 @@ final class QuickEntryViewModel: ObservableObject {
         if parts.count > 2 { return nil }
         let integerText = String(parts.first ?? "0")
         guard integerText.isEmpty || integerText.allSatisfy(\.isNumber) else { return nil }
-        let integerPart = Int(integerText.isEmpty ? "0" : integerText) ?? 0
+        guard let integerPart = Int(integerText.isEmpty ? "0" : integerText) else { return nil }
         let fraction = parts.count > 1 ? String(parts[1]) : ""
         guard fraction.allSatisfy(\.isNumber) else { return nil }
         guard fraction.count <= 2 else { return nil }
         let padded = String(fraction.prefix(2)).padding(toLength: 2, withPad: "0", startingAt: 0)
         guard let fractionValue = Int(padded) else { return nil }
-        return integerPart * 100 + fractionValue
+        let (multiplied, multiplyOverflow) = integerPart.multipliedReportingOverflow(by: 100)
+        guard !multiplyOverflow else { return nil }
+        let (total, addOverflow) = multiplied.addingReportingOverflow(fractionValue)
+        guard !addOverflow else { return nil }
+        return total
     }
 
     private static let amountGroupingFormatter: NumberFormatter = {

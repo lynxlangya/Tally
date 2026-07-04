@@ -61,6 +61,40 @@ final class QuickEntryViewModelTests: XCTestCase {
         XCTAssertEqual(result.1, 1_000_000)
     }
 
+    func testAmountInputCapsIntegerDigitsAndKeepsCentsSafe() async throws {
+        let result = await MainActor.run { () -> (String, Int) in
+            let viewModel = makeViewModel()
+            for _ in 0..<30 {
+                viewModel.handleKey(.digit(9))
+            }
+            return (viewModel.amountText, viewModel.amountCents)
+        }
+
+        XCTAssertEqual(result.0, "999999999")
+        XCTAssertEqual(result.1, 99_999_999_900)
+    }
+
+    func testDoubleZeroOnlyAppendsToIntegerDigitLimit() async throws {
+        let text = await MainActor.run { () -> String in
+            let viewModel = makeViewModel()
+            [1, 2, 3, 4, 5, 6, 7, 8].forEach { viewModel.handleKey(.digit($0)) }
+            viewModel.handleKey(.doubleZero)
+            return viewModel.amountText
+        }
+
+        XCTAssertEqual(text, "123456780")
+    }
+
+    func testDirtyOversizedAmountTextReturnsZeroInsteadOfOverflowing() async throws {
+        let cents = await MainActor.run { () -> Int in
+            let viewModel = makeViewModel()
+            viewModel.amountText = String(repeating: "9", count: 17)
+            return viewModel.amountCents
+        }
+
+        XCTAssertEqual(cents, 0)
+    }
+
     func testPlusAndMinusToggleBillTypeWithoutArithmetic() async throws {
         let result = await MainActor.run { () -> (String, Int, BillType, BillType) in
             let viewModel = makeViewModel()

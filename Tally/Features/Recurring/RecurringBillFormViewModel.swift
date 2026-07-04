@@ -19,6 +19,7 @@ final class RecurringBillFormViewModel: ObservableObject {
     let noteLimit = 50
     private let nowProvider: () -> Date
     private let existingTask: RecurringTaskRecord?
+    private static let maxIntegerDigits = 9
 
     init(
         recurringRepository: RecurringRepository,
@@ -184,13 +185,12 @@ final class RecurringBillFormViewModel: ObservableObject {
     func sanitizedAmount(_ input: String) -> String {
         let filtered = input.filter { "0123456789.".contains($0) }
         let parts = filtered.split(separator: ".", omittingEmptySubsequences: false)
-        guard parts.count <= 2 else { return String(parts.prefix(2).joined(separator: ".")) }
-        if parts.count == 2 {
-            let integer = String(parts[0])
+        let integer = String((parts.first ?? "").prefix(Self.maxIntegerDigits))
+        if parts.count >= 2 {
             let decimal = String(parts[1].prefix(2))
             return integer + "." + decimal
         }
-        return filtered
+        return integer
     }
 
     private var amountValue: Int {
