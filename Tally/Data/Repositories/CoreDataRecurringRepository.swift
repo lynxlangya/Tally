@@ -1,8 +1,10 @@
 import CoreData
 import Foundation
+import os
 
 final class CoreDataRecurringRepository: RecurringRepository {
     private let context: NSManagedObjectContext
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "repository")
 
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -13,7 +15,7 @@ final class CoreDataRecurringRepository: RecurringRepository {
             let request = NSFetchRequest<NSManagedObject>(entityName: "RecurringTask")
             request.sortDescriptors = [NSSortDescriptor(key: "nextFireDate", ascending: true)]
             let objects = try context.fetch(request)
-            return try objects.map { try mapRecurring(from: $0) }
+            return compactMappedRecurringTasks(from: objects)
         }
     }
 
@@ -120,5 +122,16 @@ final class CoreDataRecurringRepository: RecurringRepository {
             createdAt: createdAt,
             updatedAt: updatedAt
         )
+    }
+
+    private func compactMappedRecurringTasks(from objects: [NSManagedObject]) -> [RecurringTaskRecord] {
+        objects.compactMap { object in
+            do {
+                return try mapRecurring(from: object)
+            } catch {
+                Self.logger.error("Skip corrupt row in RecurringTask: \(error.localizedDescription, privacy: .public)")
+                return nil
+            }
+        }
     }
 }

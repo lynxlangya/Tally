@@ -4,29 +4,25 @@ import XCTest
 
 final class CoreDataMoneyValidationTests: XCTestCase {
     @MainActor
-    func testBillRepositoryThrowsInvalidDataForNegativeStoredAmount() throws {
+    func testBillRepositorySkipsNegativeStoredAmountInList() throws {
         let persistence = PersistenceController(inMemory: true, runsStartupSeed: false)
         let context = persistence.container.viewContext
         try insertBill(amount: -1, in: context)
 
         let repository = CoreDataBillRepository(context: context)
 
-        assertInvalidData(field: "Bill.amount") {
-            _ = try repository.list()
-        }
+        XCTAssertTrue(try repository.list().isEmpty)
     }
 
     @MainActor
-    func testRecurringRepositoryThrowsInvalidDataForNegativeStoredAmount() throws {
+    func testRecurringRepositorySkipsNegativeStoredAmountInList() throws {
         let persistence = PersistenceController(inMemory: true, runsStartupSeed: false)
         let context = persistence.container.viewContext
         try insertRecurringTask(amount: -1, in: context)
 
         let repository = CoreDataRecurringRepository(context: context)
 
-        assertInvalidData(field: "RecurringTask.amount") {
-            _ = try repository.list()
-        }
+        XCTAssertTrue(try repository.list().isEmpty)
     }
 
     private func insertBill(amount: Int64, in context: NSManagedObjectContext) throws {
@@ -86,18 +82,4 @@ final class CoreDataMoneyValidationTests: XCTestCase {
         ) ?? Date(timeIntervalSince1970: 0)
     }
 
-    private func assertInvalidData(
-        field: String,
-        _ expression: () throws -> Void,
-        file: StaticString = #filePath,
-        line: UInt = #line
-    ) {
-        XCTAssertThrowsError(try expression(), file: file, line: line) { error in
-            guard case RepositoryError.invalidData(let actualField) = error else {
-                XCTFail("Expected RepositoryError.invalidData, got \(error)", file: file, line: line)
-                return
-            }
-            XCTAssertEqual(actualField, field, file: file, line: line)
-        }
-    }
 }

@@ -15,6 +15,13 @@ final class MoneyFormatterTests: XCTestCase {
         XCTAssertEqual(parts.decimal, "05")
     }
 
+    func testPartsClampNegativeCentsToZeroForDisplay() {
+        let parts = MoneyFormatter.parts(fromCents: -100)
+
+        XCTAssertEqual(parts.integer, "0")
+        XCTAssertEqual(parts.decimal, "00")
+    }
+
     func testWholeYuanStringDropsCentsAndKeepsGrouping() {
         XCTAssertEqual(MoneyFormatter.wholeYuanString(fromCents: 642_188, symbol: .yuan), "¥6,421")
         XCTAssertEqual(MoneyFormatter.wholeYuanString(fromCents: 642_188, symbol: .dollar), "$6,421")

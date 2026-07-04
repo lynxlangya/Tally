@@ -1,7 +1,9 @@
 import CoreData
+import os
 
 final class CoreDataCategoryRepository: CategoryRepository {
     private let context: NSManagedObjectContext
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "repository")
 
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -13,7 +15,7 @@ final class CoreDataCategoryRepository: CategoryRepository {
             request.predicate = NSPredicate(format: "type == %@", type.rawValue)
             request.sortDescriptors = [NSSortDescriptor(key: "sortOrder", ascending: true)]
             let objects = try context.fetch(request)
-            return try objects.map { try mapCategory(from: $0) }
+            return compactMappedCategories(from: objects)
         }
     }
 
@@ -126,5 +128,16 @@ final class CoreDataCategoryRepository: CategoryRepository {
             isSystem: isSystem,
             sortOrder: sortOrder
         )
+    }
+
+    private func compactMappedCategories(from objects: [NSManagedObject]) -> [CategoryRecord] {
+        objects.compactMap { object in
+            do {
+                return try mapCategory(from: object)
+            } catch {
+                Self.logger.error("Skip corrupt row in Category: \(error.localizedDescription, privacy: .public)")
+                return nil
+            }
+        }
     }
 }

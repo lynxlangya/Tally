@@ -1,7 +1,9 @@
 import CoreData
+import os
 
 final class CoreDataBillRepository: BillRepository {
     private let context: NSManagedObjectContext
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "repository")
 
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -103,7 +105,7 @@ final class CoreDataBillRepository: BillRepository {
             ])
             request.sortDescriptors = [NSSortDescriptor(key: "occurredAtUTC", ascending: false)]
             let objects = try context.fetch(request)
-            return try objects.map { try BillRecordMapper.map(from: $0) }
+            return Self.compactMappedBills(from: objects)
         }
     }
 
@@ -113,7 +115,7 @@ final class CoreDataBillRepository: BillRepository {
             request.predicate = NSPredicate(format: "deletedAt == nil")
             request.sortDescriptors = [NSSortDescriptor(key: "occurredAtUTC", ascending: false)]
             let objects = try context.fetch(request)
-            return try objects.map { try BillRecordMapper.map(from: $0) }
+            return Self.compactMappedBills(from: objects)
         }
     }
 
@@ -131,7 +133,7 @@ final class CoreDataBillRepository: BillRepository {
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [NSSortDescriptor(key: "occurredAtUTC", ascending: false)]
             let objects = try context.fetch(request)
-            return try objects.map { try BillRecordMapper.map(from: $0) }
+            return Self.compactMappedBills(from: objects)
         }
     }
 
@@ -148,7 +150,7 @@ final class CoreDataBillRepository: BillRepository {
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [NSSortDescriptor(key: "occurredAtUTC", ascending: false)]
             let objects = try context.fetch(request)
-            return try objects.map { try BillRecordMapper.map(from: $0) }
+            return Self.compactMappedBills(from: objects)
         }
     }
 
@@ -219,5 +221,16 @@ final class CoreDataBillRepository: BillRepository {
         let objects = try context.fetch(request)
         guard let object = objects.first else { throw RepositoryError.notFound }
         return object
+    }
+
+    private static func compactMappedBills(from objects: [NSManagedObject]) -> [BillRecord] {
+        objects.compactMap { object in
+            do {
+                return try BillRecordMapper.map(from: object)
+            } catch {
+                logger.error("Skip corrupt row in Bill: \(error.localizedDescription, privacy: .public)")
+                return nil
+            }
+        }
     }
 }

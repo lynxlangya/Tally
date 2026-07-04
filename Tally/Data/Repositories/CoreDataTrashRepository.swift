@@ -1,7 +1,9 @@
 import CoreData
+import os
 
 final class CoreDataTrashRepository: TrashRepository {
     private let context: NSManagedObjectContext
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "repository")
 
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -13,7 +15,7 @@ final class CoreDataTrashRepository: TrashRepository {
             request.predicate = NSPredicate(format: "deletedAt != nil")
             request.sortDescriptors = [NSSortDescriptor(key: "deletedAt", ascending: false)]
             let objects = try context.fetch(request)
-            return try objects.map { try BillRecordMapper.map(from: $0) }
+            return Self.compactMappedBills(from: objects)
         }
     }
 
@@ -57,5 +59,16 @@ final class CoreDataTrashRepository: TrashRepository {
         let objects = try context.fetch(request)
         guard let object = objects.first else { throw RepositoryError.notFound }
         return object
+    }
+
+    private static func compactMappedBills(from objects: [NSManagedObject]) -> [BillRecord] {
+        objects.compactMap { object in
+            do {
+                return try BillRecordMapper.map(from: object)
+            } catch {
+                logger.error("Skip corrupt row in Bill: \(error.localizedDescription, privacy: .public)")
+                return nil
+            }
+        }
     }
 }

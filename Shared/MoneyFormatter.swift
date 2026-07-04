@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 enum MoneyFormatter {
     struct Parts: Equatable {
@@ -35,13 +36,15 @@ enum MoneyFormatter {
         return formatter
     }
 
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "money")
+
     static func string(
         fromCents cents: Int,
         locale: Locale = TallyLocalization.defaultLocale,
         symbol: MoneyDisplaySymbol = MoneyDisplaySymbolStore.current
     ) -> String {
-        precondition(cents >= 0, "Money cannot be negative.")
-        let parts = parts(fromCents: cents, locale: locale)
+        let safeCents = safeDisplayCents(cents)
+        let parts = parts(fromCents: safeCents, locale: locale)
         return "\(currencySymbol(symbol: symbol))\(parts.integer).\(parts.decimal)"
     }
 
@@ -50,8 +53,8 @@ enum MoneyFormatter {
         locale: Locale = TallyLocalization.defaultLocale,
         symbol: MoneyDisplaySymbol = MoneyDisplaySymbolStore.current
     ) -> String {
-        precondition(cents >= 0, "Money cannot be negative.")
-        let yuan = cents / 100
+        let safeCents = safeDisplayCents(cents)
+        let yuan = safeCents / 100
         let amount = integerFormatter(locale: locale).string(from: NSNumber(value: yuan)) ?? "\(yuan)"
         return "\(currencySymbol(symbol: symbol))\(amount)"
     }
@@ -82,9 +85,9 @@ enum MoneyFormatter {
     }
 
     static func parts(fromCents cents: Int, locale: Locale = TallyLocalization.defaultLocale) -> Parts {
-        precondition(cents >= 0, "Money cannot be negative.")
-        let yuan = cents / 100
-        let cent = cents % 100
+        let safeCents = safeDisplayCents(cents)
+        let yuan = safeCents / 100
+        let cent = safeCents % 100
         let integer = integerFormatter(locale: locale).string(from: NSNumber(value: yuan)) ?? "\(yuan)"
         let decimal = centFormatter(locale: locale).string(from: NSNumber(value: cent)) ?? (cent < 10 ? "0\(cent)" : "\(cent)")
         return Parts(integer: integer, decimal: decimal)
@@ -96,5 +99,13 @@ enum MoneyFormatter {
 
     static func displaySymbol(from symbolText: String) -> MoneyDisplaySymbol {
         MoneyDisplaySymbol.allCases.first { $0.symbol == symbolText } ?? .default
+    }
+
+    private static func safeDisplayCents(_ cents: Int) -> Int {
+        guard cents >= 0 else {
+            logger.fault("MoneyFormatter received negative cents: \(cents, privacy: .public)")
+            return 0
+        }
+        return cents
     }
 }
