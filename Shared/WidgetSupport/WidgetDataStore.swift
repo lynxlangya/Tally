@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 struct QuickEntryWidgetModel: Codable, Equatable {
     let todayExpenseCents: Int
@@ -123,6 +124,8 @@ enum WidgetKind {
 enum WidgetDataStore {
     static let appGroupId = "group.com.langya.Tally"
     private static let snapshotKey = "tally.widget.snapshot"
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "appgroup")
+    private static var didLogFailure = false
 
     static func loadSnapshot() -> WidgetSnapshot {
         guard let data = sharedDefaults()?.data(forKey: snapshotKey),
@@ -138,6 +141,13 @@ enum WidgetDataStore {
     }
 
     private static func sharedDefaults() -> UserDefaults? {
-        UserDefaults(suiteName: appGroupId) ?? .standard
+        guard let defaults = UserDefaults(suiteName: appGroupId) else {
+            if !didLogFailure {
+                logger.fault("App Group \(appGroupId, privacy: .public) unavailable - shared data disabled")
+                didLogFailure = true
+            }
+            return nil
+        }
+        return defaults
     }
 }

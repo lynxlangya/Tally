@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 enum MoneyDisplaySymbol: String, CaseIterable, Identifiable, Codable {
     case yuan
@@ -39,6 +40,8 @@ enum MoneyDisplaySymbol: String, CaseIterable, Identifiable, Codable {
 enum MoneyDisplaySymbolStore {
     static let selectedSymbolKey = "money.symbol.selected"
     private static let appGroupId = "group.com.langya.Tally"
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "appgroup")
+    private static var didLogFailure = false
 
     static var current: MoneyDisplaySymbol {
         MoneyDisplaySymbol(rawValue: loadSelectedSymbol() ?? "") ?? MoneyDisplaySymbol.default
@@ -53,6 +56,13 @@ enum MoneyDisplaySymbolStore {
     }
 
     private static func sharedDefaults() -> UserDefaults? {
-        UserDefaults(suiteName: appGroupId) ?? .standard
+        guard let defaults = UserDefaults(suiteName: appGroupId) else {
+            if !didLogFailure {
+                logger.fault("App Group \(appGroupId, privacy: .public) unavailable - shared data disabled")
+                didLogFailure = true
+            }
+            return nil
+        }
+        return defaults
     }
 }

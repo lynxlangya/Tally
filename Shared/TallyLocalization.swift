@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 enum L10nKey: String {
     case about = "about"
@@ -784,6 +785,8 @@ enum TallyLocalization {
 enum TallyLanguageStore {
     static let selectedLanguageKey = "language.selected"
     private static let appGroupId = "group.com.langya.Tally"
+    private static let logger = Logger(subsystem: "com.langya.Tally", category: "appgroup")
+    private static var didLogFailure = false
 
     static func saveSelectedLanguage(_ rawValue: String) {
         sharedDefaults()?.set(rawValue, forKey: selectedLanguageKey)
@@ -794,6 +797,13 @@ enum TallyLanguageStore {
     }
 
     private static func sharedDefaults() -> UserDefaults? {
-        UserDefaults(suiteName: appGroupId) ?? .standard
+        guard let defaults = UserDefaults(suiteName: appGroupId) else {
+            if !didLogFailure {
+                logger.fault("App Group \(appGroupId, privacy: .public) unavailable - shared data disabled")
+                didLogFailure = true
+            }
+            return nil
+        }
+        return defaults
     }
 }
