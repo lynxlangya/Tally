@@ -187,7 +187,7 @@ struct SummaryTrendWidgetCard: View {
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate("MMM")
         var components = DateComponents()
-        components.year = Calendar.current.component(.year, from: Date())
+        components.year = model.year
         components.month = model.monthNumber
         components.day = 1
         let date = Calendar.current.date(from: components) ?? Date()

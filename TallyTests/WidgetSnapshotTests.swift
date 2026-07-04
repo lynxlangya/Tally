@@ -18,6 +18,7 @@ final class WidgetSnapshotTests: XCTestCase {
                 sparkline: [0.1, 0.4, 1.0],
                 trend7: [0, 0.2, 0.4, 0.1, 1.0, 0.6, 0.3],
                 monthNumber: 5,
+                year: 2026,
                 average7Cents: 7_700,
                 currencySymbol: "$"
             )
@@ -31,6 +32,7 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(decoded.quickEntry.currencySymbol, "¥")
         XCTAssertEqual(decoded.summary.trend7, [0, 0.2, 0.4, 0.1, 1.0, 0.6, 0.3])
         XCTAssertEqual(decoded.summary.monthNumber, 5)
+        XCTAssertEqual(decoded.summary.year, 2026)
         XCTAssertEqual(decoded.summary.average7Cents, 7_700)
         XCTAssertEqual(decoded.summary.currencySymbol, "$")
     }
@@ -58,8 +60,52 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertNil(decoded.quickEntry.yesterdayExpenseCents)
         XCTAssertEqual(decoded.quickEntry.currencySymbol, "¥")
         XCTAssertEqual(decoded.summary.trend7, [0.1, 0.4, 1.0])
+        XCTAssertEqual(decoded.summary.year, Calendar.current.component(.year, from: Date()))
         XCTAssertEqual(decoded.summary.average7Cents, 0)
         XCTAssertEqual(decoded.summary.currencySymbol, MoneyFormatter.currencySymbol())
+    }
+
+    func testWidgetSnapshotSanitizesStaleDailyAndMonthlyData() throws {
+        let snapshot = WidgetSnapshot(
+            updatedAt: fixedDate(year: 2026, month: 6, day: 30, hour: 20),
+            quickEntry: QuickEntryWidgetModel(
+                todayExpenseCents: 12_300,
+                todayEntryCount: 4,
+                yesterdayExpenseCents: 2_400,
+                currencySymbol: "¥"
+            ),
+            summary: SummaryTrendWidgetModel(
+                monthExpenseCents: 90_000,
+                monthIncomeCents: 150_000,
+                monthBalanceCents: 60_000,
+                sparkline: [0.1, 0.4, 1.0],
+                trend7: [0, 0.2, 0.4],
+                monthNumber: 6,
+                year: 2026,
+                average7Cents: 7_700,
+                currencySymbol: "$"
+            )
+        )
+
+        let nextDay = snapshot.sanitized(for: fixedDate(year: 2026, month: 7, day: 1, hour: 8))
+        XCTAssertEqual(nextDay.quickEntry.todayExpenseCents, 0)
+        XCTAssertEqual(nextDay.quickEntry.todayEntryCount, 0)
+        XCTAssertEqual(nextDay.quickEntry.yesterdayExpenseCents, 12_300)
+        XCTAssertEqual(nextDay.summary.monthExpenseCents, 0)
+        XCTAssertEqual(nextDay.summary.trend7, [])
+        XCTAssertEqual(nextDay.summary.monthNumber, 7)
+
+        let twoDaysLater = snapshot.sanitized(for: fixedDate(year: 2026, month: 7, day: 2, hour: 8))
+        XCTAssertNil(twoDaysLater.quickEntry.yesterdayExpenseCents)
+
+        let nextMonth = snapshot.sanitized(for: fixedDate(year: 2026, month: 8, day: 1, hour: 8))
+        XCTAssertEqual(nextMonth.summary.monthExpenseCents, 0)
+        XCTAssertEqual(nextMonth.summary.monthIncomeCents, 0)
+        XCTAssertEqual(nextMonth.summary.monthBalanceCents, 0)
+        XCTAssertEqual(nextMonth.summary.sparkline, [])
+        XCTAssertEqual(nextMonth.summary.trend7, [])
+        XCTAssertEqual(nextMonth.summary.monthNumber, 8)
+        XCTAssertEqual(nextMonth.summary.year, 2026)
     }
 
     func testWidgetSnapshotRefreshIncludesPreviousMonthForSevenDayTrend() throws {
@@ -83,6 +129,7 @@ final class WidgetSnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.summary.monthIncomeCents, 5_000)
         XCTAssertEqual(snapshot.summary.monthBalanceCents, 2_000)
         XCTAssertEqual(snapshot.summary.monthNumber, 5)
+        XCTAssertEqual(snapshot.summary.year, 2026)
         XCTAssertEqual(snapshot.summary.average7Cents, 857)
         XCTAssertEqual(snapshot.summary.currencySymbol, MoneyFormatter.currencySymbol())
         XCTAssertEqual(snapshot.summary.trend7, [0, 0, 0, 0, 1.0 / 3.0, 2.0 / 3.0, 1.0])
@@ -110,7 +157,7 @@ private extension WidgetSnapshotTests {
         )
     }
 
-    func fixedDate(year: Int, month: Int, day: Int) -> Date {
+    func fixedDate(year: Int, month: Int, day: Int, hour: Int = 12) -> Date {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
         let components = DateComponents(
@@ -119,7 +166,7 @@ private extension WidgetSnapshotTests {
             year: year,
             month: month,
             day: day,
-            hour: 12,
+            hour: hour,
             minute: 0,
             second: 0
         )

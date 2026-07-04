@@ -35,6 +35,7 @@ struct SummaryTrendWidgetModel: Codable, Equatable {
     let sparkline: [Double]
     let trend7: [Double]
     let monthNumber: Int
+    let year: Int
     let average7Cents: Int
     let currencySymbol: String
 
@@ -45,6 +46,7 @@ struct SummaryTrendWidgetModel: Codable, Equatable {
         sparkline: [Double],
         trend7: [Double]? = nil,
         monthNumber: Int = Calendar.current.component(.month, from: Date()),
+        year: Int = Calendar.current.component(.year, from: Date()),
         average7Cents: Int = 0,
         currencySymbol: String = MoneyFormatter.currencySymbol()
     ) {
@@ -54,6 +56,7 @@ struct SummaryTrendWidgetModel: Codable, Equatable {
         self.sparkline = sparkline
         self.trend7 = trend7 ?? Array(sparkline.suffix(7))
         self.monthNumber = monthNumber
+        self.year = year
         self.average7Cents = average7Cents
         self.currencySymbol = currencySymbol
     }
@@ -66,6 +69,7 @@ struct SummaryTrendWidgetModel: Codable, Equatable {
         sparkline = try container.decodeIfPresent([Double].self, forKey: .sparkline) ?? []
         trend7 = try container.decodeIfPresent([Double].self, forKey: .trend7) ?? Array(sparkline.suffix(7))
         monthNumber = try container.decodeIfPresent(Int.self, forKey: .monthNumber) ?? Calendar.current.component(.month, from: Date())
+        year = try container.decodeIfPresent(Int.self, forKey: .year) ?? Calendar.current.component(.year, from: Date())
         average7Cents = try container.decodeIfPresent(Int.self, forKey: .average7Cents) ?? 0
         currencySymbol = try container.decodeIfPresent(String.self, forKey: .currencySymbol) ?? MoneyFormatter.currencySymbol()
     }
@@ -95,6 +99,46 @@ struct WidgetSnapshot: Codable, Equatable {
             ?? WidgetSnapshot.placeholder.summary
     }
 
+    func sanitized(for now: Date) -> WidgetSnapshot {
+        let calendar = Calendar.current
+        guard !calendar.isDate(updatedAt, inSameDayAs: now) else {
+            return self
+        }
+
+        let previousDay = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: now))
+        let snapshotIsYesterday = previousDay.map { calendar.isDate(updatedAt, inSameDayAs: $0) } ?? false
+        let sanitizedQuickEntry = QuickEntryWidgetModel(
+            todayExpenseCents: 0,
+            todayEntryCount: 0,
+            yesterdayExpenseCents: snapshotIsYesterday ? quickEntry.todayExpenseCents : nil,
+            currencySymbol: quickEntry.currencySymbol
+        )
+
+        let sameMonth = calendar.isDate(updatedAt, equalTo: now, toGranularity: .month)
+        let sanitizedSummary: SummaryTrendWidgetModel
+        if sameMonth {
+            sanitizedSummary = summary
+        } else {
+            sanitizedSummary = SummaryTrendWidgetModel(
+                monthExpenseCents: 0,
+                monthIncomeCents: 0,
+                monthBalanceCents: 0,
+                sparkline: [],
+                trend7: [],
+                monthNumber: calendar.component(.month, from: now),
+                year: calendar.component(.year, from: now),
+                average7Cents: 0,
+                currencySymbol: summary.currencySymbol
+            )
+        }
+
+        return WidgetSnapshot(
+            updatedAt: updatedAt,
+            quickEntry: sanitizedQuickEntry,
+            summary: sanitizedSummary
+        )
+    }
+
     static let placeholder = WidgetSnapshot(
         updatedAt: Date(),
         quickEntry: QuickEntryWidgetModel(
@@ -110,6 +154,7 @@ struct WidgetSnapshot: Codable, Equatable {
             sparkline: [0.2, 0.3, 0.15, 0.4, 0.25, 0.35, 0.2],
             trend7: [0.2, 0.3, 0.15, 0.4, 0.25, 0.35, 0.2],
             monthNumber: Calendar.current.component(.month, from: Date()),
+            year: Calendar.current.component(.year, from: Date()),
             average7Cents: 0,
             currencySymbol: MoneyFormatter.currencySymbol()
         )

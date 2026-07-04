@@ -87,6 +87,7 @@ enum WidgetSnapshotService {
                 sparkline: sparkline,
                 trend7: trend7,
                 monthNumber: calendar.component(.month, from: now),
+                year: calendar.component(.year, from: now),
                 average7Cents: average7,
                 currencySymbol: currencySymbol
             )

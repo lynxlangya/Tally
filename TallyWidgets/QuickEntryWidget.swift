@@ -12,15 +12,27 @@ struct QuickEntryProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (TallyWidgetEntry) -> Void) {
-        let snapshot = WidgetDataStore.loadSnapshot()
-        completion(TallyWidgetEntry(date: Date(), snapshot: snapshot))
+        let now = Date()
+        let snapshot = WidgetDataStore.loadSnapshot().sanitized(for: now)
+        completion(TallyWidgetEntry(date: now, snapshot: snapshot))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<TallyWidgetEntry>) -> Void) {
-        let snapshot = WidgetDataStore.loadSnapshot()
-        let entry = TallyWidgetEntry(date: Date(), snapshot: snapshot)
-        let next = Date().addingTimeInterval(30 * 60)
+        let now = Date()
+        let snapshot = WidgetDataStore.loadSnapshot().sanitized(for: now)
+        let entry = TallyWidgetEntry(date: now, snapshot: snapshot)
+        let next = WidgetTimelineRefresh.next(after: now, interval: 30 * 60)
         completion(Timeline(entries: [entry], policy: .after(next)))
+    }
+}
+
+enum WidgetTimelineRefresh {
+    static func next(after now: Date, interval: TimeInterval) -> Date {
+        let intervalDate = now.addingTimeInterval(interval)
+        let calendar = Calendar.current
+        let nextDayStart = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) ?? intervalDate
+        let afterMidnight = calendar.date(byAdding: .minute, value: 5, to: nextDayStart) ?? nextDayStart.addingTimeInterval(5 * 60)
+        return min(intervalDate, afterMidnight)
     }
 }
 
