@@ -480,7 +480,7 @@ private struct StatsBillsList: View {
                     .padding(.horizontal, BillsListLayout.horizontalPadding)
                     .padding(.top, TallySpacing.s3)
             } else {
-                VStack(spacing: TallySpacing.s4) {
+                LazyVStack(spacing: TallySpacing.s4) {
                     ForEach(dayKeys, id: \.self) { dayKey in
                         let rows = groupedRows[dayKey] ?? []
                         VStack(alignment: .leading, spacing: TallySpacing.s2) {

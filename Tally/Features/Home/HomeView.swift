@@ -43,7 +43,7 @@ struct HomeView: View {
                         HomeEmptyState()
                             .padding(.top, TallySpacing.s8)
                     } else {
-                        VStack(spacing: TallySpacing.s5) {
+                        LazyVStack(spacing: TallySpacing.s5) {
                             ForEach(viewModel.groups) { group in
                                 HomeDayGroupView(
                                     group: group,
