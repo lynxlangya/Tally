@@ -83,9 +83,9 @@ struct CoreDataImportWriteRepository: ImportWriteRepository {
 
         let categoryIDs = Set(categoryObjects.keys)
 
-        let billObjects = try fetchManagedObjectMap(entityName: "Bill", context: context)
+        let existingBillIDs = try fetchExistingIDs(entityName: "Bill", context: context)
         for bill in bills {
-            if billObjects[bill.id] != nil {
+            if existingBillIDs.contains(bill.id) {
                 skippedCount += 1
                 continue
             }
@@ -130,6 +130,16 @@ struct CoreDataImportWriteRepository: ImportWriteRepository {
             }
         }
         return result
+    }
+
+    private static func fetchExistingIDs(
+        entityName: String,
+        context: NSManagedObjectContext
+    ) throws -> Set<UUID> {
+        let request = NSFetchRequest<NSDictionary>(entityName: entityName)
+        request.resultType = .dictionaryResultType
+        request.propertiesToFetch = ["id"]
+        return Set(try context.fetch(request).compactMap { $0["id"] as? UUID })
     }
 
     private static func apply(category: BackupImportCategory, to object: NSManagedObject) {

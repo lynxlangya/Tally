@@ -135,6 +135,41 @@ final class CoreDataImportWriteRepositoryTests: XCTestCase {
     }
 
     @MainActor
+    func testImportBillsSkipsExistingBillIDsAndImportsNewBills() async throws {
+        let persistence = PersistenceController(inMemory: true, runsStartupSeed: false)
+        let context = persistence.container.viewContext
+        let repository = CoreDataImportWriteRepository(container: persistence.container)
+        let now = fixedDate(year: 2026, month: 4, day: 12, hour: 10, minute: 0)
+        let existingDuplicateID = UUID()
+        let existingOtherID = UUID()
+        let firstNewID = UUID()
+        let secondNewID = UUID()
+
+        let seedResult = try await repository.importBills([
+            makeBill(id: existingDuplicateID, note: "已存在-会跳过", at: now),
+            makeBill(id: existingOtherID, note: "已存在-保留", at: now)
+        ])
+        XCTAssertEqual(seedResult.importedCount, 2)
+        XCTAssertEqual(seedResult.skippedCount, 0)
+
+        let result = try await repository.importBills([
+            makeBill(id: existingDuplicateID, note: "重复 ID", at: now),
+            makeBill(id: firstNewID, note: "新账单 1", at: now),
+            makeBill(id: secondNewID, note: "新账单 2", at: now)
+        ])
+
+        XCTAssertEqual(result.importedCount, 2)
+        XCTAssertEqual(result.skippedCount, 1)
+
+        let billRequest = NSFetchRequest<NSManagedObject>(entityName: "Bill")
+        let bills = try context.fetch(billRequest)
+        XCTAssertEqual(bills.count, 4)
+        XCTAssertEqual(bills.filter { ($0.value(forKey: "id") as? UUID) == existingDuplicateID }.count, 1)
+        let billIDs = Set(bills.compactMap { $0.value(forKey: "id") as? UUID })
+        XCTAssertTrue(billIDs.isSuperset(of: [existingDuplicateID, existingOtherID, firstNewID, secondNewID]))
+    }
+
+    @MainActor
     func testImportBackupRollsBackWhenBackgroundSaveFails() async throws {
         let persistence = PersistenceController(inMemory: true)
         let viewContext = persistence.container.viewContext
@@ -187,6 +222,25 @@ private extension CoreDataImportWriteRepositoryTests {
             second: 0
         )
         return calendar.date(from: components) ?? Date(timeIntervalSince1970: 0)
+    }
+
+    func makeBill(id: UUID, note: String, at date: Date) -> BackupImportBill {
+        BackupImportBill(
+            id: id,
+            type: .expense,
+            amountCents: 1_234,
+            occurredAtUTC: date,
+            occurredLocalDate: DayKeyFormatter.dayKey(for: date, timeZone: TimeZone(identifier: "Asia/Shanghai") ?? .current),
+            tzId: "Asia/Shanghai",
+            tzOffset: 28_800,
+            note: note,
+            categoryId: SystemCategoryID.uncategorized(for: .expense),
+            isFromRecurring: false,
+            createdAt: date,
+            updatedAt: date,
+            deletedAt: nil,
+            trashUntil: nil
+        )
     }
 }
 
