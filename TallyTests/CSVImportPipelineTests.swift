@@ -297,6 +297,79 @@ final class CSVImportPipelineTests: XCTestCase {
         XCTAssertTrue(result.fileURL.lastPathComponent.hasSuffix(".csv"))
     }
 
+    @MainActor
+    func testExportCSVPrefixesFormulaLikeFreeTextColumns() async throws {
+        let day = parseLocalDate("2026-02-01 09:00:00")
+        let categoryId = UUID()
+        let service = DefaultImportExportService(
+            billRepository: InMemoryBillRepository(records: [
+                billRecord(amountCents: 1_000, occurredAtLocal: day, categoryId: categoryId, note: "=SUM(A1:A9)"),
+                billRecord(amountCents: 2_000, occurredAtLocal: day, categoryId: categoryId, note: "正常文本")
+            ]),
+            categoryRepository: MockCategoryRepository(seed: [
+                CategoryRecord(
+                    id: categoryId,
+                    type: .expense,
+                    name: "+外卖",
+                    iconKey: "takeoutbag.and.cup.and.straw",
+                    colorHex: nil,
+                    isSystem: false,
+                    sortOrder: 1
+                )
+            ]),
+            recurringRepository: NoopRecurringRepository(),
+            nowProvider: { day }
+        )
+
+        let result = try await service.exportCSV(request: ExportRequest(scope: .allRecords, type: .csv))
+        defer { try? FileManager.default.removeItem(at: result.fileURL) }
+        let csv = try String(contentsOf: result.fileURL, encoding: .utf8)
+
+        XCTAssertTrue(csv.contains(",'+外卖,"))
+        XCTAssertTrue(csv.contains(",'=SUM(A1:A9)"))
+        XCTAssertTrue(csv.contains(",正常文本"))
+        XCTAssertFalse(csv.contains(",'正常文本"))
+    }
+
+    @MainActor
+    func testExportedFormulaSafeCSVImportsOriginalNote() async throws {
+        let day = parseLocalDate("2026-02-01 09:00:00")
+        let categoryId = UUID()
+        let category = CategoryRecord(
+            id: categoryId,
+            type: .expense,
+            name: "午餐",
+            iconKey: "fork.knife",
+            colorHex: nil,
+            isSystem: false,
+            sortOrder: 1
+        )
+        let exportService = DefaultImportExportService(
+            billRepository: InMemoryBillRepository(records: [
+                billRecord(amountCents: 1_000, occurredAtLocal: day, categoryId: categoryId, note: "=1+1")
+            ]),
+            categoryRepository: MockCategoryRepository(seed: [category]),
+            recurringRepository: NoopRecurringRepository(),
+            nowProvider: { day }
+        )
+        let export = try await exportService.exportCSV(request: ExportRequest(scope: .allRecords, type: .csv))
+        defer { try? FileManager.default.removeItem(at: export.fileURL) }
+
+        let importWriteRepository = SpyImportWriteRepository()
+        let importService = DefaultImportExportService(
+            billRepository: InMemoryBillRepository(),
+            categoryRepository: MockCategoryRepository(seed: [category]),
+            recurringRepository: NoopRecurringRepository(),
+            importWriteRepository: importWriteRepository,
+            nowProvider: { day }
+        )
+
+        _ = try await importService.importCSV(from: export.fileURL)
+
+        XCTAssertEqual(importWriteRepository.backupBills.first?.note, "=1+1")
+        XCTAssertEqual(importWriteRepository.backupBills.first?.categoryId, categoryId)
+    }
+
     func testCleanupTemporaryExportsOnlyRemovesExportNamePatterns() throws {
         let directory = FileManager.default.temporaryDirectory
         let token = UUID().uuidString
@@ -546,7 +619,7 @@ private extension CSVImportPipelineTests {
         )
     }
 
-    func billRecord(amountCents: Int, occurredAtLocal: Date, categoryId: UUID) -> BillRecord {
+    func billRecord(amountCents: Int, occurredAtLocal: Date, categoryId: UUID, note: String? = nil) -> BillRecord {
         let snapshot = TimePolicy.snapshot(for: occurredAtLocal)
         return BillRecord(
             id: UUID(),
@@ -556,7 +629,7 @@ private extension CSVImportPipelineTests {
             tzId: snapshot.tzId,
             tzOffset: snapshot.tzOffset,
             occurredLocalDate: snapshot.occurredLocalDate,
-            note: nil,
+            note: note,
             categoryId: categoryId,
             isFromRecurring: false,
             createdAt: Date(),

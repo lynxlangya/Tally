@@ -242,6 +242,7 @@ private extension DefaultImportExportService {
 
     static let amountRegex = try? NSRegularExpression(pattern: #"^\d+(\.\d{1,2})?$"#)
     static let dayKeyRegex = try? NSRegularExpression(pattern: #"^\d{4}-\d{2}-\d{2}$"#)
+    static let csvFormulaPrefixCharacters: Set<Character> = ["=", "+", "-", "@", "\t"]
 
     func loadBills(scope: ExportScope, now: Date) throws -> [BillRecord] {
         switch scope {
@@ -275,7 +276,7 @@ private extension DefaultImportExportService {
             let amount = amountText(cents: bill.amount.cents)
             let note = bill.note ?? ""
 
-            let row = [time, type, category, amount, note]
+            let row = [time, type, csvFormulaSafe(category), amount, csvFormulaSafe(note)]
                 .map(csvEscaped)
                 .joined(separator: ",")
             lines.append(row)
@@ -319,6 +320,13 @@ private extension DefaultImportExportService {
         guard needsQuote else { return value }
         let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
         return "\"\(escaped)\""
+    }
+
+    func csvFormulaSafe(_ value: String) -> String {
+        guard let first = value.first, Self.csvFormulaPrefixCharacters.contains(first) else {
+            return value
+        }
+        return "'" + value
     }
 
     func refreshWidgetSnapshot() {

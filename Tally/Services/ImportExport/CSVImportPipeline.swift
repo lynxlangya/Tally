@@ -128,9 +128,9 @@ struct CSVImportPipeline {
 
             let timeText = row.columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
             let typeText = row.columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
-            let categoryText = row.columns[2].trimmingCharacters(in: .whitespacesAndNewlines)
+            let categoryText = csvFormulaText(row.columns[2].trimmingCharacters(in: .whitespacesAndNewlines))
             let amountText = row.columns[3].trimmingCharacters(in: .whitespacesAndNewlines)
-            let noteText = row.columns[4].trimmingCharacters(in: .whitespacesAndNewlines)
+            let noteText = csvFormulaText(row.columns[4].trimmingCharacters(in: .whitespacesAndNewlines))
 
             guard let billType = parseBillType(from: typeText) else {
                 markFailure(
@@ -311,6 +311,15 @@ private extension CSVImportPipeline {
         "\(type.rawValue)|\(name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())"
     }
 
+    func csvFormulaText(_ value: String) -> String {
+        guard value.first == "'",
+              let second = value.dropFirst().first,
+              Self.csvFormulaPrefixCharacters.contains(second) else {
+            return value
+        }
+        return String(value.dropFirst())
+    }
+
     func duplicateKey(amountCents: Int, categoryId: UUID, occurredAt: Date) -> String {
         let timestampSeconds = Int64(occurredAt.timeIntervalSince1970)
         return "\(amountCents)|\(categoryId.uuidString.lowercased())|\(timestampSeconds)"
@@ -327,4 +336,6 @@ private extension CSVImportPipeline {
             errorSummary.append("第\(lineNumber)行：\(reason)")
         }
     }
+
+    static let csvFormulaPrefixCharacters: Set<Character> = ["=", "+", "-", "@", "\t"]
 }
