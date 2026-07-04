@@ -31,7 +31,6 @@ final class DIContainer {
     }
 
     struct Services {
-        let export: ExportService
         let importExport: ImportExportService
         let recurring: RecurringService
         let security: SecurityService
@@ -43,7 +42,6 @@ final class DIContainer {
             recurringContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
 
             return Services(
-                export: StubExportService(),
                 importExport: DefaultImportExportService(
                     billRepository: repositories.bill,
                     categoryRepository: repositories.category,
@@ -62,7 +60,6 @@ final class DIContainer {
 
         static func mock() -> Services {
             Services(
-                export: StubExportService(),
                 importExport: StubImportExportService(),
                 recurring: StubRecurringService(),
                 security: StubSecurityService(),

@@ -2,6 +2,21 @@ import XCTest
 @testable import Tally
 
 final class BillsListViewModelTests: XCTestCase {
+    func testAnchorDateUsesInjectedNowProviderOnInit() async throws {
+        let injectedNow = fixedDate(year: 2026, month: 6, day: 18)
+
+        let anchorDate = await MainActor.run { () -> Date in
+            let viewModel = BillsListViewModel(
+                repository: MockBillRepository(),
+                categoryRepository: MockCategoryRepository(seed: []),
+                nowProvider: { injectedNow }
+            )
+            return viewModel.anchorDate
+        }
+
+        XCTAssertEqual(anchorDate, injectedNow)
+    }
+
     func testMonthlySummaryTrendAndRankingUseActiveRange() async throws {
         let anchor = fixedDate(year: 2026, month: 5, day: 20)
         let foodId = UUID()

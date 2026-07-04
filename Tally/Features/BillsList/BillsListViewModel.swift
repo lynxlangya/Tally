@@ -40,7 +40,7 @@ final class BillsListViewModel: ObservableObject {
         }
     }
 
-    @Published var anchorDate: Date = Date() {
+    @Published var anchorDate: Date {
         didSet {
             guard oldValue != anchorDate else { return }
             applyFiltersIfReady()
@@ -87,6 +87,7 @@ final class BillsListViewModel: ObservableObject {
         self.categoryRepository = categoryRepository
         self.nowProvider = nowProvider
         let today = nowProvider()
+        self.anchorDate = today
         self.customEnd = today
         self.customStart = Calendar.current.date(byAdding: .day, value: -29, to: today) ?? today
     }

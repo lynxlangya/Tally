@@ -139,7 +139,9 @@ final class LanguageManager: ObservableObject {
 
     private func persistLanguage() {
         defaults.set(selectedLanguage.rawValue, forKey: Keys.selectedLanguage)
-        TallyLanguageStore.saveSelectedLanguage(selectedLanguage.rawValue)
+        if syncsSharedStores {
+            TallyLanguageStore.saveSelectedLanguage(selectedLanguage.rawValue)
+        }
     }
 
     private func persistMoneyDisplaySymbol() {

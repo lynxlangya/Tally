@@ -49,6 +49,21 @@ final class LanguageManagerTests: XCTestCase {
         XCTAssertEqual(defaults.string(forKey: "language.selected"), "en")
     }
 
+    func testLanguageSelectionDoesNotWriteSharedStoreWhenSyncDisabled() {
+        let sharedDefaults = makeSharedLanguageDefaults()
+        let originalSharedLanguage = sharedDefaults.string(forKey: TallyLanguageStore.selectedLanguageKey)
+        sharedDefaults.set(AppLanguage.zhHans.rawValue, forKey: TallyLanguageStore.selectedLanguageKey)
+        defer {
+            restoreSharedLanguageDefaults(sharedDefaults, originalLanguage: originalSharedLanguage)
+        }
+
+        let manager = LanguageManager(defaults: defaults, syncsSharedStores: false)
+        manager.setLanguage(.en)
+
+        XCTAssertEqual(defaults.string(forKey: "language.selected"), "en")
+        XCTAssertEqual(sharedDefaults.string(forKey: TallyLanguageStore.selectedLanguageKey), AppLanguage.zhHans.rawValue)
+    }
+
     func testMoneySymbolSelectionPersistsAcrossManagers() {
         var manager = LanguageManager(defaults: defaults)
 
@@ -120,5 +135,17 @@ final class LanguageManagerTests: XCTestCase {
             second: 0
         )
         return calendar.date(from: components) ?? Date(timeIntervalSince1970: 0)
+    }
+
+    private func makeSharedLanguageDefaults() -> UserDefaults {
+        UserDefaults(suiteName: "group.com.langya.Tally") ?? .standard
+    }
+
+    private func restoreSharedLanguageDefaults(_ sharedDefaults: UserDefaults, originalLanguage: String?) {
+        if let originalLanguage {
+            sharedDefaults.set(originalLanguage, forKey: TallyLanguageStore.selectedLanguageKey)
+        } else {
+            sharedDefaults.removeObject(forKey: TallyLanguageStore.selectedLanguageKey)
+        }
     }
 }
