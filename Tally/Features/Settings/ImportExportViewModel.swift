@@ -136,7 +136,7 @@ final class ImportExportViewModel: ObservableObject {
 
     var csvImportPreviewMessage: String {
         guard let preview = csvImportPreview?.preview else { return "" }
-        return previewMessage(preview)
+        return previewMessage(preview, includesCSVTimezoneNote: true)
     }
 
     private func prepareImport(fileURL: URL, kind: ImportKind) {
@@ -236,13 +236,17 @@ final class ImportExportViewModel: ObservableObject {
         }
     }
 
-    private func previewMessage(_ preview: ImportPreview) -> String {
+    private func previewMessage(_ preview: ImportPreview, includesCSVTimezoneNote: Bool = false) -> String {
         let locale = LanguageManager.shared.currentLocale
         var lines: [String] = [
             TallyLocalization.format("import_pending_count", locale: locale, preview.pendingCount),
             TallyLocalization.format("import_conflict_count", locale: locale, preview.conflictCount),
             TallyLocalization.format("import_failed_count", locale: locale, preview.failedCount)
         ]
+
+        if includesCSVTimezoneNote {
+            lines.append(TallyLocalization.text("csv_import_timezone_note", locale: locale))
+        }
 
         if !preview.errorSummary.isEmpty {
             lines.append(TallyLocalization.text("import_error_summary", locale: locale))

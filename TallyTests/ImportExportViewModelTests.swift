@@ -144,6 +144,43 @@ final class ImportExportViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testCSVImportPreviewMessageIncludesTimezoneNoteButBackupDoesNot() async throws {
+        let defaults = makeDefaults()
+        let preview = ImportPreview(pendingCount: 2, conflictCount: 1, failedCount: 0, errorSummary: [])
+        let service = SpyImportExportService(
+            backupPreview: preview,
+            csvPreview: preview
+        )
+        let viewModel = ImportExportViewModel(
+            service: service,
+            billRepository: MockBillRepository(),
+            logDefaults: defaults
+        )
+        let note = TallyLocalization.text("csv_import_timezone_note", locale: LanguageManager.shared.currentLocale)
+
+        viewModel.prepareImportCSV(fileURL: URL(fileURLWithPath: "/tmp/tally-import-preview.csv"))
+        try await waitUntil { viewModel.csvImportPreview != nil && viewModel.isProcessing == false }
+
+        XCTAssertTrue(viewModel.csvImportPreviewMessage.contains(note))
+
+        viewModel.prepareImportBackup(fileURL: URL(fileURLWithPath: "/tmp/tally-import-preview.json"))
+        try await waitUntil { viewModel.backupImportPreview != nil && viewModel.isProcessing == false }
+
+        XCTAssertFalse(viewModel.backupImportPreviewMessage.contains(note))
+    }
+
+    func testCSVImportTimezoneNoteIsLocalizedInChineseAndEnglish() {
+        XCTAssertEqual(
+            TallyLocalization.text("csv_import_timezone_note", locale: Locale(identifier: "zh-Hans-CN")),
+            "提示：CSV 不含时区信息，账单日期将按当前设备时区解析。"
+        )
+        XCTAssertEqual(
+            TallyLocalization.text("csv_import_timezone_note", locale: Locale(identifier: "en-US")),
+            "Note: CSV has no time zone info. Dates will be interpreted in your current device time zone."
+        )
+    }
+
+    @MainActor
     func testPrepareImportBackupPreservesLocalizedServiceErrorDescription() async throws {
         let defaults = makeDefaults()
         let service = DefaultImportExportService(
@@ -252,6 +289,7 @@ private extension ImportExportViewModelTests {
 private final class SpyImportExportService: ImportExportService {
     private let exportCSVResult: ExportResult
     private let exportBackupResult: ExportResult
+    private let backupPreview: ImportPreview
     private let csvPreview: ImportPreview
     private let csvImportOutcome: Result<ImportResult, Error>
 
@@ -261,11 +299,13 @@ private final class SpyImportExportService: ImportExportService {
     init(
         exportCSVResult: ExportResult = ExportResult(fileURL: URL(fileURLWithPath: "/tmp/tally-export.csv"), recordCount: 0, fileSizeBytes: nil),
         exportBackupResult: ExportResult = ExportResult(fileURL: URL(fileURLWithPath: "/tmp/tally-backup.json"), recordCount: 0, fileSizeBytes: nil),
+        backupPreview: ImportPreview = ImportPreview(pendingCount: 0, conflictCount: 0, failedCount: 0, errorSummary: []),
         csvPreview: ImportPreview = ImportPreview(pendingCount: 0, conflictCount: 0, failedCount: 0, errorSummary: []),
         csvImportOutcome: Result<ImportResult, Error> = .success(ImportResult(importedCount: 0, skippedCount: 0, failedCount: 0))
     ) {
         self.exportCSVResult = exportCSVResult
         self.exportBackupResult = exportBackupResult
+        self.backupPreview = backupPreview
         self.csvPreview = csvPreview
         self.csvImportOutcome = csvImportOutcome
     }
@@ -280,7 +320,7 @@ private final class SpyImportExportService: ImportExportService {
     }
 
     func previewImportBackup(from fileURL: URL) async throws -> ImportPreview {
-        throw ServiceError.notImplemented
+        backupPreview
     }
 
     func previewImportCSV(from fileURL: URL) async throws -> ImportPreview {

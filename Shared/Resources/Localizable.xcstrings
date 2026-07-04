@@ -2264,6 +2264,23 @@
         }
       }
     },
+    "csv_import_timezone_note" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: CSV has no time zone info. Dates will be interpreted in your current device time zone."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提示：CSV 不含时区信息，账单日期将按当前设备时区解析。"
+          }
+        }
+      }
+    },
     "import_error_summary" : {
       "extractionState" : "stale",
       "localizations" : {
