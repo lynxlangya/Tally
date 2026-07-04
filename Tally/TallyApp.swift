@@ -73,6 +73,9 @@ struct TallyApp: App {
         guard persistenceStartupState.status.isReady, !didRunInitialStartupJobs else { return }
         didRunInitialStartupJobs = true
         runRecurringCatchUpIfNeeded()
+        DispatchQueue.global(qos: .utility).async {
+            DefaultImportExportService.cleanupTemporaryExports()
+        }
         WidgetSnapshotService.refresh(using: environment.container.repositories.bill)
     }
 

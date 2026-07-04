@@ -278,6 +278,48 @@ final class CSVImportPipelineTests: XCTestCase {
     }
 
     @MainActor
+    func testDefaultImportExportServiceExportCSVWritesTemporaryFile() async throws {
+        let day = parseLocalDate("2026-02-01 09:00:00")
+        let service = DefaultImportExportService(
+            billRepository: InMemoryBillRepository(records: [
+                billRecord(amountCents: 1_000, occurredAtLocal: day, categoryId: UUID())
+            ]),
+            categoryRepository: MockCategoryRepository(),
+            recurringRepository: NoopRecurringRepository(),
+            nowProvider: { day }
+        )
+
+        let result = try await service.exportCSV(request: ExportRequest(scope: .allRecords, type: .csv))
+        defer { try? FileManager.default.removeItem(at: result.fileURL) }
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: result.fileURL.path))
+        XCTAssertTrue(result.fileURL.lastPathComponent.hasPrefix("Bill_"))
+        XCTAssertTrue(result.fileURL.lastPathComponent.hasSuffix(".csv"))
+    }
+
+    func testCleanupTemporaryExportsOnlyRemovesExportNamePatterns() throws {
+        let directory = FileManager.default.temporaryDirectory
+        let token = UUID().uuidString
+        let csvURL = directory.appendingPathComponent("Bill_\(token).csv")
+        let backupURL = directory.appendingPathComponent("Tally_Backup_\(token).json")
+        let keepURL = directory.appendingPathComponent("Bill_\(token).txt")
+        try Data("csv".utf8).write(to: csvURL, options: .atomic)
+        try Data("backup".utf8).write(to: backupURL, options: .atomic)
+        try Data("keep".utf8).write(to: keepURL, options: .atomic)
+        defer {
+            try? FileManager.default.removeItem(at: csvURL)
+            try? FileManager.default.removeItem(at: backupURL)
+            try? FileManager.default.removeItem(at: keepURL)
+        }
+
+        DefaultImportExportService.cleanupTemporaryExports()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: csvURL.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: backupURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: keepURL.path))
+    }
+
+    @MainActor
     func testPreviewImportBackupCountsDuplicateBillIDAsConflict() async throws {
         let service = DefaultImportExportService(
             billRepository: MockBillRepository(),

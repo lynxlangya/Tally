@@ -41,7 +41,7 @@ struct DefaultImportExportService: ImportExportService {
 
         var data = Data([0xEF, 0xBB, 0xBF])
         data.append(Data(csv.utf8))
-        try data.write(to: url, options: .atomic)
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
 
         return ExportResult(
             fileURL: url,
@@ -77,7 +77,7 @@ struct DefaultImportExportService: ImportExportService {
 
         let fileName = "Tally_Backup_\(Self.backupTimestampFormatter.string(from: now)).json"
         let url = fileManager.temporaryDirectory.appendingPathComponent(fileName)
-        try data.write(to: url, options: .atomic)
+        try data.write(to: url, options: [.atomic, .completeFileProtection])
 
         return ExportResult(
             fileURL: url,
@@ -206,6 +206,21 @@ struct DefaultImportExportService: ImportExportService {
         refreshWidgetSnapshot()
         return result
     }
+
+    static func cleanupTemporaryExports(fileManager: FileManager = .default) {
+        let directory = fileManager.temporaryDirectory
+        guard let urls = try? fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ) else {
+            return
+        }
+
+        for url in urls where isTemporaryExportFileName(url.lastPathComponent) {
+            try? fileManager.removeItem(at: url)
+        }
+    }
 }
 
 private extension DefaultImportExportService {
@@ -315,6 +330,11 @@ private extension DefaultImportExportService {
         let shortVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
         let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
         return "\(shortVersion)(\(build))"
+    }
+
+    static func isTemporaryExportFileName(_ name: String) -> Bool {
+        (name.hasPrefix("Bill_") && name.hasSuffix(".csv"))
+            || (name.hasPrefix("Tally_Backup_") && name.hasSuffix(".json"))
     }
 
     func loadBackupPayload(from fileURL: URL) throws -> BackupPayload {

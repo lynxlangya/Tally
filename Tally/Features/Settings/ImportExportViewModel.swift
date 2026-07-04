@@ -265,7 +265,14 @@ final class ImportExportViewModel: ObservableObject {
 
             do {
                 let result = try await operation()
-                let data = try Data(contentsOf: result.fileURL)
+                let data: Data
+                do {
+                    data = try Data(contentsOf: result.fileURL)
+                    try? FileManager.default.removeItem(at: result.fileURL)
+                } catch {
+                    try? FileManager.default.removeItem(at: result.fileURL)
+                    throw error
+                }
                 exportPayload = ExportPayload(
                     data: data,
                     contentType: kind.contentType,

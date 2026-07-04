@@ -40,6 +40,7 @@ final class ImportExportViewModelTests: XCTestCase {
         XCTAssertEqual(service.exportCSVCallCount, 1)
         XCTAssertEqual(viewModel.exportPayload?.defaultFilename, "tally-export.csv")
         XCTAssertEqual(viewModel.exportPayload?.data, Data("时间,类型\n".utf8))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: exportURL.path))
         XCTAssertEqual(viewModel.logs.first?.title, "导出 CSV")
         XCTAssertEqual(viewModel.logs.first?.status, .success)
         XCTAssertEqual(ImportExportLogStore.load(defaults: defaults).first?.count, 2)
