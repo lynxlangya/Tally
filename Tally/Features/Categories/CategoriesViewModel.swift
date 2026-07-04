@@ -49,7 +49,7 @@ final class CategoriesViewModel: ObservableObject {
             errorMessage = maxUserCategoriesMessage
             return errorMessage
         }
-        guard !categories.contains(where: { !$0.isSystem && $0.name == trimmed }) else {
+        guard !categories.contains(where: { $0.name == trimmed }) else {
             errorMessage = TallyLocalization.text("category_name_exists", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
@@ -94,7 +94,7 @@ final class CategoriesViewModel: ObservableObject {
             errorMessage = TallyLocalization.text("system_category_edit_forbidden", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }
-        guard !categories.contains(where: { !$0.isSystem && $0.id != id && $0.name == trimmed }) else {
+        guard !categories.contains(where: { $0.id != id && $0.name == trimmed }) else {
             errorMessage = TallyLocalization.text("category_name_exists", locale: LanguageManager.shared.currentLocale)
             return errorMessage
         }

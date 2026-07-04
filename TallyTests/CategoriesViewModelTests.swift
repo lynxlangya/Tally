@@ -77,6 +77,24 @@ final class CategoriesViewModelTests: XCTestCase {
         XCTAssertTrue(repository.createdRecords.isEmpty)
     }
 
+    func testAddCategoryRejectsSystemCategoryNameBeforePersisting() {
+        let system = makeCategory(
+            id: SystemCategoryID.uncategorizedExpense,
+            name: "未分类",
+            isSystem: true,
+            sortOrder: 0
+        )
+        let repository = RecordingCategoryRepository(seed: [system])
+        let viewModel = CategoriesViewModel(repository: repository)
+        viewModel.load(type: .expense)
+
+        let error = viewModel.addCategory(name: "未分类", iconKey: "tag.fill", colorHex: 0xB8553E)
+
+        XCTAssertEqual(error, "分类名称已存在")
+        XCTAssertEqual(viewModel.errorMessage, "分类名称已存在")
+        XCTAssertTrue(repository.createdRecords.isEmpty)
+    }
+
     func testUpdateCategoryPersistsEditedFields() {
         let category = makeCategory(name: "午餐", isSystem: false, sortOrder: 1)
         let repository = RecordingCategoryRepository(seed: [category])
@@ -111,6 +129,30 @@ final class CategoriesViewModelTests: XCTestCase {
             name: "午餐",
             iconKey: second.iconKey,
             colorHex: UInt32(second.colorHex ?? 0)
+        )
+
+        XCTAssertEqual(error, "分类名称已存在")
+        XCTAssertEqual(viewModel.errorMessage, "分类名称已存在")
+        XCTAssertTrue(repository.updatedRecords.isEmpty)
+    }
+
+    func testUpdateCategoryRejectsSystemCategoryNameBeforePersisting() {
+        let system = makeCategory(
+            id: SystemCategoryID.uncategorizedExpense,
+            name: "未分类",
+            isSystem: true,
+            sortOrder: 0
+        )
+        let custom = makeCategory(name: "午餐", isSystem: false, sortOrder: 1)
+        let repository = RecordingCategoryRepository(seed: [system, custom])
+        let viewModel = CategoriesViewModel(repository: repository)
+        viewModel.load(type: .expense)
+
+        let error = viewModel.updateCategory(
+            id: custom.id,
+            name: "未分类",
+            iconKey: custom.iconKey,
+            colorHex: UInt32(custom.colorHex ?? 0)
         )
 
         XCTAssertEqual(error, "分类名称已存在")
