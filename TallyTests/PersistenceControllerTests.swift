@@ -4,6 +4,13 @@ import XCTest
 
 final class PersistenceControllerTests: XCTestCase {
     @MainActor
+    func testViewContextUsesObjectTrumpMergePolicy() throws {
+        let controller = PersistenceController(inMemory: true, runsStartupSeed: false)
+        let mergePolicy = try XCTUnwrap(controller.container.viewContext.mergePolicy as? NSMergePolicy)
+        XCTAssertEqual(mergePolicy.mergeType, NSMergeByPropertyObjectTrumpMergePolicy.mergeType)
+    }
+
+    @MainActor
     func testModelDefinesIndexesAndUniqueConstraintsForHotLookupFields() throws {
         let model = PersistenceController(inMemory: true, runsStartupSeed: false)
             .container
