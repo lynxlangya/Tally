@@ -7,36 +7,14 @@ enum MoneyFormatter {
         let decimal: String
     }
 
-    private static func integerFormatter(locale: Locale) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = locale
-        formatter.maximumFractionDigits = 0
-        formatter.usesGroupingSeparator = true
-        return formatter
-    }
-
-    private static func centFormatter(locale: Locale) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = locale
-        formatter.minimumIntegerDigits = 2
-        formatter.maximumFractionDigits = 0
-        formatter.usesGroupingSeparator = false
-        return formatter
-    }
-
-    private static func compactWanFormatter(locale: Locale) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = locale
-        formatter.minimumFractionDigits = 1
-        formatter.maximumFractionDigits = 1
-        formatter.usesGroupingSeparator = false
-        return formatter
-    }
-
     private static let logger = Logger(subsystem: "com.langya.Tally", category: "money")
+    private static let threadDictionaryKey = "tally.money.formatter.storage"
+
+    private enum FormatterKind: String {
+        case integer
+        case cent
+        case compactWan
+    }
 
     static func string(
         fromCents cents: Int,
@@ -55,7 +33,7 @@ enum MoneyFormatter {
     ) -> String {
         let safeCents = safeDisplayCents(cents)
         let yuan = safeCents / 100
-        let amount = integerFormatter(locale: locale).string(from: NSNumber(value: yuan)) ?? "\(yuan)"
+        let amount = cachedFormatter(.integer, locale: locale).string(from: NSNumber(value: yuan)) ?? "\(yuan)"
         return "\(currencySymbol(symbol: symbol))\(amount)"
     }
 
@@ -71,11 +49,11 @@ enum MoneyFormatter {
         if yuan >= 10_000 {
             let value = Decimal(yuan) / Decimal(10_000)
             let number = NSDecimalNumber(decimal: value)
-            let amount = compactWanFormatter(locale: locale).string(from: number) ?? "\(number)"
+            let amount = cachedFormatter(.compactWan, locale: locale).string(from: number) ?? "\(number)"
             if TallyLocalization.supportedLanguageCode(for: locale) == "en" {
                 let thousandValue = Decimal(yuan) / Decimal(1_000)
                 let thousandNumber = NSDecimalNumber(decimal: thousandValue)
-                let thousandAmount = compactWanFormatter(locale: locale).string(from: thousandNumber) ?? "\(thousandNumber)"
+                let thousandAmount = cachedFormatter(.compactWan, locale: locale).string(from: thousandNumber) ?? "\(thousandNumber)"
                 return "\(sign)\(currencySymbol(symbol: symbol))\(thousandAmount)k"
             }
             return "\(sign)\(currencySymbol(symbol: symbol))\(amount)万"
@@ -88,8 +66,8 @@ enum MoneyFormatter {
         let safeCents = safeDisplayCents(cents)
         let yuan = safeCents / 100
         let cent = safeCents % 100
-        let integer = integerFormatter(locale: locale).string(from: NSNumber(value: yuan)) ?? "\(yuan)"
-        let decimal = centFormatter(locale: locale).string(from: NSNumber(value: cent)) ?? (cent < 10 ? "0\(cent)" : "\(cent)")
+        let integer = cachedFormatter(.integer, locale: locale).string(from: NSNumber(value: yuan)) ?? "\(yuan)"
+        let decimal = cachedFormatter(.cent, locale: locale).string(from: NSNumber(value: cent)) ?? (cent < 10 ? "0\(cent)" : "\(cent)")
         return Parts(integer: integer, decimal: decimal)
     }
 
@@ -107,5 +85,48 @@ enum MoneyFormatter {
             return 0
         }
         return cents
+    }
+
+    private static func cachedFormatter(_ kind: FormatterKind, locale: Locale) -> NumberFormatter {
+        let threadDictionary = Thread.current.threadDictionary
+        let storage: NSMutableDictionary
+        if let existing = threadDictionary[threadDictionaryKey] as? NSMutableDictionary {
+            storage = existing
+        } else {
+            let created = NSMutableDictionary()
+            threadDictionary[threadDictionaryKey] = created
+            storage = created
+        }
+
+        let cacheKey = "\(kind.rawValue)|\(locale.identifier)"
+        if let formatter = storage[cacheKey] as? NumberFormatter {
+            return formatter
+        }
+
+        let formatter = makeFormatter(kind, locale: locale)
+        storage[cacheKey] = formatter
+        return formatter
+    }
+
+    private static func makeFormatter(_ kind: FormatterKind, locale: Locale) -> NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = locale
+
+        switch kind {
+        case .integer:
+            formatter.maximumFractionDigits = 0
+            formatter.usesGroupingSeparator = true
+        case .cent:
+            formatter.minimumIntegerDigits = 2
+            formatter.maximumFractionDigits = 0
+            formatter.usesGroupingSeparator = false
+        case .compactWan:
+            formatter.minimumFractionDigits = 1
+            formatter.maximumFractionDigits = 1
+            formatter.usesGroupingSeparator = false
+        }
+
+        return formatter
     }
 }

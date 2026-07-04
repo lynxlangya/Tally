@@ -32,4 +32,21 @@ final class MoneyFormatterTests: XCTestCase {
         XCTAssertEqual(MoneyFormatter.compactString(fromCents: 12_345_678, symbol: .yuan), "¥12.3万")
         XCTAssertEqual(MoneyFormatter.compactString(fromCents: 12_345_678, locale: Locale(identifier: "en-US"), symbol: .dollar), "$123.5k")
     }
+
+    func testRepeatedFormattingWithSameLocaleKeepsOutputStable() {
+        let locale = Locale(identifier: "en-US")
+
+        XCTAssertEqual(
+            MoneyFormatter.string(fromCents: 642_188, locale: locale, symbol: .dollar),
+            MoneyFormatter.string(fromCents: 642_188, locale: locale, symbol: .dollar)
+        )
+        XCTAssertEqual(
+            MoneyFormatter.parts(fromCents: 642_105, locale: locale),
+            MoneyFormatter.parts(fromCents: 642_105, locale: locale)
+        )
+        XCTAssertEqual(
+            MoneyFormatter.compactString(fromCents: 12_345_678, locale: locale, symbol: .dollar),
+            MoneyFormatter.compactString(fromCents: 12_345_678, locale: locale, symbol: .dollar)
+        )
+    }
 }
