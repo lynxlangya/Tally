@@ -329,7 +329,7 @@ struct ProfileView: View {
             ProfileRow(
                 icon: "info",
                 title: TallyLocalization.text("about_tally", locale: locale),
-                subtitle: "v1.0",
+                subtitle: versionSubtitle,
                 destination: .about
             )
         ]
