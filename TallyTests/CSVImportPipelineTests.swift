@@ -341,6 +341,69 @@ final class CSVImportPipelineTests: XCTestCase {
     }
 
     @MainActor
+    func testImportBackupTreatsSystemCategoryIDAsConflictButKeepsBillReference() async throws {
+        let importWriteRepository = SpyImportWriteRepository()
+        let service = DefaultImportExportService(
+            billRepository: MockBillRepository(),
+            categoryRepository: MockCategoryRepository(),
+            recurringRepository: NoopRecurringRepository(),
+            importWriteRepository: importWriteRepository
+        )
+        let systemCategoryId = SystemCategoryID.uncategorized(for: .expense)
+        let billId = UUID()
+        let payload = """
+        {
+          "schemaVersion": 1,
+          "exportedAt": "2026-02-13T00:00:00Z",
+          "appVersion": "1.0(1)",
+          "timezone": "Asia/Shanghai",
+          "bills": [
+            {
+              "id": "\(billId.uuidString)",
+              "type": "expense",
+              "amount": "10.00",
+              "occurredAtUTC": "2026-02-01T08:00:00Z",
+              "occurredLocalDate": "2026-02-01",
+              "tzId": "Asia/Shanghai",
+              "tzOffset": 28800,
+              "note": null,
+              "categoryId": "\(systemCategoryId.uuidString)",
+              "isFromRecurring": false,
+              "createdAt": "2026-02-01T08:00:00Z",
+              "updatedAt": "2026-02-01T08:00:00Z",
+              "deletedAt": null,
+              "trashUntil": null
+            }
+          ],
+          "categories": [
+            {
+              "id": "\(systemCategoryId.uuidString)",
+              "type": "expense",
+              "name": "未分类",
+              "iconKey": "tag",
+              "colorHex": null,
+              "isSystem": true,
+              "sortOrder": 0
+            }
+          ],
+          "recurringTasks": []
+        }
+        """
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("tally-backup-system-category-\(UUID().uuidString).json")
+        try Data(payload.utf8).write(to: fileURL, options: .atomic)
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        let result = try await service.importBackup(from: fileURL)
+
+        XCTAssertEqual(result.importedCount, 1)
+        XCTAssertEqual(result.skippedCount, 1)
+        XCTAssertEqual(result.failedCount, 0)
+        XCTAssertTrue(importWriteRepository.backupCategories.isEmpty)
+        XCTAssertEqual(importWriteRepository.backupBills.map(\.id), [billId])
+        XCTAssertEqual(importWriteRepository.backupBills.first?.categoryId, systemCategoryId)
+    }
+
+    @MainActor
     func testImportBackupRequiresImportWriteRepository() async throws {
         let service = DefaultImportExportService(
             billRepository: MockBillRepository(),
@@ -369,6 +432,31 @@ final class CSVImportPipelineTests: XCTestCase {
         } catch {
             XCTAssertTrue(error.localizedDescription.contains("导入环境不可用"))
         }
+    }
+}
+
+private final class SpyImportWriteRepository: ImportWriteRepository {
+    private(set) var backupCategories: [BackupImportCategory] = []
+    private(set) var backupBills: [BackupImportBill] = []
+    private(set) var backupRecurringTasks: [BackupImportRecurringTask] = []
+
+    func importBackup(
+        categories: [BackupImportCategory],
+        bills: [BackupImportBill],
+        recurringTasks: [BackupImportRecurringTask]
+    ) async throws -> ImportWriteResult {
+        backupCategories = categories
+        backupBills = bills
+        backupRecurringTasks = recurringTasks
+        return ImportWriteResult(
+            importedCount: categories.count + bills.count + recurringTasks.count,
+            skippedCount: 0
+        )
+    }
+
+    func importBills(_ bills: [BackupImportBill]) async throws -> ImportWriteResult {
+        backupBills = bills
+        return ImportWriteResult(importedCount: bills.count, skippedCount: 0)
     }
 }
 

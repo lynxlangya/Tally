@@ -59,7 +59,12 @@ struct CoreDataImportWriteRepository: ImportWriteRepository {
         var skippedCount = 0
 
         var categoryObjects = try fetchManagedObjectMap(entityName: "Category", context: context)
+        let systemCategoryIDs = Self.systemCategoryIDs
         for category in categories {
+            if systemCategoryIDs.contains(category.id) {
+                skippedCount += 1
+                continue
+            }
             if let object = categoryObjects[category.id] {
                 let isSystem = object.value(forKey: "isSystem") as? Bool ?? false
                 if isSystem {
@@ -169,5 +174,12 @@ struct CoreDataImportWriteRepository: ImportWriteRepository {
         object.setValue(recurring.isEnabled, forKey: "isEnabled")
         object.setValue(recurring.createdAt, forKey: "createdAt")
         object.setValue(recurring.updatedAt, forKey: "updatedAt")
+    }
+
+    private static var systemCategoryIDs: Set<UUID> {
+        [
+            SystemCategoryID.uncategorized(for: .expense),
+            SystemCategoryID.uncategorized(for: .income)
+        ]
     }
 }

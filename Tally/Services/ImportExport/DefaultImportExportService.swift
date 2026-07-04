@@ -366,6 +366,7 @@ private extension DefaultImportExportService {
         let existingCategories = try loadAllCategories()
         let existingCategoriesByID = Dictionary(uniqueKeysWithValues: existingCategories.map { ($0.id, $0) })
         var availableCategoryIDs = Set(existingCategoriesByID.keys)
+        let systemCategoryIDs = systemCategoryIDs()
         var seenCategoryIDs = Set<UUID>()
         var seenBillIDs = Set<UUID>()
         var seenRecurringIDs = Set<UUID>()
@@ -395,6 +396,11 @@ private extension DefaultImportExportService {
             }
 
             availableCategoryIDs.insert(category.id)
+
+            if systemCategoryIDs.contains(category.id) {
+                conflictCount += 1
+                continue
+            }
 
             if let existing = existingCategoriesByID[category.id], existing.isSystem {
                 conflictCount += 1
@@ -594,6 +600,13 @@ private extension DefaultImportExportService {
     func markFailure(_ reason: String, failedCount: inout Int, errorCounter: inout [String: Int]) {
         failedCount += 1
         errorCounter[reason, default: 0] += 1
+    }
+
+    func systemCategoryIDs() -> Set<UUID> {
+        [
+            SystemCategoryID.uncategorized(for: .expense),
+            SystemCategoryID.uncategorized(for: .income)
+        ]
     }
 }
 

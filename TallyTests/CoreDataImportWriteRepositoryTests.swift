@@ -79,6 +79,62 @@ final class CoreDataImportWriteRepositoryTests: XCTestCase {
     }
 
     @MainActor
+    func testImportBackupSkipsSystemCategoryIDButKeepsBillReferenceInEmptyStore() async throws {
+        let persistence = PersistenceController(inMemory: true, runsStartupSeed: false)
+        let context = persistence.container.viewContext
+        let repository = CoreDataImportWriteRepository(container: persistence.container)
+        let systemCategoryId = SystemCategoryID.uncategorized(for: .expense)
+        let billId = UUID()
+        let now = fixedDate(year: 2026, month: 4, day: 12, hour: 10, minute: 0)
+
+        let result = try await repository.importBackup(
+            categories: [
+                BackupImportCategory(
+                    id: systemCategoryId,
+                    type: .expense,
+                    name: "未分类",
+                    iconKey: "tag",
+                    colorHex: nil,
+                    sortOrder: 0
+                )
+            ],
+            bills: [
+                BackupImportBill(
+                    id: billId,
+                    type: .expense,
+                    amountCents: 1_234,
+                    occurredAtUTC: now,
+                    occurredLocalDate: "2026-04-12",
+                    tzId: "Asia/Shanghai",
+                    tzOffset: 28_800,
+                    note: "系统分类账单",
+                    categoryId: systemCategoryId,
+                    isFromRecurring: false,
+                    createdAt: now,
+                    updatedAt: now,
+                    deletedAt: nil,
+                    trashUntil: nil
+                )
+            ],
+            recurringTasks: []
+        )
+
+        XCTAssertEqual(result.importedCount, 1)
+        XCTAssertEqual(result.skippedCount, 1)
+
+        let categoryRequest = NSFetchRequest<NSManagedObject>(entityName: "Category")
+        categoryRequest.predicate = NSPredicate(format: "id == %@", systemCategoryId as CVarArg)
+        let categories = try context.fetch(categoryRequest)
+        XCTAssertTrue(categories.isEmpty)
+
+        let billRequest = NSFetchRequest<NSManagedObject>(entityName: "Bill")
+        billRequest.predicate = NSPredicate(format: "id == %@", billId as CVarArg)
+        let bills = try context.fetch(billRequest)
+        XCTAssertEqual(bills.count, 1)
+        XCTAssertEqual(bills.first?.value(forKey: "categoryId") as? UUID, systemCategoryId)
+    }
+
+    @MainActor
     func testImportBackupRollsBackWhenBackgroundSaveFails() async throws {
         let persistence = PersistenceController(inMemory: true)
         let viewContext = persistence.container.viewContext
