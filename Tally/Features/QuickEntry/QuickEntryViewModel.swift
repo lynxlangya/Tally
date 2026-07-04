@@ -225,7 +225,11 @@ final class QuickEntryViewModel: ObservableObject {
             categories = sortCategories(items)
             refreshSuggestedCategoryOrder()
             if selectedCategory?.type != selectedType {
-                selectedCategory = defaultCategory()
+                if let bill = editingBill, bill.type == selectedType {
+                    selectedCategory = restoredEditingCategory()
+                } else {
+                    selectedCategory = defaultCategory()
+                }
             }
             errorMessage = nil
         } catch {
@@ -271,22 +275,26 @@ final class QuickEntryViewModel: ObservableObject {
     }
 
     private func applyEditingSelectionIfNeeded() {
-        guard let bill = editingBill, !didApplyEditing else { return }
+        guard editingBill != nil, !didApplyEditing else { return }
+        selectedCategory = restoredEditingCategory()
+        didApplyEditing = true
+    }
+
+    private func restoredEditingCategory() -> CategoryRecord? {
+        guard let bill = editingBill else { return nil }
         let categoryId = bill.categoryId ?? SystemCategoryID.uncategorized(for: bill.type)
         if let found = categoriesById[categoryId] {
-            selectedCategory = found
-        } else {
-            selectedCategory = CategoryRecord(
-                id: categoryId,
-                type: bill.type,
-                name: TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale),
-                iconKey: "tag",
-                colorHex: Int(CategoryColorPalette.defaultHex(for: categoryId)),
-                isSystem: true,
-                sortOrder: 0
-            )
+            return found
         }
-        didApplyEditing = true
+        return CategoryRecord(
+            id: categoryId,
+            type: bill.type,
+            name: TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale),
+            iconKey: "tag",
+            colorHex: Int(CategoryColorPalette.defaultHex(for: categoryId)),
+            isSystem: true,
+            sortOrder: 0
+        )
     }
 
     private func sortCategories(_ items: [CategoryRecord]) -> [CategoryRecord] {

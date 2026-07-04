@@ -271,6 +271,64 @@ final class QuickEntryViewModelTests: XCTestCase {
         XCTAssertFalse(result.2)
     }
 
+    func testEditingBillRestoresOriginalCategoryWhenSwitchingBackToOriginalType() async throws {
+        let expenseCategory = makeCategory(type: .expense, name: "午餐")
+        let incomeCategory = makeCategory(type: .income, name: "薪资")
+        let bill = makeBill(type: .expense, categoryId: expenseCategory.id)
+
+        let result = await MainActor.run { () -> (UUID?, CategoryRecord?, UUID?) in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(records: [bill]),
+                categoryRepository: MockCategoryRepository(seed: [expenseCategory, incomeCategory]),
+                editingBill: bill
+            )
+            viewModel.load()
+            let initialCategoryId = viewModel.selectedCategory?.id
+            viewModel.handleKey(.add)
+            let incomeCategory = viewModel.selectedCategory
+            viewModel.handleKey(.minus)
+            return (initialCategoryId, incomeCategory, viewModel.selectedCategory?.id)
+        }
+
+        XCTAssertEqual(result.0, expenseCategory.id)
+        XCTAssertNil(result.1)
+        XCTAssertEqual(result.2, expenseCategory.id)
+    }
+
+    func testEditingBillRestoresUncategorizedFallbackWhenOriginalCategoryIsMissing() async throws {
+        let missingCategoryId = UUID()
+        let incomeCategory = makeCategory(type: .income, name: "薪资")
+        let bill = makeBill(type: .expense, categoryId: missingCategoryId)
+
+        let result = await MainActor.run { () -> (UUID?, String?, Bool, UUID?, String?, Bool) in
+            let viewModel = QuickEntryViewModel(
+                repository: InMemoryBillRepository(records: [bill]),
+                categoryRepository: MockCategoryRepository(seed: [incomeCategory]),
+                editingBill: bill
+            )
+            viewModel.load()
+            let initial = viewModel.selectedCategory
+            viewModel.handleKey(.add)
+            viewModel.handleKey(.minus)
+            let restored = viewModel.selectedCategory
+            return (
+                initial?.id,
+                initial?.name,
+                initial?.isSystem ?? false,
+                restored?.id,
+                restored?.name,
+                restored?.isSystem ?? false
+            )
+        }
+
+        XCTAssertEqual(result.0, missingCategoryId)
+        XCTAssertEqual(result.1, TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale))
+        XCTAssertTrue(result.2)
+        XCTAssertEqual(result.3, missingCategoryId)
+        XCTAssertEqual(result.4, TallyLocalization.text(.uncategorized, locale: LanguageManager.shared.currentLocale))
+        XCTAssertTrue(result.5)
+    }
+
     func testSuggestedCategoriesTakesLeadingBySortOrderWithinLimit() async throws {
         let seed = (0..<8).map { makeCategory(type: .expense, name: "c\($0)", sortOrder: $0) }
 
@@ -366,6 +424,27 @@ final class QuickEntryViewModelTests: XCTestCase {
             colorHex: nil,
             isSystem: false,
             sortOrder: sortOrder
+        )
+    }
+
+    private func makeBill(type: BillType, categoryId: UUID) -> BillRecord {
+        let date = fixedDate(year: 2026, month: 5, day: 26, hour: 20, minute: 30)
+        let snapshot = TimePolicy.snapshot(for: date)
+        return BillRecord(
+            id: UUID(),
+            type: type,
+            amount: Money(cents: 1_200),
+            occurredAtUTC: snapshot.occurredAtUTC,
+            tzId: snapshot.tzId,
+            tzOffset: snapshot.tzOffset,
+            occurredLocalDate: snapshot.occurredLocalDate,
+            note: nil,
+            categoryId: categoryId,
+            isFromRecurring: false,
+            createdAt: date,
+            updatedAt: date,
+            deletedAt: nil,
+            trashUntil: nil
         )
     }
 
