@@ -219,7 +219,51 @@ final class CategoriesViewModelTests: XCTestCase {
 
         viewModel.persistOrder()
 
-        XCTAssertEqual(repository.updatedRecords.map(\.sortOrder), [1, 2])
+        XCTAssertEqual(repository.updateSortOrderCallCount, 1)
+        XCTAssertEqual(repository.updatedRecords.map(\.sortOrder), [])
+        XCTAssertEqual(repository.updatedSortOrders.map(\.sortOrder), [1, 2])
+    }
+
+    func testCoreDataCategoryRepositoryBatchSortOrderUpdatesCustomCategories() throws {
+        let repository = makeCoreDataCategoryRepository()
+        let first = makeCategory(name: "餐饮", isSystem: false, sortOrder: 1)
+        let second = makeCategory(name: "购物", isSystem: false, sortOrder: 2)
+        let third = makeCategory(name: "交通", isSystem: false, sortOrder: 3)
+        try repository.create(first)
+        try repository.create(second)
+        try repository.create(third)
+
+        try repository.updateSortOrders([
+            (id: third.id, sortOrder: 1),
+            (id: first.id, sortOrder: 2),
+            (id: second.id, sortOrder: 3)
+        ])
+
+        let categories = try repository.list(type: .expense)
+        XCTAssertEqual(categories.map(\.id), [third.id, first.id, second.id])
+        XCTAssertEqual(categories.map(\.sortOrder), [1, 2, 3])
+    }
+
+    func testCoreDataCategoryRepositoryBatchSortOrderSkipsSystemCategories() throws {
+        let repository = makeCoreDataCategoryRepository()
+        let system = makeCategory(
+            id: SystemCategoryID.uncategorizedExpense,
+            name: "未分类",
+            isSystem: true,
+            sortOrder: 0
+        )
+        let custom = makeCategory(name: "餐饮", isSystem: false, sortOrder: 1)
+        try repository.create(system)
+        try repository.create(custom)
+
+        try repository.updateSortOrders([
+            (id: system.id, sortOrder: 99),
+            (id: custom.id, sortOrder: 2)
+        ])
+
+        let categories = try repository.list(type: .expense)
+        XCTAssertEqual(categories.first(where: { $0.id == system.id })?.sortOrder, 0)
+        XCTAssertEqual(categories.first(where: { $0.id == custom.id })?.sortOrder, 2)
     }
 
     private func makeCategory(
@@ -237,6 +281,11 @@ final class CategoriesViewModelTests: XCTestCase {
             isSystem: isSystem,
             sortOrder: sortOrder
         )
+    }
+
+    private func makeCoreDataCategoryRepository() -> CoreDataCategoryRepository {
+        let persistence = PersistenceController(inMemory: true, runsStartupSeed: false)
+        return CoreDataCategoryRepository(context: persistence.container.viewContext)
     }
 }
 
@@ -259,6 +308,10 @@ private final class FailingCategoryRepository: CategoryRepository {
         throw error
     }
 
+    func updateSortOrders(_ orders: [(id: UUID, sortOrder: Int)]) throws {
+        throw error
+    }
+
     func delete(id: UUID, migrateTo destinationId: UUID) throws {
         throw error
     }
@@ -273,6 +326,8 @@ private final class RecordingCategoryRepository: CategoryRepository {
     private(set) var createdRecords: [CategoryRecord] = []
     private(set) var updatedId: UUID?
     private(set) var updatedRecords: [CategoryRecord] = []
+    private(set) var updateSortOrderCallCount = 0
+    private(set) var updatedSortOrders: [(id: UUID, sortOrder: Int)] = []
     private(set) var deletedId: UUID?
     private(set) var migrateToId: UUID?
 
@@ -295,6 +350,23 @@ private final class RecordingCategoryRepository: CategoryRepository {
         updatedId = record.id
         updatedRecords.append(record)
         storage[record.id] = record
+    }
+
+    func updateSortOrders(_ orders: [(id: UUID, sortOrder: Int)]) throws {
+        updateSortOrderCallCount += 1
+        updatedSortOrders = orders
+        for order in orders {
+            guard let record = storage[order.id], !record.isSystem else { continue }
+            storage[order.id] = CategoryRecord(
+                id: record.id,
+                type: record.type,
+                name: record.name,
+                iconKey: record.iconKey,
+                colorHex: record.colorHex,
+                isSystem: record.isSystem,
+                sortOrder: order.sortOrder
+            )
+        }
     }
 
     func delete(id: UUID, migrateTo destinationId: UUID) throws {

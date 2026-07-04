@@ -160,20 +160,12 @@ final class CategoriesViewModel: ObservableObject {
     func persistOrder(notifiesChange: Bool = true) {
         guard !categories.isEmpty else { return }
         let visibleUserCategories = categories.filter { !$0.isSystem }
-        let reorderedUserCategories = visibleUserCategories.enumerated().map { index, record in
-            CategoryRecord(
-                id: record.id,
-                type: record.type,
-                name: record.name,
-                iconKey: record.iconKey,
-                colorHex: record.colorHex,
-                isSystem: record.isSystem,
-                sortOrder: index + 1
-            )
+        let orders = visibleUserCategories.enumerated().map { index, record in
+            (id: record.id, sortOrder: index + 1)
         }
 
         do {
-            try reorderedUserCategories.forEach { try repository.update($0) }
+            try repository.updateSortOrders(orders)
             load(type: selectedType)
             errorMessage = nil
             if notifiesChange {

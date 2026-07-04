@@ -182,6 +182,21 @@ final class MockCategoryRepository: CategoryRepository {
         storage[record.id] = record
     }
 
+    func updateSortOrders(_ orders: [(id: UUID, sortOrder: Int)]) throws {
+        for order in orders {
+            guard let record = storage[order.id], !record.isSystem else { continue }
+            storage[order.id] = CategoryRecord(
+                id: record.id,
+                type: record.type,
+                name: record.name,
+                iconKey: record.iconKey,
+                colorHex: record.colorHex,
+                isSystem: record.isSystem,
+                sortOrder: order.sortOrder
+            )
+        }
+    }
+
     func delete(id: UUID, migrateTo destinationId: UUID) throws {
         storage.removeValue(forKey: id)
     }
@@ -195,6 +210,7 @@ final class NoopCategoryRepository: CategoryRepository {
     func list(type: BillType) throws -> [CategoryRecord] { [] }
     func create(_ record: CategoryRecord) throws {}
     func update(_ record: CategoryRecord) throws {}
+    func updateSortOrders(_ orders: [(id: UUID, sortOrder: Int)]) throws {}
     func delete(id: UUID, migrateTo destinationId: UUID) throws {}
     func count(type: BillType) throws -> Int { 0 }
 }

@@ -65,6 +65,35 @@ final class CoreDataCategoryRepository: CategoryRepository {
         }
     }
 
+    func updateSortOrders(_ orders: [(id: UUID, sortOrder: Int)]) throws {
+        guard !orders.isEmpty else { return }
+        let ids = orders.map(\.id)
+        let sortOrderByID = Dictionary(
+            orders.map { ($0.id, $0.sortOrder) },
+            uniquingKeysWith: { _, latest in latest }
+        )
+
+        try context.performAndWaitThrowing {
+            let request = NSFetchRequest<NSManagedObject>(entityName: "Category")
+            request.predicate = NSPredicate(format: "id IN %@", ids as NSArray)
+            let objects = try context.fetch(request)
+            for object in objects {
+                guard let id = object.value(forKey: "id") as? UUID else {
+                    throw RepositoryError.invalidData(field: "Category.id")
+                }
+                guard let isSystem = object.value(forKey: "isSystem") as? Bool else {
+                    throw RepositoryError.invalidData(field: "Category.isSystem")
+                }
+                guard !isSystem, let sortOrder = sortOrderByID[id] else { continue }
+                object.setValue(Int64(sortOrder), forKey: "sortOrder")
+            }
+
+            if context.hasChanges {
+                try context.save()
+            }
+        }
+    }
+
     func delete(id: UUID, migrateTo destinationId: UUID) throws {
         try context.performAndWaitThrowing {
             let category = try fetchCategoryObject(id: id)
