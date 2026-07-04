@@ -1,3 +1,4 @@
+import CoreData
 import XCTest
 @testable import Tally
 
@@ -266,6 +267,35 @@ final class CategoriesViewModelTests: XCTestCase {
         XCTAssertEqual(categories.first(where: { $0.id == custom.id })?.sortOrder, 2)
     }
 
+    func testCoreDataCategoryRepositoryDeleteMigratesBillsAndMergesSameContext() throws {
+        let persistence = PersistenceController(inMemory: true, runsStartupSeed: false)
+        let context = persistence.container.viewContext
+        let categoryRepository = CoreDataCategoryRepository(context: context)
+        let billRepository = CoreDataBillRepository(context: context)
+        let source = makeCategory(name: "餐饮", isSystem: false, sortOrder: 1)
+        let destination = makeCategory(name: "未分类迁移", isSystem: false, sortOrder: 2)
+        try categoryRepository.create(source)
+        try categoryRepository.create(destination)
+        for day in 1...3 {
+            _ = try billRepository.create(makeBillDraft(cents: day * 100, day: day, categoryId: source.id))
+        }
+
+        let request = NSFetchRequest<NSManagedObject>(entityName: "Bill")
+        let registeredBills = try context.fetch(request)
+        XCTAssertEqual(registeredBills.count, 3)
+        XCTAssertTrue(registeredBills.allSatisfy { ($0.value(forKey: "categoryId") as? UUID) == source.id })
+
+        try categoryRepository.delete(id: source.id, migrateTo: destination.id)
+
+        XCTAssertTrue(registeredBills.allSatisfy { ($0.value(forKey: "categoryId") as? UUID) == destination.id })
+        let bills = try billRepository.list()
+        XCTAssertEqual(bills.count, 3)
+        XCTAssertTrue(bills.allSatisfy { $0.categoryId == destination.id })
+        let categories = try categoryRepository.list(type: .expense)
+        XCTAssertFalse(categories.contains { $0.id == source.id })
+        XCTAssertTrue(categories.contains { $0.id == destination.id })
+    }
+
     private func makeCategory(
         id: UUID = UUID(),
         name: String,
@@ -286,6 +316,33 @@ final class CategoriesViewModelTests: XCTestCase {
     private func makeCoreDataCategoryRepository() -> CoreDataCategoryRepository {
         let persistence = PersistenceController(inMemory: true, runsStartupSeed: false)
         return CoreDataCategoryRepository(context: persistence.container.viewContext)
+    }
+
+    private func makeBillDraft(cents: Int, day: Int, categoryId: UUID) -> BillDraft {
+        BillDraft(
+            type: .expense,
+            amount: Money(cents: cents),
+            occurredAtLocal: fixedDate(day: day),
+            note: "分类迁移",
+            categoryId: categoryId,
+            isFromRecurring: false
+        )
+    }
+
+    private func fixedDate(day: Int) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+        let components = DateComponents(
+            calendar: calendar,
+            timeZone: calendar.timeZone,
+            year: 2026,
+            month: 6,
+            day: day,
+            hour: 10,
+            minute: 0,
+            second: 0
+        )
+        return calendar.date(from: components) ?? Date(timeIntervalSince1970: 0)
     }
 }
 

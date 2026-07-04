@@ -20,6 +20,8 @@ final class PersistenceControllerTests: XCTestCase {
         XCTAssertTrue(uniquePropertyNameSets(for: bill).contains(["id"]))
         XCTAssertTrue(indexedPropertyNames(for: bill).contains("id"))
         XCTAssertTrue(indexedPropertyNames(for: bill).contains("occurredLocalDate"))
+        XCTAssertTrue(indexedPropertyNames(for: bill).contains("occurredAtUTC"))
+        XCTAssertTrue(indexedPropertyNames(for: bill).contains("categoryId"))
 
         let category = try entity(named: "Category", in: model)
         XCTAssertTrue(uniquePropertyNameSets(for: category).contains(["id"]))

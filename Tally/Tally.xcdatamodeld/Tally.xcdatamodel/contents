@@ -26,6 +26,12 @@
         <fetchIndex name="byOccurredLocalDateIndex">
             <fetchIndexElement property="occurredLocalDate" type="Binary" order="ascending"/>
         </fetchIndex>
+        <fetchIndex name="byOccurredAtUTCIndex">
+            <fetchIndexElement property="occurredAtUTC" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byCategoryIdIndex">
+            <fetchIndexElement property="categoryId" type="Binary" order="ascending"/>
+        </fetchIndex>
     </entity>
     <entity name="Category" representedClassName="Category" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>

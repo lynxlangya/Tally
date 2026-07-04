@@ -104,11 +104,19 @@ final class CoreDataCategoryRepository: CategoryRepository {
                 throw RepositoryError.forbidden(reason: "System category cannot be deleted.")
             }
 
-            let billRequest = NSFetchRequest<NSManagedObject>(entityName: "Bill")
-            billRequest.predicate = NSPredicate(format: "categoryId == %@", id as CVarArg)
-            let bills = try context.fetch(billRequest)
-            for bill in bills {
-                bill.setValue(destinationId, forKey: "categoryId")
+            let batch = NSBatchUpdateRequest(entityName: "Bill")
+            batch.predicate = NSPredicate(format: "categoryId == %@", id as CVarArg)
+            batch.propertiesToUpdate = [
+                "categoryId": destinationId,
+                "updatedAt": Date()
+            ]
+            batch.resultType = .updatedObjectIDsResultType
+            let result = try context.execute(batch) as? NSBatchUpdateResult
+            if let objectIDs = result?.result as? [NSManagedObjectID], !objectIDs.isEmpty {
+                NSManagedObjectContext.mergeChanges(
+                    fromRemoteContextSave: [NSUpdatedObjectsKey: objectIDs],
+                    into: [context]
+                )
             }
 
             context.delete(category)
