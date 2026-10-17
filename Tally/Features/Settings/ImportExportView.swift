@@ -145,7 +145,7 @@ struct ImportExportView: View {
                 Text("\(viewModel.currentRecordCount)")
                     .font(TallyType.num(32, weight: .semibold))
                     .foregroundStyle(Color.tallyInk)
-                Text(TallyLocalization.text("records_unit", locale: LanguageManager.shared.currentLocale))
+                Text(TallyLocalization.format("records_unit", locale: LanguageManager.shared.currentLocale, viewModel.currentRecordCount))
                     .font(TallyType.body(13, weight: .medium))
                     .foregroundStyle(Color.tallyInkDim)
             }

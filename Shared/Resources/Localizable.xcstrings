@@ -823,9 +823,21 @@
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d entries"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d entry"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d entries"
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -874,9 +886,21 @@
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d days tracked"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d day tracked"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d days tracked"
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -959,9 +983,21 @@
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d categories · View all"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d category · View all"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d categories · View all"
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -1010,9 +1046,21 @@
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can add up to %d categories"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "You can add up to %d category"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "You can add up to %d categories"
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -1758,9 +1806,21 @@
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d entries"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d entry"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d entries"
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -1930,7 +1990,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Generated %@ (%d records)"
+            "value" : "Generated %1$@ (%#@records@)"
+          },
+          "substitutions" : {
+            "records" : {
+              "argNum" : 2,
+              "formatSpecifier" : "d",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg record"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg records"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -1947,7 +2029,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Generated %@ (%d records, %@)"
+            "value" : "Generated %1$@ (%#@records@, %3$@)"
+          },
+          "substitutions" : {
+            "records" : {
+              "argNum" : 2,
+              "formatSpecifier" : "d",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg record"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg records"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -2338,7 +2442,49 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ · %@ · %d records · %d errors"
+            "value" : "%1$@ · %2$@ · %#@records@ · %#@errors@"
+          },
+          "substitutions" : {
+            "records" : {
+              "argNum" : 3,
+              "formatSpecifier" : "d",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg record"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg records"
+                    }
+                  }
+                }
+              }
+            },
+            "errors" : {
+              "argNum" : 4,
+              "formatSpecifier" : "d",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg error"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg errors"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -2355,7 +2501,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Range %@ - %@ · %d days"
+            "value" : "Range %1$@ - %2$@ · %#@days@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 3,
+              "formatSpecifier" : "d",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -3647,7 +3815,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "records"
+            "value" : "%#@records@"
+          },
+          "substitutions" : {
+            "records" : {
+              "argNum" : 1,
+              "formatSpecifier" : "d",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "record"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "records"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {
@@ -4399,9 +4589,21 @@
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d records"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d record"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%d records"
+                }
+              }
+            }
           }
         },
         "zh-Hans" : {

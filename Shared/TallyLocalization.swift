@@ -112,6 +112,8 @@ enum TallyLocalization {
         string(key, locale: locale)
     }
 
+    // 英文单复数由 Localizable.xcstrings 的 plural variations（编译为 stringsdict）按传入的 locale 选形态；
+    // 下方 fallback 表只保留复数形态兜底。
     static func format(_ key: L10nKey, locale: Locale = Locale.autoupdatingCurrent, _ arguments: CVarArg...) -> String {
         String(format: string(key, locale: locale), locale: locale, arguments: arguments)
     }
