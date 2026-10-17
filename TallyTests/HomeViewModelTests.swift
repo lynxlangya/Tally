@@ -213,6 +213,50 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(result, [100, 0, 0, 0, 0, 0, 300])
     }
 
+    func testTrend7CentsSpansPreviousMonthNearMonthStart() async throws {
+        let now = fixedDate(year: 2026, month: 5, day: 2, hour: 9, minute: 0)
+        let categoryId = UUID()
+        let result = await MainActor.run { () -> ([Int], Int) in
+            let bills = [
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 700,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 26, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-26"
+                ),
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 200,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 30, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-30"
+                ),
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 400,
+                    occurredAtUTC: fixedDate(year: 2026, month: 5, day: 2, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-05-02"
+                ),
+                makeBill(
+                    id: UUID(),
+                    categoryId: categoryId,
+                    amountCents: 999,
+                    occurredAtUTC: fixedDate(year: 2026, month: 4, day: 25, hour: 9, minute: 0),
+                    occurredLocalDate: "2026-04-25"
+                )
+            ]
+            let viewModel = makeViewModel(bills: bills, categoryId: categoryId, now: now)
+            viewModel.load()
+            return (viewModel.trend7Cents, viewModel.summary.expenseCents)
+        }
+
+        // 窗口 04-26 ... 05-02：上月账单计入趋势，但不计入本月支出汇总。
+        XCTAssertEqual(result.0, [700, 0, 0, 0, 200, 0, 400])
+        XCTAssertEqual(result.1, 400)
+    }
+
     func testTrend7LabelsUseLocalizedWeekdayNames() async throws {
         let now = fixedDate(year: 2026, month: 4, day: 10, hour: 9, minute: 0)
         let categoryId = UUID()

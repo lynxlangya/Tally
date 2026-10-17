@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
     @Environment(\.tabBarVisibility) private var tabBarVisibility
@@ -76,6 +77,10 @@ struct HomeView: View {
             viewModel.load()
         }
         .onReceive(NotificationCenter.default.publisher(for: .categoryDidChange)) { _ in
+            viewModel.load()
+        }
+        // 跨午夜 / 跨月 / 时区变化：挂起期间系统会排队，回到前台时投递，避免"今天""本月"停留在旧日期。
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
             viewModel.load()
         }
         .sheet(item: $editingBill) { bill in

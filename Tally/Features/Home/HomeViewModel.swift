@@ -49,6 +49,8 @@ final class HomeViewModel: ObservableObject {
     private let nowProvider: () -> Date
     private var billById: [UUID: BillRecord] = [:]
     private var loadedBills: [BillRecord] = []
+    // 近 7 天趋势单独按 dayKey 区间取数：月初前 6 天会跨到上个月，不能复用当月账单。
+    private var recentExpenseByDay: [String: Int] = [:]
 
     init(
         repository: BillRepository,
@@ -65,8 +67,17 @@ final class HomeViewModel: ObservableObject {
         do {
             let monthKey = currentMonthKey()
             let bills = try billRepository.list(monthKey: monthKey, type: nil)
+            let recentDayKeys = trend7DayKeys()
+            let recentBills = try billRepository.list(
+                fromDayKey: recentDayKeys.first ?? DayKeyFormatter.dayKey(for: nowProvider()),
+                toDayKey: recentDayKeys.last ?? DayKeyFormatter.dayKey(for: nowProvider()),
+                type: .expense
+            )
             loadedBills = bills
             billById = Dictionary(uniqueKeysWithValues: bills.map { ($0.id, $0) })
+            recentExpenseByDay = recentBills.reduce(into: [String: Int]()) { result, bill in
+                result[bill.occurredLocalDate, default: 0] += bill.amount.cents
+            }
 
             let categoryMap = loadCategories()
             updateSummary(with: bills)
@@ -90,22 +101,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     var trend7Cents: [Int] {
-        let calendar = Calendar.current
-        let now = nowProvider()
-        let today = calendar.startOfDay(for: now)
-        let dayKeys = (0..<7).compactMap { offset -> String? in
-            guard let date = calendar.date(byAdding: .day, value: offset - 6, to: today) else {
-                return nil
-            }
-            return DayKeyFormatter.dayKey(for: date)
-        }
-        let daySet = Set(dayKeys)
-        let expenseTotals = loadedBills
-            .filter { $0.type == .expense && daySet.contains($0.occurredLocalDate) }
-            .reduce(into: [String: Int]()) { result, bill in
-                result[bill.occurredLocalDate, default: 0] += bill.amount.cents
-            }
-        return dayKeys.map { expenseTotals[$0, default: 0] }
+        trend7DayKeys().map { recentExpenseByDay[$0, default: 0] }
     }
 
     var trend7Labels: [String] {
@@ -249,6 +245,17 @@ final class HomeViewModel: ObservableObject {
 
     private func monthTitle(for date: Date) -> String {
         TallyLocalization.monthYearTitle(for: date, locale: LanguageManager.shared.currentLocale)
+    }
+
+    private func trend7DayKeys() -> [String] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: nowProvider())
+        return (0..<7).compactMap { offset -> String? in
+            guard let date = calendar.date(byAdding: .day, value: offset - 6, to: today) else {
+                return nil
+            }
+            return DayKeyFormatter.dayKey(for: date)
+        }
     }
 
     private func currentMonthKey() -> String {
